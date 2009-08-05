@@ -2,6 +2,7 @@
 
 #cleancheck.sh
 #script that combines virusscanning with checking for rootkits
+#and checking system integrety
 
 ##help_option starts here
 option_h()
@@ -336,8 +337,8 @@ if [ ! -z $WITH_FEATURE ]
 
 		echo "------------------------------------------------------------------" >> $LOGFILE
 
-		clear_homes
 		verify_package
+		clear_homes		
 fi
 }	
 
@@ -355,7 +356,8 @@ check_root
 
 exit 0
 
-#add rpm --verify or debian aquivalent
+#howto make different package checks
+#any sugestions will help
 #the checking for valid is not much functional yet
 #clean up the code
 #remove all prior logs option
