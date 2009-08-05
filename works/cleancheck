@@ -358,3 +358,4 @@ exit 0
 #add rpm --verify or debian aquivalent
 #the checking for valid is not much functional yet
 #clean up the code
+#remove all prior logs option
