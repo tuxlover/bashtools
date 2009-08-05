@@ -21,6 +21,7 @@ echo "      A: scan for viruses"
 echo "      C: check for rootkits"
 echo "      D: only do the deletion of users files. action will be automaticly done if not root"
 echo "      S: check security holes"
+echo "      P do an package integrety-check" 
 echo "      You may also use this option to set the order of checks performed"
 exit 1		
 }
@@ -82,69 +83,69 @@ W_F="$OPTARG"
 c=${#OPTARG}
 while [ $c -ge 0 ]
 	do
-	WITH_FEATURE[$c]=${W_F:$c:1}
-	c=$(($c-1))
+		WITH_FEATURE[$c]=${W_F:$c:1}
+		c=$(($c-1))
 	done
 }
 
 
 
 while getopts a:c:l:e:s:w:ho opt
-do
-	case "$opt" in
-	a) option_a
-	;;
-	c) option_c
-	;;
-	h) option_h
-	;;
-	l) option_l
-	;;
-	e) option_e
-	;;
-	o) option_o
-	;;
-	s) option_s
-	;;
-	w) option_w
-	;;
-	\?) exit 1
-	esac
-done
+	do
+		case "$opt" in
+			a) option_a
+			;;
+			c) option_c
+			;;
+			h) option_h
+			;;
+			l) option_l
+			;;
+			e) option_e
+			;;
+			o) option_o
+			;;
+			s) option_s
+			;;
+			w) option_w
+			;;
+			\?) exit 1
+		esac
+	done
 shift `expr $OPTIND - 1`
 
 if [ -z $ANTIVIR ]
-then
-ANTIVIR="/usr/bin/clamscan" #enter the path to clamscan or the path to your virus scanner
+	then
+		ANTIVIR="/usr/bin/clamscan" #enter the path to clamscan or the path to your virus scanner
 fi
 
 if [ -z $ROOTKIT_CHECKER ]
-then
-ROOTKIT_CHECKER="/sbin/chkrootkit" #enter the path to your rootkitchecker
+	then
+		ROOTKIT_CHECKER="/sbin/chkrootkit" #enter the path to your rootkitchecker
 fi
 
 if [ -z $SECURITY_CHECKER ] #check for open security holes
-then
-SECURITY_CHECKER="/usr/bin/lynis"
+	then
+		SECURITY_CHECKER="/usr/bin/lynis"
 fi
 
 if [ -z $DEL_LOG ]
-then
-DEL_LOG="no"
+	then
+		DEL_LOG="no"
 fi
 
 if [ -z $LOGFILE ]
-then
-LOGFILE="/var/log/cleancheck.log"
-touch /var/log/cleancheck.log
-else
-unset LOGDIR
-LOGDIR=$(echo ${LOGFILE%/*} )
-	if [ ! -d $LOGDIR ]
 	then
-	mkdir -p $LOGDIR
-	fi
-touch $LOGFILE
+		LOGFILE="/var/log/cleancheck.log"
+		touch /var/log/cleancheck.log
+	else
+		unset LOGDIR
+		LOGDIR=$(echo ${LOGFILE%/*} )
+		if [ ! -d $LOGDIR ]
+			then
+				mkdir -p $LOGDIR
+		fi
+		touch $LOGFILE
 fi
 ##setting up runtime variables ends here
 
@@ -153,12 +154,12 @@ fi
 check_root()
 {
 if [ $UID -ne 0 ]
-then #use withfeature instead withoout_feature
-drop_failure
-echo "not root"
-clear_homes
-else
-main
+	then #use withfeature instead withoout_feature
+		drop_failure
+		echo "not root"
+		clear_homes
+	else
+		main
 fi
 }
 
@@ -168,14 +169,14 @@ check_antivir()
 	
 echo "checking for $ANTIVIR" 2> /dev/null
 if [ ! -x $ANTIVIR ]
-then
-drop_failure
-echo "$ANTIVIR is not a valid clamav installation"
-exit 1
-else
-drop_ok
-echo "trying to update daily.cvd file"
-wget -c --progress=dot:binary --directory-prefix=/var/lib/clamav/ http://db.local.clamav.net/daily.cvd || echo "not possible"
+	then
+		drop_failure
+		echo "$ANTIVIR is not a valid clamav installation"
+		exit 1
+	else
+		drop_ok
+		echo "trying to update daily.cvd file"
+		wget -c --progress=dot:binary --directory-prefix=/var/lib/clamav/ http://db.local.clamav.net/daily.cvd || echo "not possible"
 fi
 }
 
@@ -184,12 +185,12 @@ check_rootkit_checker()
 
 echo "checking for $ROOTKIT_CHECKER" 2> /dev/null
 if [ ! -x $ROOTKIT_CHECKER ]
-then
-drop_failure
-echo "$ROOTKIT_CHECKER is not a valid rootkitcheker"
-exit 1
-else
-drop_ok
+	then
+		drop_failure
+		echo "$ROOTKIT_CHECKER is not a valid rootkitcheker"
+		exit 1
+	else
+		drop_ok
 fi
 }
 
@@ -197,12 +198,12 @@ check_lynis()
 {
 echo "checking for $SECURITY_CHECKER" 2> /dev/null
 if [ ! -x $SECURITY_CHECKER ]
-then
-drop_failure
-echo "$SECURITY_CHECKER is not a valid"
-exit 1
-else
-drop_ok
+	then
+		drop_failure
+		echo "$SECURITY_CHECKER is not a valid"
+		exit 1
+	else
+		drop_ok
 fi
 }
 
@@ -211,121 +212,132 @@ clear_homes()
 echo "cleaning up users home"
 for u in $USERS_HOME
 	do
-	find $u -type d -name .thumbnails -exec rm -r {} \;
-	find $u -type f -name .recently-used -exec rm -r {} \;
-	find $u -type f -name .recently-used.xbel -exec rm -r {} \;
+		find $u -type d -name .thumbnails -exec rm -r {} \;
+		find $u -type f -name .recently-used -exec rm -r {} \;
+		find $u -type f -name .recently-used.xbel -exec rm -r {} \;
 	done	
 }
 
 exclude_this() #prepare exclude for clamscan 
 {
-	for d in  ${DIRS[@]}
+for d in  ${DIRS[@]}
 	do
-	echo \ 
-	echo "--exclude-dir"=$d
+		echo \ 
+		echo "--exclude-dir"=$d
 	done
+}
+
+verify_package()
+{
+#howto implement different types of package-mangement
+rpm -Va |tee -a $LOGFILE
+
 }
 
 #do the main action including check for dirs and files
 main()
 {
 if [ "$DEL_LOG" = "yes" ]
-then
-rm $LOGFILE
+	then
+		rm $LOGFILE
 fi	
 	
 if [ ! -z $WITH_FEATURE ]
-then
-echo $INDEX >> $LOGFILE
-echo "file was created by $0" >> $LOGFILE
-echo "-----------------------------------------------------------------" >> $LOGFILE
-	for i in ${WITH_FEATURE[@]}
-	do
-		case $i in
-		A)
-			if [ ! -z $EXCLUDE_DIRS ]
+	then
+		echo $INDEX >> $LOGFILE
+		echo "file was created by $0" >> $LOGFILE
+		echo "-----------------------------------------------------------------" >> $LOGFILE
+		for i in ${WITH_FEATURE[@]}
+			do
+				case $i in
+					A)
+					if [ ! -z $EXCLUDE_DIRS ]
+						then
+							echo "with clamscan"|tee -a $LOGFILE 
+							echo "with excludedirs"
+							check_antivir
+							echo "Skiping"
+							for dir in ${DIRS[@]}
+								do
+									echo $dir
+								done
+				
+							E=$( exclude_this)
+							ANT=`$ANTIVIR -r -i $E /`
+							echo "$ANT" >> $LOGFILE
+						else
+							echo "with clamscan"|tee -a $LOGFILE
+							check_antivir
+							ANT=`$ANTIVIR -r -i /`
+							echo "$ANT" >> $LOGFILE
+					fi
+					;;
+					C) 
+					echo "with chkrootkit"|tee -a $LOGFILE 
+					check_rootkit_checker
+					CNT=`$ROOTKIT_CHECKER`
+					echo "$CNT" >> $LOGFILE		
+					;;
+					D) 
+					echo "only clear_homes"
+					clear_homes
+					;;  
+					S) 			
+					echo "with lynis"|tee -a $LOGFILE
+					check_lynis
+					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+					echo "$SNT" >> $LOGFILE      
+					;;
+					P)
+					echo "verifiying package integrety" 
+					verify_package
+					;;
+					\?) 
+					option_h #in case the option dont met display help
+				esac
+			done
+		echo "------------------------------------------------------------------" >> $LOGFILE
+	else
+		echo $INDEX >> $LOGFILE
+		echo "file was created by $0" >> $LOGFILE
+		echo "-----------------------------------------------------------------" >> $LOGFILE
+		echo "with clamscan" |tee -a $LOGFILE
+		echo "with chkrootkit"|tee -a $LOGFILE
+		echo "with lynis"|tee -a $LOGFILE
+		check_antivir
+		check_lynis 
+		check_rootkit_checker
+
+		if [ ! -z $EXCLUDE_DIRS ]
 			then
-			echo "with clamscan"|tee -a $LOGFILE 
-			echo "with excludedirs"
-			check_antivir
+				echo "with clamscan"|tee -a $LOGFILE 
+				echo "with excludedirs"
+				check_antivir
 				echo "Skiping"
 				for dir in ${DIRS[@]}
 					do
-			        echo $dir
+						echo $dir
 					done
 				
-			E=$( exclude_this)
-			ANT=`$ANTIVIR -r -i $E /`
-			echo "$ANT" >> $LOGFILE
+				E=$( exclude_this)
+				ANT=`$ANTIVIR -r -i $E /`
+				echo "ANT" >> $LOGFILE
 			else
-			echo "with clamscan"|tee -a $LOGFILE
-			check_antivir
-			ANT=`$ANTIVIR -r -i /`
-			echo "$ANT" >> $LOGFILE
-			fi
-		;;
-		C) 
-			echo "with chkrootkit"|tee -a $LOGFILE 
-			check_rootkit_checker
-			CNT=`$ROOTKIT_CHECKER`
-			echo "$CNT" >> $LOGFILE		
-		;;
-		D) 
-			echo "only clear_homes"
-			clear_homes
-		;;  
-		S) 
-			
-			echo "with lynis"|tee -a $LOGFILE
-			check_lynis
-			SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-			echo "$SNT" >> $LOGFILE      
-		;;
-		\?) exit 1
-		esac
-	done
-echo "------------------------------------------------------------------" >> $LOGFILE
-else
-echo $INDEX >> $LOGFILE
-echo "file was created by $0" >> $LOGFILE
-echo "-----------------------------------------------------------------" >> $LOGFILE
-echo "with clamscan" |tee -a $LOGFILE
-echo "with chkrootkit"|tee -a $LOGFILE
-echo "with lynis"|tee -a $LOGFILE
-check_antivir
-check_lynis 
-check_rootkit_checker
+				echo "with clamscan"|tee -a $LOGFILE
+				check_antivir
+				ANT=`$ANTIVIR -r -i /`
+				echo "$ANT" >> $LOGFILE
+		fi
 
-if [ ! -z $EXCLUDE_DIRS ]
-			then
-			echo "with clamscan"|tee -a $LOGFILE 
-			echo "with excludedirs"
-			check_antivir
-			echo "Skiping"
-				for dir in ${DIRS[@]}
-					do
-			        echo $dir
-					done
-				
-			E=$( exclude_this)
-			ANT=`$ANTIVIR -r -i $E /`
-			echo "ANT" >> $LOGFILE
-			else
-			echo "with clamscan"|tee -a $LOGFILE
-			check_antivir
-			ANT=`$ANTIVIR -r -i /`
-			echo "$ANT" >> $LOGFILE
-			fi
+		CNT=`$ROOTKIT_CHECKER`
+		echo "$CNT"	>> $LOGFILE	
+		SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+		echo "$SNT" >> $LOGFILE
 
-CNT=`$ROOTKIT_CHECKER`
-echo "$CNT"	>> $LOGFILE	
+		echo "------------------------------------------------------------------" >> $LOGFILE
 
-SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-echo "$SNT" >> $LOGFILE
-
-echo "------------------------------------------------------------------" >> $LOGFILE
-
-clear_homes
+		clear_homes
+		verify_package
 fi
 }	
 
@@ -343,7 +355,6 @@ check_root
 
 exit 0
 
-#report which dirs are skipped by -e option
-#add rrpm --verify or debian aquivalent
+#add rpm --verify or debian aquivalent
 #the checking for valid is not much functional yet
 #clean up the code
