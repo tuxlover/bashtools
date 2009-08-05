@@ -1,0 +1,12 @@
+#dir_empty
+
+#Script snipplet that tests whether a directory is empty or not
+
+#!/bin/bash
+
+if [[ -d $1  && -s $1 ]]
+then
+echo "directory is not empty"
+else
+echo "directory is empty"
+fi

@@ -1,0 +1,20 @@
+#do_nothing
+#Script Snipplet that simply does nothing
+#it can be used for example as a configure script for build instructions of software
+#to package if there is nothing to configure
+
+: #ths character invokes the script to do simply nothiing
+
+#if you want to print at least a message you can do it as follow
+
+echo "do nothing"
+:
+
+# or in a test condition
+
+if [ CONDITION ]
+then
+TAKE_SOME_ACTION
+else
+:
+fi

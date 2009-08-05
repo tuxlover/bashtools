@@ -1,0 +1,22 @@
+EXIT_CODES
+This file is an overview of all existing exit-codes used in the scripts to
+provide an overview and make them uniform.
+
+WRONG_SIZE 80
+WRONG_DISTRI 81
+NO_PART 82
+NOT_FILE 63
+BAD_ARGS 64
+NO_ARGS 65
+NO_DIR 66
+NOT_ROOT 67
+CANT_CHANGE 68
+DIR_EXISTS 69
+NO_SPACE_LEFT 31
+NO_SWAP 32
+NO_DEB, NO_RPM 33
+NO_SYNC 34
+NO_TAR, NO_CONVERT NO_ZIP 21
+NOT_VALID 22
+STOP 23
+NO_INT 24

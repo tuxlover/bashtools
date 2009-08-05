@@ -1,0 +1,6 @@
+TO-DO list for bashtools 0.6
++implement all scripts in ideas
++finsished unfinshed scripts
++use getopts instead the ugly case construct to get user options 
++use file to check for file arguments
+

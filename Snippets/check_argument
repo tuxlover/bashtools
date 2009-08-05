@@ -1,0 +1,12 @@
+#check_argument
+#Script snipplet that tests for valid argument for scripts
+
+NO_ARGS=65
+
+if [ -z "$1" ]
+then
+echo "Usage: `basename $0` Argument"
+exit $NO_ARGS
+else
+:
+fi

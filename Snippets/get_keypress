@@ -1,0 +1,11 @@
+#get_keypress
+
+#script snipplet that verifies which key was pressed
+
+#!/bin/bash
+clear
+read -s -n 1 -p "Hit a Key" A
+clear
+echo "$A was pressed"
+
+exit 0

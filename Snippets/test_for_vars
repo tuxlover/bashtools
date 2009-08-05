@@ -1,0 +1,54 @@
+#test_for_vars
+#tests whether VAR is set if not set it
+
+VAR1=
+VAR2=
+VAR3=
+
+option_a()
+{
+VAR1="$OPTARG"
+}
+
+option_b()
+{
+VAR2="$OPTARG"	
+}
+
+option_c()
+{
+VAR3="$OPTARG"
+}
+
+
+while getopts a:b:c: opt
+		do
+		case "$opt" in
+		a) option_a
+		;;
+		b) option_b
+		;;
+		c) option_c
+		esac
+		done
+shift `expr $OPTIND - 1`
+		
+
+if [ -z $VAR1 ]
+then
+VAR1=erdbeere
+fi
+
+if [ -z $VAR2 ]
+then
+VAR2=waldbeere
+fi
+
+if [ -z $VAR3 ]
+then
+VAR3=apfel
+fi
+
+
+echo "$VAR1 $VAR2 $VAR3"
+

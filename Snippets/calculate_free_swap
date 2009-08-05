@@ -1,0 +1,22 @@
+#calculate_free_swap
+
+#Snipplet that shows how a calculating of sveral values can be done
+
+
+
+#!/bin/bash
+
+A=$(free -m | tail -1)
+echo $A
+B=$(echo ${A#* })
+echo $B
+C=$(echo ${B#* })
+echo $C
+declare -i D=$(echo ${C#* }) 2> /dev/null
+echo $D
+
+declare -i E=956
+
+NEW=$(expr $E - $D )
+
+echo "$NEW is the value" 

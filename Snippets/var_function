@@ -1,0 +1,15 @@
+#!/bin/bash
+#Snippet that shows how Variable can been seen within a function
+
+
+TEST=$(ls)
+
+func ()
+{
+
+TESTE2={func $TEST}
+
+echo $TEST2
+}
+
+func

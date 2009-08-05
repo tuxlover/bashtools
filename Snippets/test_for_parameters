@@ -1,0 +1,22 @@
+#test_for_parameters
+#Script snipplet that test wheter the script has arguments. if so take some action.
+
+if [ -n "$1" ]
+then
+TAKE_ACTION
+else
+exit
+fi
+
+#or if you want reverse the scence
+
+if [ ! -n "$1" ]
+then
+exit
+else
+TAKE_ACTION
+fi
+
+#this is the way to referrence to more then one variable and handle only the last one
+ARGS=$#
+LASTARG=$(!#)

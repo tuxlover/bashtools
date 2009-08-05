@@ -1,0 +1,29 @@
+#clear_file
+#Script snipplet that clears the text or the characters of the script but 
+#leaves the original file as blank file
+
+FILE=foo #here you may enter the file you may to cleanup
+
+cat /dev/null > $FILE
+
+#or if you want to leave the last or the first n lines of the original file
+
+LINES=n
+
+if [ -n "$1"  ]
+then
+lines=$1
+else
+lines=$LINES
+fi   #you may give $LINES as argument to the script
+
+touch foo.tmp
+tail -n $lines $FILE > foo.tmp #for cutting of the last n LINES
+head -n $LINES $FILE > foo.tmp #for cutting of the first of n LINES
+
+cat /dev/null > $FILE 
+less foo.tmp > $FILE
+rm foo.tmp
+#i suggest that to clean up the temporary file also and write the last $LINES back to the original logfile
+
+

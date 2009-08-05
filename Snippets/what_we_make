@@ -1,0 +1,24 @@
+#what_we_make
+
+#script snipplet that works with option
+
+does not work yet
+
+#!/bin/bash
+
+if [ $# = "-a" ]
+then
+echo "i do somthing."
+fi
+
+if [ $# = "-b" ]
+then
+echo "i do something else"
+fi
+
+#if [[ $# != "-a" && $# != "-b"   ]]
+#then
+#echo "forget it."
+#fi
+
+exit 0

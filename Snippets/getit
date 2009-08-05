@@ -1,0 +1,11 @@
+#read_rpm_for
+
+#Script Snipplet that gets multiple linked website conetent do be downloaded.
+
+i=0
+while true
+do
+(( i += 1 ))
+wget http://chaosradio.ccc.de/ctv0$i.html
+done
+

@@ -1,0 +1,13 @@
+#self_deflet
+#Script Snipplet that deletes itself
+
+#!/bin/rm
+# Nothing much seems to happen when you run this... except that the file disappears.
+
+WHATEVER=65
+
+echo "This line will never print (betcha!)."
+
+exit $WHATEVER  # Doesn't matter. The script will not exit here.
+                 # Try an echo $? after script termination.
+                 # You'll get a 0, not a 65.

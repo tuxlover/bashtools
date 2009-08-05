@@ -1,0 +1,31 @@
+#!/bin/bash
+
+
+NO_ARGS=0
+
+option_a()
+{
+filename="$OPTARG"
+ls -lisah $filename
+}
+
+option_b()
+{
+filename="$OPTARG"
+ls -li $filename
+}
+
+
+filename=
+while getopts a:b: opt
+do
+    case "$opt" in
+      a) option_a;;
+      b) option_b;;
+      \?)		# unknown flag
+      	  echo >&2 \
+	  "usage: $0 [-v] [-f filename] [file ...]"
+	  exit 1;;
+    esac
+done
+shift `expr $OPTIND - 1`

@@ -1,0 +1,5 @@
+A=10
+until [ $A -eq 0 ] 
+do ((A -=1 )) 
+echo $A 
+done 

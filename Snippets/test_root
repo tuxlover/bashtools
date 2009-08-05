@@ -1,0 +1,10 @@
+#Script snipplet for testing wether the script is runnig with the correct user id
+#for exampel root
+
+if [ $UID -ne 0 ]
+then
+echo "Not Root"
+exit 67
+else
+:
+fi

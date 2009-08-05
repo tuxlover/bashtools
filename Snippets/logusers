@@ -1,0 +1,19 @@
+#logusers
+#Script that logs the uptime, date and time as well as all users are logged with there actions
+
+#!/bin/bash
+
+NOT_ROOT=67
+LOG_DIR=/var/log/logusers #change this according to your needs
+
+if [ $UID -ne 0 ]
+then
+echo "Not root"
+exit NOT_ROOT
+else
+:
+fi
+
+
+
+ps -A u

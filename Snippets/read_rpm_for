@@ -1,0 +1,11 @@
+#read_rpm_for
+
+#Script Snipplet that 
+
+i=0
+while true
+do
+(( rpm += 1 ))
+do action$rpm
+done
+

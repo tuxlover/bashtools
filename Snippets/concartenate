@@ -1,0 +1,17 @@
+#concartenate
+#Script snipplet that combines multiple files to only one
+
+touch file1 #creates a file with the character a
+echo "a" > file1
+
+touch file2 #creates a file with the character b
+echo "b" > file2
+
+touch file3 #creates a file with the character c
+echo "c" > file3
+
+cat file1 file2 file3 > file4 #file 4 now has a,b and c 
+rm file1 file2 file3
+
+exit 0
+

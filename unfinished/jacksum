@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#Wrapper Script for jacksum
+
+jack_the_sum ()
+{
+java -jar /usr/share/jacksum/jacksum.jar
+}
+
+echo -e '\E[32m Message from jacksum- wrapper script'; tput sgr0
+echo -e '\E[32m Enter jacksum -hen if you need more help'; tput sgr0
+echo -e '\E[32m jacksum -hde für Hilfe eingeben.'; tput sgr0
+
+case $1 in 
+-hde) java -jar /usr/share/jacksum/jacksum.jar -h de
+    ;;
+-hen) java -jar /usr/share/jacksum/jacksum.jar -h en
+    ;;
+*) jack_the_sum
+;;
+esac
+
+exit 0

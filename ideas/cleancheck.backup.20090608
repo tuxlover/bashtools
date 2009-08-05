@@ -1,0 +1,260 @@
+#!/bin/bash
+
+#checkscan.sh
+#script that combines virusscanning with checking for rootkits
+
+##help_option starts here
+option_h()
+{
+echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACS]"
+echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
+echo "-c set path to  chkrootkit binary. if not set /usr/sbin/chkrootkit is used"
+echo "-e exclude these dirs for scanning"
+echo "-l set name and path to logdir"
+echo "-h show this help"
+echo "-s set path to lynix binary. if not set /usr/bin/lynis is used"
+echo "-w with feature explizit set weature"
+echo "      A: scan for viruses"
+echo "      C: check for rootkits"
+echo "      S: check security holes"
+exit 1		
+}
+##help option end here
+
+##setting up runtime varibales starts here
+
+LOGDIR=/var/log/check
+INDEX=$(date +%Y%m%d%H%M%S)
+
+#first initilize the variables
+ANTIVIR=
+ROOTKIT_CHECKER=
+SECURITY_CHECKER=
+LOGFILE=
+declare -a EXCLUDE_DIRS=
+declare -a WITH_FEATURE=
+
+option_a()
+{
+ANTIVIR="$OPTARG"
+}
+
+option_c()
+{
+ROOTKIT_CHECKER="$OPTARG"	
+}
+
+option_e()
+{
+EXCLUDE_DIRS="$OPTARG"	
+}
+
+option_l()
+{
+LOGFILE="$OPTARG"
+}
+
+option_s()
+{
+SECURITY_CHECKER="$OPTARG"	
+}
+
+option_w()
+{
+WITH_FEATURE="$OPTARG"	
+}
+
+while getopts a:c:l:e:s:w:h opt
+do
+	case "$opt" in
+	a) option_a
+	;;
+	c) option_c
+	;;
+	l) option_l
+	;;
+	h) option_h
+	;;
+	e) option_e
+	;;
+	s) option_s
+	;;
+	w) option_w
+	;;
+	\?) exit 1
+	esac
+done
+shift `expr $OPTIND - 1`
+
+if [ -z $ANTIVIR ]
+then
+ANTIVIR="/usr/bin/clamscan" #enter the path to clamscan or the path to your virus scanner
+fi
+
+if [ -z $ROOTKIT_CHECKER ]
+then
+ROOTKIT_CHECKER="/sbin/chkrootkit" #enter the path to your rootkitchecker
+fi
+
+if [ -z $SECURITY_CHECKER ] #check for open security holes
+then
+SECURITY_CHECKER="/usr/bin/lynis"
+fi
+
+#if [ -z $LOGFILE ]
+#then
+#touch /var/log/cleancheck.log
+#$LOGFILE="/var/log/cleancheck.log"
+#fi
+
+##setting up runtime variables ends here
+
+
+#check whether you are root
+check_root()
+{
+if [ $UID -ne 0 ]
+then #use withfeature instead withoout_feature
+drop_failure
+echo "not root"
+exit 1
+else
+main
+fi
+}
+
+#check whether programs and argumets are set correctly
+check_antivir()
+{
+	
+echo "checking for $ANTIVIR" 2> /dev/null
+if [ ! -x $ANTIVIR ]
+then
+drop_failure
+echo "$ANTIVIR is not a valid clamav installation"
+exit 1
+else
+drop_ok	
+fi
+}
+
+check_rootkit_checker()
+{
+
+echo "checking for $ROOTKIT_CHECKER" 2> /dev/null
+if [ ! -x $ROOTKIT_CHECKER ]
+then
+drop_failure
+echo "$ROOTKIT_CHECKER is not a valid rootkitcheker"
+exit 1
+else
+drop_ok
+fi
+}
+
+check_lynis()
+{
+echo "checking for $SECURRITY_CHECKER" 2> /dev/null
+if [ ! -x $SECURITY_CHECKER ]
+then
+drop_failure
+echo "$SECURITY_CHECKER is not a valid"
+exit 1
+else
+drop_ok
+fi
+}
+
+#do the main action including check for dirs and files
+main()
+{
+if [ ! -z $WITH_FEATURE ]
+then
+	for i in $WITH_FEATURE
+	do
+		case $i in
+		A)
+			if [ ! -z $EXCLUDE_DIRS ]
+			then
+			echo "with clamscan"echo "$ANT"
+
+			echo "with excludedirs"
+			check_antivir
+			ANT=`$ANTIVIR -r -i --exclude-dir="$EXCLUDE_DIRS" /`
+			echo "ANT"
+			else
+			echo "with clamscan"
+			check_antivir
+			ANT=`$ANTIVIR -r -i /`
+			echo "$ANT"
+			fi
+		;;
+		C) 
+			echo "with chkrootkit" 
+			check_rootkit_checker
+			CNT=`$ROOTKIT_CHECKER --no-colors --no-log`
+			echo "$CNT"		
+		;;
+		S) 
+			
+			echo "with lynis"
+			check_lynis
+			SNT=`$SECURITY_CHECKER`
+			echo "$SNT"       
+		;;
+		\?) exit 1
+		esac
+	done
+
+else
+echo "with clamscan"
+check_antivir
+check_lynis 
+check_rootkit_checker
+
+ANT=`$ANTIVIR -r -i /`
+echo "$ANT"
+
+CNT=`$ROOTKIT_CHECKER --no-colors --no-log`
+echo "$CNT"		
+
+SNT=`$SECURITY_CHECKER`
+echo "$SNT" 
+
+fi
+
+}	
+
+drop_failure ()
+{
+echo -e '\t \t \t \t \E[31mfailure'; tput sgr0
+}
+
+drop_ok ()
+{
+echo -e '\t \t \t \t \E[32mok'; tput sgr0
+}
+
+
+
+check_root
+
+exit 0
+
+#delete .recently-used save files
+#if excludedirs is not set dont use it
+#disbale option -d arg   multiple option combineable with a
+#for a testrun we have to compile lynis
+#automaticly show warnmessage for to old chkrootkit
+#implement excludedir
+#implement wihtout-feature
+#we can set the path
+#exclude the dir with the report
+# no logfile destination yet
+#check if logdir is set probertly
+# make printing of with ... colorized
+#try to update and install automaticly during runtim
+# wget URL_clamav && mv dayly.cvd /var/lib/clamav/
+# wget URL_lynis && wget URL_spec && rpmbuild -bai specfile
+# wget URL_rkhunter && build && install 
+# use chkutmp chkdirs chklastlog chkutmp chk .. and other programs that comes with package chkrootkit

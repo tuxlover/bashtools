@@ -1,0 +1,20 @@
+#compare_free_space_gb
+
+#script snipplet that compares the free space (in gb) with a given limitting vlaue
+
+#!/bin/bash
+
+WERT=8
+
+A=$(df -h | head -2 | tail -1)
+B=$(echo ${A#*G})
+C=$(echo ${B#* })
+declare -i D=$(echo ${C%G*})
+
+
+if [ $D -le $WERT ]
+then
+echo "not enough space"
+else
+echo "ok"
+fi

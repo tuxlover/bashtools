@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+#shows how getopt works
+
+while getopts abc opt
+do
+	case "$opt" in
+	a) echo "You choose option a"; exit 0
+	;;
+	b) echo "You choose option b"; exit 0
+	;;
+	c) echo "You chosse option c"; exit 0
+	;;
+	esac
+done
+echo "you chose no option"
+
+exit 0

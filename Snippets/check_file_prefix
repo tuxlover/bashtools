@@ -1,0 +1,14 @@
+#check_file_prefix
+#Script snipplet that checks the prefix of a file
+#it can be used for programming a file check integrety based on the file prefix
+
+FILE=$1
+
+if [ ! ${FILE/#\/pref*} ]
+then
+echo "MATCH"
+else
+echo "No MATCH"
+fi
+
+#better way may be using the magic number of a file

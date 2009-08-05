@@ -1,0 +1,19 @@
+#multiple_choise
+#Script Snipplet that lets the user choose between more input values and 
+#scip incorrect ones
+
+
+while true #opens a loop which ask the question again and again as the answer is not true.
+	do
+	ANSWER="false"
+	read -p "What is the mascot of linux? a) penguin b) baer c) dolphin" -n 1 -s ANSWER #reads only one character from keyboard and reads the variable ANSWER
+	${ANSWER:="false"} 2> /dev/null #sets the Answer back to default value if the user presses just the enter key also you can use the -t option to preset a time intervall for user action
+	case "$ANSWER" in
+	[a]) clear && echo "correct" && break ;; #breaks out the loop
+	[b]) clear && echo "wrong" ;;
+	[c]) clear && echo "wrong" ;;
+	*) clear && echo "Select an answer between a b and c" ;;
+	esac
+	done
+
+#see man bash for further instrutions
