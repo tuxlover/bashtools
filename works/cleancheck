@@ -211,20 +211,20 @@ fi
 clear_homes()
 {
 echo "cleaning up users home"
-for u in $USERS_HOME
+for file in $USERS_HOME
 	do
-		find $u -type d -name .thumbnails -exec rm -r {} \;
-		find $u -type f -name .recently-used -exec rm -r {} \;
-		find $u -type f -name .recently-used.xbel -exec rm -r {} \;
+		find $file -type d -name .thumbnails -exec rm -r {} \;
+		find $file -type f -name .recently-used -exec rm -r {} \;
+		find $file -type f -name .recently-used.xbel -exec rm -r {} \;
 	done	
 }
 
 exclude_this() #prepare exclude for clamscan 
 {
-for d in  ${DIRS[@]}
+for dir in  ${DIRS[@]}
 	do
 		echo \ 
-		echo "--exclude-dir"=$d
+		echo "--exclude-dir"=$dir
 	done
 }
 
@@ -248,9 +248,9 @@ if [ ! -z $WITH_FEATURE ]
 		echo $INDEX >> $LOGFILE
 		echo "file was created by $0" >> $LOGFILE
 		echo "-----------------------------------------------------------------" >> $LOGFILE
-		for i in ${WITH_FEATURE[@]}
+		for feature in ${WITH_FEATURE[@]}
 			do
-				case $i in
+				case $feature in
 					A)
 					if [ ! -z $EXCLUDE_DIRS ]
 						then
