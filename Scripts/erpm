@@ -13,8 +13,7 @@
 
 
 ##VARS
-NO_ARG=65
-NOT_ROOT=67
+
 ##VARS
 
 check_root ()
@@ -26,7 +25,7 @@ then
 echo "Only root can manage the system packages"
 echo "stop"
 drop_failure
-exit $NOT_ROOT
+exit 1
 else
 drop_ok
 check_arg
@@ -43,7 +42,7 @@ echo "No arguments"
 echo "stop"
 echo "Usage: `basename $0` rpmfile(s)"
 drop_failure
-exit $NO_ARG
+exit 1
 else
 drop_ok
 fi

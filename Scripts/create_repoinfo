@@ -13,7 +13,7 @@ if [ -z "$DOC_NAME" ] #because DIR is the same as $*, DIR will be null if no arg
 	then
 	drop_failure
 	echo "XML file must have a name. Usage: `basename $0` \"<NAME_OF_XML_FILE>\""
-	exit $NO_ARGS
+	exit 1
 	else
 	drop_ok
 	check_rpm

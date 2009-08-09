@@ -12,8 +12,6 @@
 #VARS
 LOG_DIR=/var/log
 LOGS="boot.log messages mysqld.log cups/access_log cups/error_log brokenlinks.report" #add more logfiles here you need to clean up.Be sure which logs you want to clean up and whether they are not needed by the running system. Remember that you have to write the additional logs as a relative path beginning from the LOG_DIR. Also you have to leave a space between each logfile you want to add.
-CANT_CHANGE=68
-NOT_ROOT=67
 LINES=10 #change this variable if you want more than the last 10 lines to be saved in /var/log/messages
 #VARS
 
@@ -28,7 +26,7 @@ if [ $UID -ne 0  ]
 then
 echo "Not root"
 drop_failure
-exit $NOT_ROOT
+exit 1
 else
 drop_ok
 main
@@ -41,7 +39,7 @@ main ()
 {
 	cd $LOG_DIR || {
 	echo "Cannot change to directory" >&2
-	exit $CANT_CHANGE
+	exit 1
 	}
 	#logical operator causes the script to exit if direcctor LOG_DIR doesnot exits.
 

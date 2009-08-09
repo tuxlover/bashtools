@@ -12,9 +12,6 @@
 
 
 #VARS
-NO_CONVERT=21
-NO_ARG=65
-WRONG_SIZE=80
 #VARS
 
 ###functions begin here
@@ -25,11 +22,11 @@ VERSION=$(convert -version 2> /dev/null || echo "-" ) #checks for Image Magick
 
 if [[ $VERSION == "-" ]]
 then
-echo "ImageMagick seemes to be not installed"
+echo "ImageMagick seemes not to be installed"
 echo "Please install ImageMagick and rerun again."
 echo "Script exits now."
 drop_failure
-exit $NO_CONVERT
+exit 1
 else
 echo "found $VERSION"
 drop_ok
@@ -45,7 +42,7 @@ then
 echo "You must select at least one file "
 echo "Usage: `basename $0` \"[jpeg] [bmp] [gif] [png] [tif]\" "
 drop_failure
-exit $NO_ARG
+exit 1
 else
 echo "These Pictures have been selected for rescaling"
 
@@ -76,7 +73,7 @@ PIXEL=$(( $HOR * $VERT )) || PIXEL=0 #becasue HOR*VERT must be an integer > 0 th
 	then
 	echo "$HOR"x"$VERT" "is not a geometirc size"
 	drop_failure
-	exit $WRONG_SIZE
+	exit 1
 	else
 	main
 	fi

@@ -15,8 +15,6 @@
 
 
 ##VARS
-NO_RPM=33
-NO_ARGS=65
 IS_INSTALLABLE=0
 ##VARS
 
@@ -35,7 +33,7 @@ if [ -z "$*" ]
 then
 echo "Usage: `basename $0` rpm-file. Or just type `basename $0` *rpm to collect the information"
 echo "from every rpm file you might find in the current working directory."
-exit $NO_ARGS
+exit 1
 fi
 
 read -p "Please specify the file to which you want to save the output:" FILE_OUTPUT
@@ -64,12 +62,12 @@ do
 if [ ${rpm##*.} != "rpm" ]
 then
 echo "Not a rpm file"
-exit $NO_RPM
+exit 1
 else
 	if [ ! -f $rpm ]
 	then
 	echo "Not a rpm file"
-	exit $NO_RPM 
+	exit 1
 	fi
 	
 fi

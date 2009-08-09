@@ -10,9 +10,6 @@
 #Rewritten for opensuse 10.2 by Matthias Propst
 
 #VARS
-NOT_FILE=63
-NO_ARGS=65
-NO_ZIP=21
 FILE=$1 #sets the first argument to variable FILE
 #VARS
 
@@ -20,7 +17,7 @@ FILE=$1 #sets the first argument to variable FILE
 if [ $# -eq 0 ] #using compare operators instead of file operator
 then
 echo "Usage `basename $0` bzip2file [gzipfile]" >&2
-exit $NO_ARGS
+exit 1
 fi
 
 
@@ -28,7 +25,7 @@ fi
 if [ ! -f "$FILE" ]
 then
 echo "File $1 not found" >&2
-exit $NOT_FILE
+exit 1
 fi
 
 

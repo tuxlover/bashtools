@@ -13,10 +13,6 @@
 SWAPFILE=/tmp/swapfile #Change this variable if you want to use an other directory to create temporary swapfile
 USER=$(whoami)
 VALID_USER=root #Change this if you want cron do this job. normaly users cannot run severeal commands used in this script. Therefor this is for stalling the script before these commands are called.
-NOT_ROOT=67
-NOT_VALID=22
-NO_SPACE_LEFT=31
-NO_SWAP=32
 ANSWER="n" #Set this to y if you need to run this script as a cron job
 declare -i NEED_SPACE=2 #You should change this variable if you use more than 1 GB of swapspace.
 #VARS
@@ -29,7 +25,7 @@ root_check ()
 if [ "$USER" != $VALID_USER ]
 then
 echo "Only root can clear the swap."
-exit $NOT_ROOT
+exit 1
 else
 space_check
 fi
@@ -55,7 +51,7 @@ declare -i YOUR_SPACE=$(echo ${C%%G*})
 if [ $YOUR_SPACE -le $NEED_SPACE ]
 then
 echo "Not enough space. You have $YOUR_SPACE GB left on / partition GB but need $NEED_SPACE GB"
-exit $NO_SPACE_LEFT
+exit 1
 else
 echo -e "$YOUR_SPACE GB left on / partition..."
 drop_ok
@@ -100,7 +96,7 @@ if [[  ${SWAP_PART2/#\/dev\/hda*} &&  ${SWAP_PART2/#\/dev\/sda*}  && ${SWAP_PART
 then 
 clear
 echo "$SWAP_PART2 is not a valid device"
-exit $NOT_VALID
+exit 1
 fi
 
 clear
@@ -123,7 +119,7 @@ if [ "$FSTAB1" != "$FSTAB2" ]
 then
 echo "$SWAP_PART2 is not a swap device."
 drop_failure
-exit $NO_SWAP
+exit 1
 else
 drop_ok
 main

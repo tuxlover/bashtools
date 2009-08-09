@@ -10,10 +10,6 @@
 #rewritten for opensue 10.2 by Matthias Propst
 
 #VARS
-NOT_ROOT=67
-NO_PART=82
-NO_INT=24
-NO_SYNC=34
 #VARS
 
 ###functions begin here
@@ -27,7 +23,7 @@ if [ $UID -ne 0 ]
 then
 echo "Only root can wipeout free space."
 drop_failure
-exit $NOT_ROOT
+exit 1
 else
 drop_ok
 check_sync
@@ -43,7 +39,7 @@ echo "sync does not seemed to be installed"
 echo "Please install sync and rerun again. It is usaly in the package coreutils."
 echo "Script exits now."
 drop_failure
-exit $NO_SYNC
+exit 1
 else
 echo "found $VERSION"
 drop_ok
@@ -66,7 +62,7 @@ if [[ $CHECK != $COUNTER || $COUNTER == "0" ]] #because Check will be the errorm
 then
 echo "$COUNTER is not an integer value."
 drop_failure
-exit $NO_INT
+exit 1
 else
 algorithm
 fi
@@ -112,7 +108,7 @@ unset CRYPTO_PART
   then
   echo "Oops"
   echo "$f: This is not allowed"
-  exit $NO_PART
+  exit 1
   fi
 
 PART=$(echo `less /etc/fstab | grep $f`)
@@ -129,7 +125,7 @@ ${CRYPTO_PART:="-"} 2> /dev/null
     echo "Maybe this is not your fault. Because the Script does not handle /foobar/ if the folder /foobar has"
     echo "its own partition. Try to rerun the script with /foobar instead of /foobar/." #a warning because i dont know how to prevent that. maybe someone else has an idea+++script exits at first found invalid partition this depends on the order of given scripts
     drop_failure
-    exit $NO_PART
+    exit 1
     fi
   else
   echo $f

@@ -12,7 +12,6 @@
 
 
 #VARS
-NOT_ROOT=67
 LOG_DIR=/var/log/logusers #Change this according to your needs
 INDEX=$(date +%Y%m%d%H%M%S) #Change this if you need another date format or use a complete different way to index your logup file.
 USERS=$(users)
@@ -29,7 +28,7 @@ if [ $UID -ne 0 ]
 then
 echo "Not root"
 drop_failure
-exit $NOT_ROOT
+exit 1
 else
 drop_ok
 create_logdir

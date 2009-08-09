@@ -11,12 +11,10 @@
 
 
 #VARS
-NOT_ROOT=67
 USER=$(whoami)
 export LOGDIR="/var/log" #you may change this if you want to save information about broken-links in an other directory
 export DATE=$(date +%c)
 export LOGFILE="brokenlinks.report"
-
 #VARS
 
 
@@ -29,7 +27,7 @@ if [ $USER != "root" ]
 then
 echo "Not Root"
 drop_failure
-exit $NOT_ROOT
+exit 1
 else
 drop_ok
 fi
