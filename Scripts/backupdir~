@@ -11,6 +11,10 @@
 #Caution: do not backup the /  directory. this may cause serious damage to your file-system.
 
 #VARS
+NO_ARGS=65
+NO_DIR=66
+NOT_ROOT=67
+NO_TAR=21
 BACKUP_DIR=$HOME/lost+found #change this if you want another directory for backups
 DAYS=1 #change this variable if you want to backup the changes of the last $DAYS
 #VARS
@@ -26,7 +30,7 @@ if [ $UID -ne 0 ]
 then
 drop_failure
 echo "Not root"
-exit 1
+exit $NOT_ROOT
 else
 drop_ok
 check_arg
@@ -42,7 +46,7 @@ if [ -z "$DIR" ] #because DIR is the same as $*, DIR will be null if no argument
 then
 drop_failure
 echo "You must select a directory to backup. Usage: `basename $0` \"<directory>\""
-exit 1
+exit $NO_ARGS
 else
 drop_ok
 check_dir
@@ -66,7 +70,7 @@ else
 		echo "directories that do exits."
 		drop_failure
 		echo -e '\E[31mdirecory'; tput sgr0 && echo "$directory" && echo -e '\E[31m does not exits.'; tput sgr0
-		exit 1
+		exit $NO_DIR
 		fi
 	done
  
@@ -96,8 +100,7 @@ GZIP_VER=$(gunzip --version || echo  "-")
 if [[ $TAR_VER == "-" || $GZIP_VER == "-" ]]
 then
 drop_failure
-echo "No tar command found"
-exit 1
+exit $NO_TAR
 else
 echo "Using $TAR_VER to create tarball and $GZIP_VER for compression."
 drop_ok
