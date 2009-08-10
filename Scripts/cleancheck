@@ -230,8 +230,27 @@ for dir in  ${DIRS[@]}
 
 verify_package()
 {
-#howto implement different types of package-mangement
-rpm -Va |tee -a $LOGFILE
+is_rpm=$(rpm -q rpm 2> /dev/null || echo "no")
+is_deb=$(dpkg-query -S deb 2> /dev/null|| echo "no")
+
+if [[ $is_rpm = "no" && $is_deb = "no" ]]
+        then
+				#ksip this test if neither rpm nor deb is available
+                echo "package verification not possible"
+                echo "skipped"
+        else
+				if [ is_rpm != "no" ]
+					then
+						#verifying package integrety for rpm
+						rpm -Va |tee -a $LOGFILE
+				fi
+				
+				if  [ is_deb != "no" ]
+					then
+						#verifying package integrety for deb
+						echo "action is not implemendet yet"
+				fi
+fi
 
 }
 
