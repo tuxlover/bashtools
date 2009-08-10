@@ -1,8 +1,11 @@
 #!/bin/bash
 
 #cleancheck.sh
-#script that combines virusscanning with checking for rootkits
-#and checking system integrety
+#Script that does several Systemscans.
+#It checks system integrety and logs information
+#about the system. By default it will do a lot of scans
+#and will need a long runtime.
+#It creates Logfiles which can be inspeceted aferwards.
 
 ##help_option starts here
 option_h()
@@ -231,7 +234,7 @@ for dir in  ${DIRS[@]}
 verify_package()
 {
 is_rpm=$(rpm -q rpm 2> /dev/null || echo "no")
-is_deb=$(dpkg-query -S deb 2> /dev/null|| echo "no")
+is_deb=$(dpkg-query -S deb 2> /dev/null || echo "no")
 
 if [[ $is_rpm = "no" && $is_deb = "no" ]]
         then
@@ -380,3 +383,6 @@ exit 0
 #the checking for valid is not much functional yet
 #clean up the code
 #remove all prior logs option
+#merging and implement logusers
+#fix broken verify_packages
+#make creation of log more confortable
