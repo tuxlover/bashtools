@@ -1,5 +1,0 @@
-#!/bin/bash
-
-find /home/matthias/workspace -type l -print0| xargs -r0 file| grep "broken symbolic"| sed -e 's/^\|: *broken symbolic.*$/"/g'
-
-exit 0
