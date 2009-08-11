@@ -10,16 +10,14 @@
 ##help_option starts here
 option_h()
 {
-echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDS] [-o]"
+echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDSP]"
 echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set /usr/sbin/chkrootkit is used"
-echo "-e exclude these dirs for scanning"
+echo "-e exclude these dirs for scanning for viruses"
 echo "you have to seperate the directories by : example -e /home/:/media/:/mnt/"
 echo "-l set name and path to logdir"
 echo "-h show this help"
 echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
-echo "-o overwriting existing logfile"
-echo "-q quite mode. present no output on screen"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
@@ -27,13 +25,13 @@ echo "      D: only do the deletion of users files. action will be automaticly d
 echo "      S: check security holes"
 echo "      P do an package integrety-check. RPMS only" 
 echo "      You may also use this option to set the order of checks performed"
+echo "      or to exclude actions that should not be performed."
 exit 1		
 }
 ##help option ends here
 
 ##setting up runtime varibales starts here
 
-LOGDIR=/var/log/check
 INDEX=$(date +%Y%m%d%H%M%S)
 USERS_HOME=$(cat /etc/passwd | cut -d ":" -f 6|grep /home/ && echo "/root")
 
@@ -42,7 +40,7 @@ ANTIVIR=
 ROOTKIT_CHECKER=
 SECURITY_CHECKER=
 LOGFILE=
-DEL_LOG=
+USE_QUIETE=
 declare -a EXCLUDE_DIRS=
 declare -a WITH_FEATURE=
 
@@ -67,11 +65,6 @@ option_l()
 LOGFILE="$OPTARG"
 }
 
-option_o()
-{
-DEL_LOG="yes"	
-}
-
 option_s()
 {
 SECURITY_CHECKER="$OPTARG"	
@@ -94,7 +87,7 @@ while [ $c -ge 0 ]
 
 
 
-while getopts a:c:l:e:s:w:ho opt
+while getopts a:c:l:e:s:w:h opt
 	do
 		case "$opt" in
 			a) option_a
@@ -106,8 +99,6 @@ while getopts a:c:l:e:s:w:ho opt
 			l) option_l
 			;;
 			e) option_e
-			;;
-			o) option_o
 			;;
 			s) option_s
 			;;
@@ -133,21 +124,28 @@ if [ -z $SECURITY_CHECKER ] #check for open security holes
 		SECURITY_CHECKER="/usr/bin/lynis"
 fi
 
-if [ -z $DEL_LOG ]
-	then
-		DEL_LOG="no"
-fi
 
 if [ -z $LOGFILE ]
 	then
+		#to keep the logfile small
+		#previous logfiles will be cleared 
+		if [ -f /var/log/cleancheck.log ]
+			then
+				cat /dev/null > /var/log/cleancheck.log
+		fi	
 		LOGFILE="/var/log/cleancheck.log"
-		touch /var/log/cleancheck.log
+		touch $LOGFILE
 	else
 		unset LOGDIR
 		LOGDIR=$(echo ${LOGFILE%/*} )
 		if [ ! -d $LOGDIR ]
 			then
 				mkdir -p $LOGDIR
+		fi
+		
+		if [ -f $LOGFILE ]
+			then
+				cat /dev/null > $LOGFILE
 		fi
 		touch $LOGFILE
 fi
@@ -240,11 +238,6 @@ rpm -q rpm 2> /dev/null && rpm -Va  |tee -a $LOGFILE || echo "skip this test"
 #do the main action including check for dirs and files
 main()
 {
-if [ "$DEL_LOG" = "yes" ]
-	then
-		rm $LOGFILE
-fi	
-	
 if [ ! -z $WITH_FEATURE ]
 	then
 		echo $INDEX >> $LOGFILE
@@ -269,19 +262,19 @@ $0" >> $LOGFILE
 				
 							E=$( exclude_this)
 							ANT=`$ANTIVIR -r -i $E /`
-							echo "$ANT" >> $LOGFILE
+							echo "$ANT" |tee -a $LOGFILE
 						else
 							echo "with clamscan"|tee -a $LOGFILE
 							check_antivir
 							ANT=`$ANTIVIR -r -i /`
-							echo "$ANT" >> $LOGFILE
+							echo "$ANT" |tee -a $LOGFILE
 					fi
 					;;
 					C) 
 					echo "with chkrootkit"|tee -a $LOGFILE 
 					check_rootkit_checker
 					CNT=`$ROOTKIT_CHECKER`
-					echo "$CNT" >> $LOGFILE		
+					echo "$CNT" |tee -a $LOGFILE		
 					;;
 					D) 
 					echo "only clear_homes"
@@ -291,7 +284,7 @@ $0" >> $LOGFILE
 					echo "with lynis"|tee -a $LOGFILE
 					check_lynis
 					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-					echo "$SNT" >> $LOGFILE      
+					echo "$SNT" |tee -a $LOGFILE      
 					;;
 					P)
 					echo "verifiying package integrety" 
@@ -326,18 +319,18 @@ $0" >> $LOGFILE
 				
 				E=$( exclude_this)
 				ANT=`$ANTIVIR -r -i $E /`
-				echo "ANT" >> $LOGFILE
+				echo "ANT" |tee -a $LOGFILE
 			else
 				echo "with clamscan"|tee -a $LOGFILE
 				check_antivir
 				ANT=`$ANTIVIR -r -i /`
-				echo "$ANT" >> $LOGFILE
+				echo "$ANT" |tee -a $LOGFILE
 		fi
 
 		CNT=`$ROOTKIT_CHECKER`
 		echo "$CNT"	>> $LOGFILE	
 		SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-		echo "$SNT" >> $LOGFILE
+		echo "$SNT" |tee -a $LOGFILE
 
 		echo "------------------------------------------------------------------" >> $LOGFILE
 
@@ -360,11 +353,12 @@ check_root
 
 exit 0
 
-#howto make different package checks
-#any sugestions will help
+
 #the checking for valid is not much functional yet
+#use -x testoperator to make sure it is executable
+#use grep to grep for valid datanames
 #clean up the code
 #remove all prior logs option
 #merging and implement logusers
-#make creation of log more confortable
-#quiete mode not implemented yet
+#implement quite mode
+#print line by line make the output more readable to users (checkrootkit)
