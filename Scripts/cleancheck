@@ -25,7 +25,7 @@ echo "      A: scan for viruses"
 echo "      C: check for rootkits"
 echo "      D: only do the deletion of users files. action will be automaticly done if not root"
 echo "      S: check security holes"
-echo "      P do an package integrety-check" 
+echo "      P do an package integrety-check. RPMS only" 
 echo "      You may also use this option to set the order of checks performed"
 exit 1		
 }
@@ -233,27 +233,7 @@ for dir in  ${DIRS[@]}
 
 verify_package()
 {
-is_rpm=$(rpm -q rpm 2> /dev/null || echo "no")
-is_deb=$(dpkg-query -S deb 2> /dev/null || echo "no")
-
-if [[ $is_rpm = "no" && $is_deb = "no" ]]
-        then
-				#ksip this test if neither rpm nor deb is available
-                echo "package verification not possible"
-                echo "skipped"
-        else
-				if [ is_rpm != "no" ]
-					then
-						#verifying package integrety for rpm
-						rpm -Va |tee -a $LOGFILE
-				fi
-				
-				if  [ is_deb != "no" ]
-					then
-						#verifying package integrety for deb
-						echo "action is not implemendet yet"
-				fi
-fi
+rpm -q rpm 2> /dev/null && rpm -Va  |tee -a $LOGFILE || echo "skip this test"
 
 }
 
@@ -268,7 +248,9 @@ fi
 if [ ! -z $WITH_FEATURE ]
 	then
 		echo $INDEX >> $LOGFILE
-		echo "file was created by $0" >> $LOGFILE
+		echo "file was created by 
+
+$0" >> $LOGFILE
 		echo "-----------------------------------------------------------------" >> $LOGFILE
 		for feature in ${WITH_FEATURE[@]}
 			do
@@ -384,5 +366,5 @@ exit 0
 #clean up the code
 #remove all prior logs option
 #merging and implement logusers
-#fix broken verify_packages
 #make creation of log more confortable
+#quiete mode not implemented yet
