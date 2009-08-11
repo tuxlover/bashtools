@@ -1,36 +1,38 @@
 #!/bin/bash
 
 #cleancheck.sh
-#script that combines virusscanning with checking for rootkits
-#and checking system integrety
+#Script that does several Systemscans.
+#It checks system integrety and logs information
+#about the system. By default it will do a lot of scans
+#and will need a long runtime.
+#It creates Logfiles which can be inspeceted aferwards.
 
 ##help_option starts here
 option_h()
 {
-echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDS] [-o]"
+echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDSP]"
 echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set /usr/sbin/chkrootkit is used"
-echo "-e exclude these dirs for scanning"
+echo "-e exclude these dirs for scanning for viruses"
 echo "you have to seperate the directories by : example -e /home/:/media/:/mnt/"
 echo "-l set name and path to logdir"
 echo "-h show this help"
 echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
-echo "-o overwriting existing logfile"
-echo "-q quite mode. present no output on screen"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
 echo "      D: only do the deletion of users files. action will be automaticly done if not root"
+echo "      L: only do logging"
 echo "      S: check security holes"
-echo "      P do an package integrety-check" 
+echo "      P do an package integrety-check. RPMS only" 
 echo "      You may also use this option to set the order of checks performed"
+echo "      or to exclude actions that should not be performed."
 exit 1		
 }
 ##help option ends here
 
 ##setting up runtime varibales starts here
 
-LOGDIR=/var/log/check
 INDEX=$(date +%Y%m%d%H%M%S)
 USERS_HOME=$(cat /etc/passwd | cut -d ":" -f 6|grep /home/ && echo "/root")
 
@@ -39,7 +41,7 @@ ANTIVIR=
 ROOTKIT_CHECKER=
 SECURITY_CHECKER=
 LOGFILE=
-DEL_LOG=
+USE_QUIETE=
 declare -a EXCLUDE_DIRS=
 declare -a WITH_FEATURE=
 
@@ -64,11 +66,6 @@ option_l()
 LOGFILE="$OPTARG"
 }
 
-option_o()
-{
-DEL_LOG="yes"	
-}
-
 option_s()
 {
 SECURITY_CHECKER="$OPTARG"	
@@ -91,7 +88,7 @@ while [ $c -ge 0 ]
 
 
 
-while getopts a:c:l:e:s:w:ho opt
+while getopts a:c:l:e:s:w:h opt
 	do
 		case "$opt" in
 			a) option_a
@@ -103,8 +100,6 @@ while getopts a:c:l:e:s:w:ho opt
 			l) option_l
 			;;
 			e) option_e
-			;;
-			o) option_o
 			;;
 			s) option_s
 			;;
@@ -130,21 +125,28 @@ if [ -z $SECURITY_CHECKER ] #check for open security holes
 		SECURITY_CHECKER="/usr/bin/lynis"
 fi
 
-if [ -z $DEL_LOG ]
-	then
-		DEL_LOG="no"
-fi
 
 if [ -z $LOGFILE ]
 	then
+		#to keep the logfile small
+		#previous logfiles will be cleared 
+		if [ -f /var/log/cleancheck.log ]
+			then
+				cat /dev/null > /var/log/cleancheck.log
+		fi	
 		LOGFILE="/var/log/cleancheck.log"
-		touch /var/log/cleancheck.log
+		touch $LOGFILE
 	else
 		unset LOGDIR
 		LOGDIR=$(echo ${LOGFILE%/*} )
 		if [ ! -d $LOGDIR ]
 			then
 				mkdir -p $LOGDIR
+		fi
+		
+		if [ -f $LOGFILE ]
+			then
+				cat /dev/null > $LOGFILE
 		fi
 		touch $LOGFILE
 fi
@@ -230,23 +232,103 @@ for dir in  ${DIRS[@]}
 
 verify_package()
 {
-#howto implement different types of package-mangement
-rpm -Va |tee -a $LOGFILE
+rpm -q rpm 2> /dev/null && rpm -Va  |tee -a $LOGFILE || echo "skip this test"
+}
 
+log_users()
+{
+	{
+	echo "Host information:"
+	echo $LOGNAME"@"$HOSTNAME
+	echo $MACHTYPE
+	uname -r
+	grep -m 1 "model name" /proc/cpuinfo | sed 's/^.*: //g'
+	grep -m 1 "cpu MHz" /proc/cpuinfo | sed 's/^.*: //g'
+	uptime
+	echo "========================================================================================================="
+	} |tee -a $LOGFILE
+	
+	{
+	echo "Network information:"
+	ifconfig 
+	iwconfig
+	ping -w 1 google.de 2> /dev/null
+
+	if [ $? -gt "0" ]
+	then
+	echo "There is no connection running:"
+	else	
+	echo "You are running a connection to the internet"
+  
+	#scans only the localhost by default
+	echo "nmap:"
+	nmap $IP_ADRESS -v
+	echo "netstat:"
+	netstat
+	fi
+
+	echo "========================================================================================================="
+	} |tee -a $LOGFILE
+	
+	{
+	echo "The following users are logged in:"
+	echo "=================================="
+	finger
+	n=0
+
+	for m in ${USERS[@]}
+		do
+    
+			if [ $m != $n ]
+				then 
+					id $m
+					n=$m
+			fi
+
+		done
+
+	id root
+
+	echo "The following processes are running:"
+	echo "===================================="
+	echo "Sorted by User"
+	k=0
+	for i in ${USERS[@]}
+		do
+
+			if [ $i != $k ]
+				then
+					echo $i
+					ps -U $i
+					k=$i
+			fi
+
+	done
+
+	echo "root"
+	ps -U root
+
+	echo "Treeview"
+	pstree -pu
+	echo "====================================================================================================="
+	} |tee -a $LOGFILE
+	
+	{
+	echo "These environment variables has been set:"
+	env
+	} |tee -a $LOGFILE
+	
 }
 
 #do the main action including check for dirs and files
 main()
 {
-if [ "$DEL_LOG" = "yes" ]
-	then
-		rm $LOGFILE
-fi	
-	
 if [ ! -z $WITH_FEATURE ]
 	then
 		echo $INDEX >> $LOGFILE
-		echo "file was created by $0" >> $LOGFILE
+		echo "file was created by 
+
+$0" >> $LOGFILE
 		echo "-----------------------------------------------------------------" >> $LOGFILE
 		for feature in ${WITH_FEATURE[@]}
 			do
@@ -265,32 +347,36 @@ if [ ! -z $WITH_FEATURE ]
 				
 							E=$( exclude_this)
 							ANT=`$ANTIVIR -r -i $E /`
-							echo "$ANT" >> $LOGFILE
+							echo "$ANT" |tee -a $LOGFILE
 						else
 							echo "with clamscan"|tee -a $LOGFILE
 							check_antivir
 							ANT=`$ANTIVIR -r -i /`
-							echo "$ANT" >> $LOGFILE
+							echo "$ANT" |tee -a $LOGFILE
 					fi
 					;;
 					C) 
 					echo "with chkrootkit"|tee -a $LOGFILE 
 					check_rootkit_checker
 					CNT=`$ROOTKIT_CHECKER`
-					echo "$CNT" >> $LOGFILE		
+					echo "$CNT" |tee -a $LOGFILE		
 					;;
 					D) 
-					echo "only clear_homes"
+					echo "with clear_homes"|tee -a $LOGFILE
 					clear_homes
+					;;
+					L) 
+					echo "with general logging"|tee -a $LOGFILE
+					log_users
 					;;  
 					S) 			
 					echo "with lynis"|tee -a $LOGFILE
 					check_lynis
 					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-					echo "$SNT" >> $LOGFILE      
+					echo "$SNT" |tee -a $LOGFILE      
 					;;
 					P)
-					echo "verifiying package integrety" 
+					echo "with package verification"|tee -a $LOGFILE 
 					verify_package
 					;;
 					\?) 
@@ -305,6 +391,9 @@ if [ ! -z $WITH_FEATURE ]
 		echo "with clamscan" |tee -a $LOGFILE
 		echo "with chkrootkit"|tee -a $LOGFILE
 		echo "with lynis"|tee -a $LOGFILE
+		echo "with clear_homes"|tee -a $LOGFILE
+		echo "with package verification"|tee -a $LOGFILE 
+		echo "with general logging"|tee -a $LOGFILE
 		check_antivir
 		check_lynis 
 		check_rootkit_checker
@@ -322,22 +411,23 @@ if [ ! -z $WITH_FEATURE ]
 				
 				E=$( exclude_this)
 				ANT=`$ANTIVIR -r -i $E /`
-				echo "ANT" >> $LOGFILE
+				echo "ANT" |tee -a $LOGFILE
 			else
 				echo "with clamscan"|tee -a $LOGFILE
 				check_antivir
 				ANT=`$ANTIVIR -r -i /`
-				echo "$ANT" >> $LOGFILE
+				echo "$ANT" |tee -a $LOGFILE
 		fi
 
 		CNT=`$ROOTKIT_CHECKER`
 		echo "$CNT"	>> $LOGFILE	
 		SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-		echo "$SNT" >> $LOGFILE
+		echo "$SNT" |tee -a $LOGFILE
 
 		echo "------------------------------------------------------------------" >> $LOGFILE
 
 		verify_package
+		log_users
 		clear_homes		
 fi
 }	
@@ -356,8 +446,11 @@ check_root
 
 exit 0
 
-#howto make different package checks
-#any sugestions will help
+
 #the checking for valid is not much functional yet
+#use -x testoperator to make sure it is executable
+#use grep to grep for valid datanames
 #clean up the code
 #remove all prior logs option
+#implement quite mode
+#print line by line make the output more readable to users (checkrootkit)
