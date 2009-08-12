@@ -22,11 +22,6 @@ echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
-<<<<<<< HEAD:Scripts/cleancheck
-echo "      D: only do the deletion of users files. action will be automaticly done if not root"
-echo "      L: only do logging"
-=======
->>>>>>> cleanchek:Scripts/cleancheck
 echo "      S: check security holes"
 echo "      P do an package integrety-check. RPMS only" 
 echo "   You may also use this option to set the order of checks performed"
@@ -226,94 +221,6 @@ for dir in  ${DIRS[@]}
 verify_package()
 {
 rpm -q rpm 2> /dev/null && rpm -Va  |tee -a $LOGFILE || echo "skip this test"
-<<<<<<< HEAD:Scripts/cleancheck
-}
-
-log_users()
-{
-	{
-	echo "Host information:"
-	echo $LOGNAME"@"$HOSTNAME
-	echo $MACHTYPE
-	uname -r
-	grep -m 1 "model name" /proc/cpuinfo | sed 's/^.*: //g'
-	grep -m 1 "cpu MHz" /proc/cpuinfo | sed 's/^.*: //g'
-	uptime
-	echo "========================================================================================================="
-	} |tee -a $LOGFILE
-	
-	{
-	echo "Network information:"
-	ifconfig 
-	iwconfig
-	ping -w 1 google.de 2> /dev/null
-
-	if [ $? -gt "0" ]
-	then
-	echo "There is no connection running:"
-	else	
-	echo "You are running a connection to the internet"
-  
-	#scans only the localhost by default
-	echo "nmap:"
-	nmap $IP_ADRESS -v
-	echo "netstat:"
-	netstat
-	fi
-
-	echo "========================================================================================================="
-	} |tee -a $LOGFILE
-	
-	{
-	echo "The following users are logged in:"
-	echo "=================================="
-	finger
-	n=0
-
-	for m in ${USERS[@]}
-		do
-    
-			if [ $m != $n ]
-				then 
-					id $m
-					n=$m
-			fi
-
-		done
-
-	id root
-
-	echo "The following processes are running:"
-	echo "===================================="
-	echo "Sorted by User"
-	k=0
-	for i in ${USERS[@]}
-		do
-
-			if [ $i != $k ]
-				then
-					echo $i
-					ps -U $i
-					k=$i
-			fi
-
-	done
-
-	echo "root"
-	ps -U root
-
-	echo "Treeview"
-	pstree -pu
-	echo "====================================================================================================="
-	} |tee -a $LOGFILE
-	
-	{
-	echo "These environment variables has been set:"
-	env
-	} |tee -a $LOGFILE
-	
-=======
->>>>>>> cleanchek:Scripts/cleancheck
 }
 
 #do the main action including check for dirs and files
@@ -357,17 +264,6 @@ $0" >> $LOGFILE
 					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
 					echo "$CNT" |tee -a $LOGFILE		
 					;;
-<<<<<<< HEAD:Scripts/cleancheck
-					D) 
-					echo "with clear_homes"|tee -a $LOGFILE
-					clear_homes
-					;;
-					L) 
-					echo "with general logging"|tee -a $LOGFILE
-					log_users
-					;;  
-=======
->>>>>>> cleanchek:Scripts/cleancheck
 					S) 			
 					echo "with lynis"|tee -a $LOGFILE
 					check_lynis
@@ -390,14 +286,6 @@ $0" >> $LOGFILE
 		echo "with clamscan" |tee -a $LOGFILE
 		echo "with chkrootkit"|tee -a $LOGFILE
 		echo "with lynis"|tee -a $LOGFILE
-<<<<<<< HEAD:Scripts/cleancheck
-		echo "with clear_homes"|tee -a $LOGFILE
-		echo "with package verification"|tee -a $LOGFILE 
-		echo "with general logging"|tee -a $LOGFILE
-=======
-		echo "with package verification"|tee -a $LOGFILE 
-
->>>>>>> cleanchek:Scripts/cleancheck
 		check_antivir
 		check_lynis 
 		check_rootkit_checker
@@ -432,13 +320,6 @@ $0" >> $LOGFILE
 
 		echo "------------------------------------------------------------------" >> $LOGFILE
 
-<<<<<<< HEAD:Scripts/cleancheck
-		verify_package
-		log_users
-		clear_homes		
-=======
-
->>>>>>> cleanchek:Scripts/cleancheck
 fi
 }	
 
@@ -461,10 +342,6 @@ exit 0
 #use -x testoperator to make sure it is executable
 #use grep to grep for valid datanames
 #clean up the code
-<<<<<<< HEAD:Scripts/cleancheck
-#remove all prior logs option
-=======
->>>>>>> cleanchek:Scripts/cleancheck
 #implement quite mode
 #print line by line make the output more readable to users (checkrootkit)
 #use {} I/O redirection
