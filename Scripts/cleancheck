@@ -10,23 +10,27 @@
 ##help_option starts here
 option_h()
 {
-echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDSP]"
+echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACPS]"
 echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set /usr/sbin/chkrootkit is used"
 echo "-e exclude these dirs for scanning for viruses"
-echo "you have to seperate the directories by : example -e /home/:/media/:/mnt/"
+echo "you have to seperate the directories by : character"
+echo "		example -e /home/:/media/:/mnt/"
 echo "-l set name and path to logdir"
 echo "-h show this help"
 echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
+<<<<<<< HEAD:Scripts/cleancheck
 echo "      D: only do the deletion of users files. action will be automaticly done if not root"
 echo "      L: only do logging"
+=======
+>>>>>>> cleanchek:Scripts/cleancheck
 echo "      S: check security holes"
 echo "      P do an package integrety-check. RPMS only" 
-echo "      You may also use this option to set the order of checks performed"
-echo "      or to exclude actions that should not be performed."
+echo "   You may also use this option to set the order of checks performed"
+echo "   or to exclude actions that should not be performed."
 exit 1		
 }
 ##help option ends here
@@ -34,7 +38,6 @@ exit 1
 ##setting up runtime varibales starts here
 
 INDEX=$(date +%Y%m%d%H%M%S)
-USERS_HOME=$(cat /etc/passwd | cut -d ":" -f 6|grep /home/ && echo "/root")
 
 #first initilize the variables
 ANTIVIR=
@@ -105,7 +108,7 @@ while getopts a:c:l:e:s:w:h opt
 			;;
 			w) option_w
 			;;
-			\?) exit 1
+			\?) option_h #in case of invalid option display help
 		esac
 	done
 shift `expr $OPTIND - 1`
@@ -117,7 +120,7 @@ fi
 
 if [ -z $ROOTKIT_CHECKER ]
 	then
-		ROOTKIT_CHECKER="/sbin/chkrootkit" #enter the path to your rootkitchecker
+		ROOTKIT_CHECKER="/usr/bin/rkhunter" #enter the path to your rootkitchecker
 fi
 
 if [ -z $SECURITY_CHECKER ] #check for open security holes
@@ -169,9 +172,9 @@ fi
 #check whether programs and argumets are set correctly
 check_antivir()
 {
-	
+TEST_AV=$(${ANTIVIR} -V|grep ClamAV  2> /dev/null || echo "no" )	
 echo "checking for $ANTIVIR" 2> /dev/null
-if [ ! -x $ANTIVIR ]
+if [ "$TEST_AV" = "no" ]
 	then
 		drop_failure
 		echo "$ANTIVIR is not a valid clamav installation"
@@ -179,15 +182,15 @@ if [ ! -x $ANTIVIR ]
 	else
 		drop_ok
 		echo "trying to update daily.cvd file"
-		wget -c --progress=dot:binary --directory-prefix=/var/lib/clamav/ http://db.local.clamav.net/daily.cvd || echo "not possible"
+		freshclam || echo "not possible"
 fi
 }
 
 check_rootkit_checker()
 {
-
+TEST_CH=$(${ROOTKIT_CHECKER} --version | grep rkhunter || echo "no")
 echo "checking for $ROOTKIT_CHECKER" 2> /dev/null
-if [ ! -x $ROOTKIT_CHECKER ]
+if [ "$TEST_CH" = "no" ] 
 	then
 		drop_failure
 		echo "$ROOTKIT_CHECKER is not a valid rootkitcheker"
@@ -199,26 +202,16 @@ fi
 
 check_lynis()
 {
+TEST_LY=$(${SECURITY_CHECKER} -V | grep [0-9] 2> /dev/null || echo "no")
 echo "checking for $SECURITY_CHECKER" 2> /dev/null
-if [ ! -x $SECURITY_CHECKER ]
+if [ "$TEST_LY" = "no" ]
 	then
 		drop_failure
-		echo "$SECURITY_CHECKER is not a valid"
+		echo "$SECURITY_CHECKER is not a valid security checker"
 		exit 1
 	else
 		drop_ok
 fi
-}
-
-clear_homes()
-{
-echo "cleaning up users home"
-for file in $USERS_HOME
-	do
-		find $file -type d -name .thumbnails -exec rm -r {} \;
-		find $file -type f -name .recently-used -exec rm -r {} \;
-		find $file -type f -name .recently-used.xbel -exec rm -r {} \;
-	done	
 }
 
 exclude_this() #prepare exclude for clamscan 
@@ -233,6 +226,7 @@ for dir in  ${DIRS[@]}
 verify_package()
 {
 rpm -q rpm 2> /dev/null && rpm -Va  |tee -a $LOGFILE || echo "skip this test"
+<<<<<<< HEAD:Scripts/cleancheck
 }
 
 log_users()
@@ -318,6 +312,8 @@ log_users()
 	env
 	} |tee -a $LOGFILE
 	
+=======
+>>>>>>> cleanchek:Scripts/cleancheck
 }
 
 #do the main action including check for dirs and files
@@ -358,9 +354,10 @@ $0" >> $LOGFILE
 					C) 
 					echo "with chkrootkit"|tee -a $LOGFILE 
 					check_rootkit_checker
-					CNT=`$ROOTKIT_CHECKER`
+					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
 					echo "$CNT" |tee -a $LOGFILE		
 					;;
+<<<<<<< HEAD:Scripts/cleancheck
 					D) 
 					echo "with clear_homes"|tee -a $LOGFILE
 					clear_homes
@@ -369,6 +366,8 @@ $0" >> $LOGFILE
 					echo "with general logging"|tee -a $LOGFILE
 					log_users
 					;;  
+=======
+>>>>>>> cleanchek:Scripts/cleancheck
 					S) 			
 					echo "with lynis"|tee -a $LOGFILE
 					check_lynis
@@ -391,9 +390,14 @@ $0" >> $LOGFILE
 		echo "with clamscan" |tee -a $LOGFILE
 		echo "with chkrootkit"|tee -a $LOGFILE
 		echo "with lynis"|tee -a $LOGFILE
+<<<<<<< HEAD:Scripts/cleancheck
 		echo "with clear_homes"|tee -a $LOGFILE
 		echo "with package verification"|tee -a $LOGFILE 
 		echo "with general logging"|tee -a $LOGFILE
+=======
+		echo "with package verification"|tee -a $LOGFILE 
+
+>>>>>>> cleanchek:Scripts/cleancheck
 		check_antivir
 		check_lynis 
 		check_rootkit_checker
@@ -419,16 +423,22 @@ $0" >> $LOGFILE
 				echo "$ANT" |tee -a $LOGFILE
 		fi
 
-		CNT=`$ROOTKIT_CHECKER`
+		CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
 		echo "$CNT"	>> $LOGFILE	
 		SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
 		echo "$SNT" |tee -a $LOGFILE
+		
+		verify_package	
 
 		echo "------------------------------------------------------------------" >> $LOGFILE
 
+<<<<<<< HEAD:Scripts/cleancheck
 		verify_package
 		log_users
 		clear_homes		
+=======
+
+>>>>>>> cleanchek:Scripts/cleancheck
 fi
 }	
 
@@ -451,6 +461,11 @@ exit 0
 #use -x testoperator to make sure it is executable
 #use grep to grep for valid datanames
 #clean up the code
+<<<<<<< HEAD:Scripts/cleancheck
 #remove all prior logs option
+=======
+>>>>>>> cleanchek:Scripts/cleancheck
 #implement quite mode
 #print line by line make the output more readable to users (checkrootkit)
+#use {} I/O redirection
+#i switched to rkhunter because chkoortkit alway exist with 1 and rkhunter is cleaner
