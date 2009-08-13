@@ -5,7 +5,7 @@
 #It checks system integrety and logs information
 #about the system. By default it will do a lot of scans
 #and will need a long runtime.
-#It creates Logfiles which can be inspected aferwards.
+#It creates logfiles which can be inspected aferwards.
 
 ##help_option starts here
 option_h()
@@ -495,3 +495,5 @@ exit 0
 #implement disks check health status
 #rkhunter check for updates to be more reliable
 #rkhunter first initilise database if not present yet
+#selftests: look up if the binarys which being used are valid or have been changed
+#even the script itself should be selftested
