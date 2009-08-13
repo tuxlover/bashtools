@@ -39,7 +39,7 @@ ANTIVIR=
 ROOTKIT_CHECKER=
 SECURITY_CHECKER=
 LOGFILE=
-USE_QUIETE=
+USE_QUIET=
 declare -a EXCLUDE_DIRS=
 declare -a WITH_FEATURE=
 
@@ -155,7 +155,7 @@ fi
 check_root()
 {
 if [ $UID -ne 0 ]
-	then #use withfeature instead withoout_feature
+	then 
 		drop_failure
 		echo "not root"
 		exit 1
@@ -220,7 +220,10 @@ for dir in  ${DIRS[@]}
 
 verify_package()
 {
-rpm -q rpm 2> /dev/null && rpm -Va  |tee -a $LOGFILE || echo "skip this test"
+	{
+		echo "with package verification"
+		rpm -q rpm 2> /dev/null && rpm -Va  || echo "not an rpm distribuition. skip this test"
+	}|tee -a $LOGFILE
 }
 
 #do the main action including check for dirs and files
@@ -239,39 +242,47 @@ $0" >> $LOGFILE
 					A)
 					if [ ! -z $EXCLUDE_DIRS ]
 						then
-							echo "with clamscan"|tee -a $LOGFILE 
-							echo "with excludedirs"
-							check_antivir
-							echo "Skiping"
-							for dir in ${DIRS[@]}
-								do
-									echo $dir
-								done
+							{
+								echo "with clamscan" 
+								echo "with excludedirs"
+								check_antivir
+								echo "Skiping"
+								
+								for dir in ${DIRS[@]}
+									do
+										echo $dir
+									done
 				
-							E=$( exclude_this)
-							ANT=`$ANTIVIR -r -i $E /`
-							echo "$ANT" |tee -a $LOGFILE
+								E=$( exclude_this)
+								ANT=`$ANTIVIR -r -i $E /`
+								echo "$ANT" 
+						   }|tee -a $LOGFILE
 						else
-							echo "with clamscan"|tee -a $LOGFILE
-							check_antivir
-							ANT=`$ANTIVIR -r -i /`
-							echo "$ANT" |tee -a $LOGFILE
+							{
+								echo "with clamscan"
+								check_antivir
+								ANT=`$ANTIVIR -r -i /`
+								echo "$ANT" 
+							}|tee -a $LOGFILE
 					fi
 					;;
 					C) 
-					echo "with chkrootkit"|tee -a $LOGFILE 
-					check_rootkit_checker
-					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-					echo "$CNT" |tee -a $LOGFILE		
+					{
+						echo "with chkrootkit" 
+						check_rootkit_checker
+						CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+						echo "$CNT"		
+					}|tee -a $LOGFILE
 					;;
-					S) 			
-					echo "with lynis"|tee -a $LOGFILE
-					check_lynis
-					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-					echo "$SNT" |tee -a $LOGFILE      
+					S) 
+					{			
+						echo "with lynis"
+						check_lynis
+						SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+						echo "$SNT"      
+					}|tee -a $LOGFILE
 					;;
 					P)
-					echo "with package verification"|tee -a $LOGFILE 
 					verify_package
 					;;
 					\?) 
@@ -280,46 +291,53 @@ $0" >> $LOGFILE
 			done
 		echo "------------------------------------------------------------------" >> $LOGFILE
 	else
-		echo $INDEX >> $LOGFILE
-		echo "file was created by $0" >> $LOGFILE
-		echo "-----------------------------------------------------------------" >> $LOGFILE
-		echo "with clamscan" |tee -a $LOGFILE
-		echo "with chkrootkit"|tee -a $LOGFILE
-		echo "with lynis"|tee -a $LOGFILE
-		check_antivir
-		check_lynis 
-		check_rootkit_checker
+		{
+			echo $INDEX
+			echo "file was created by $0"
+			echo "-----------------------------------------------------------------"
+			echo "with clamscan"
+			echo "with chkrootkit"
+			echo "with lynis"
+			check_antivir
+			check_lynis 
+			check_rootkit_checker
+		}|tee -a $LOGFILE
 
 		if [ ! -z $EXCLUDE_DIRS ]
 			then
-				echo "with clamscan"|tee -a $LOGFILE 
-				echo "with excludedirs"
-				check_antivir
-				echo "Skiping"
-				for dir in ${DIRS[@]}
-					do
-						echo $dir
-					done
+				{
+					echo "with clamscan" 
+					echo "with excludedirs"
+					check_antivir
+					echo "Skiping"
+					for dir in ${DIRS[@]}
+						do
+							echo $dir
+						done
 				
-				E=$( exclude_this)
-				ANT=`$ANTIVIR -r -i $E /`
-				echo "ANT" |tee -a $LOGFILE
+					E=$( exclude_this)
+					ANT=`$ANTIVIR -r -i $E /`
+					echo "ANT" 
+				}|tee -a $LOGFILE
 			else
-				echo "with clamscan"|tee -a $LOGFILE
-				check_antivir
-				ANT=`$ANTIVIR -r -i /`
-				echo "$ANT" |tee -a $LOGFILE
+				{
+					echo "with clamscan"
+					check_antivir
+					ANT=`$ANTIVIR -r -i /`
+					echo "$ANT"
+				}|tee -a $LOGFILE
 		fi
-
-		CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-		echo "$CNT"	>> $LOGFILE	
-		SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-		echo "$SNT" |tee -a $LOGFILE
+		{
+			CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+			echo "$CNT"		
+			SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+			echo "$SNT"
 		
-		verify_package	
+			verify_package	
 
-		echo "------------------------------------------------------------------" >> $LOGFILE
+			echo "------------------------------------------------------------------"
 
+		}|tee -a $LOGFILE
 fi
 }	
 
@@ -342,3 +360,7 @@ exit 0
 #clean up the code
 #implement quite mode
 #use {} I/O redirection
+#colorize output
+#rpm verifaction has a bug 
+#function clamscan will be called twice
+#verify package is kind of broken
