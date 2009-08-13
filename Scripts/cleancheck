@@ -18,6 +18,7 @@ echo "you have to seperate the directories by : character"
 echo "		example -e /home/:/media/:/mnt/"
 echo "-l set name and path to logdir"
 echo "-h show this help"
+echo "-q be as less verbose as possible and log only to logfile"
 echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
@@ -64,6 +65,11 @@ option_l()
 LOGFILE="$OPTARG"
 }
 
+option_q()
+{
+USE_QUIET="yes"
+}
+
 option_s()
 {
 SECURITY_CHECKER="$OPTARG"	
@@ -86,7 +92,7 @@ while [ $c -ge 0 ]
 
 
 
-while getopts a:c:l:e:s:w:h opt
+while getopts a:c:l:e:s:w:hq opt
 	do
 		case "$opt" in
 			a) option_a
@@ -100,6 +106,8 @@ while getopts a:c:l:e:s:w:h opt
 			e) option_e
 			;;
 			s) option_s
+			;;
+			q) option_q
 			;;
 			w) option_w
 			;;
@@ -121,6 +129,11 @@ fi
 if [ -z $SECURITY_CHECKER ] #check for open security holes
 	then
 		SECURITY_CHECKER="/usr/bin/lynis"
+fi
+
+if [ -z $USE_QUIET ]
+	then
+		USE_QUIET="no"
 fi
 
 
@@ -220,10 +233,10 @@ for dir in  ${DIRS[@]}
 
 verify_package()
 {
-	{
-		echo "with package verification"
-		rpm -q rpm 2> /dev/null && rpm -Va  || echo "not an rpm distribuition. skip this test"
-	}|tee -a $LOGFILE
+
+echo "with package verification"
+rpm -q rpm 2> /dev/null && rpm -Va  || echo "not an rpm distribuition. skip this test"
+
 }
 
 #do the main action including check for dirs and files
@@ -242,102 +255,221 @@ $0" >> $LOGFILE
 					A)
 					if [ ! -z $EXCLUDE_DIRS ]
 						then
+							if [ "$USE_QUIET" != "no" ]
+								then
+									{
+										echo "with clamscan" 
+										echo "with excludedirs"
+										check_antivir
+										echo "Skiping"
+								
+										for dir in ${DIRS[@]}
+											do
+												echo $dir
+										done
+				
+										E=$( exclude_this)
+										ANT=`$ANTIVIR -r -i $E /`
+										echo "$ANT" 
+									} >> $LOGFILE
+								else
+									{
+										echo "with clamscan" 
+										echo "with excludedirs"
+										check_antivir
+										echo "Skiping"
+								
+										for dir in ${DIRS[@]}
+											do
+												echo $dir
+										done
+				
+										E=$( exclude_this)
+										ANT=`$ANTIVIR -r -i $E /`
+										echo "$ANT" 
+									}|tee -a $LOGFILE
+							fi
+						else
+							if [ "$USE_QUIET" != "no" ]
+								then
+									{
+										echo "with clamscan"
+										check_antivir
+										ANT=`$ANTIVIR -r -i /`
+										echo "$ANT" 
+									}>> $LOGFILE
+								else
+									{
+										echo "with clamscan"
+										check_antivir
+										ANT=`$ANTIVIR -r -i /`
+										echo "$ANT" 
+									}|tee -a $LOGFILE
+							fi
+					fi
+					;;
+					C) 
+					
+						if [ "$USE_QUIET" != "no" ]
+							then
+								{
+									echo "with chkrootkit" 
+									check_rootkit_checker
+									CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+									echo "$CNT"		
+								}>> $LOGFILE
+							else
+									{
+									echo "with chkrootkit" 
+									check_rootkit_checker
+									CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+									echo "$CNT"		
+								}|tee -a $LOGFILE
+						fi
+					;;
+					S)
+						if [ "$USE_QUIET" != "no" ]
+							then
+								{			
+									echo "with lynis"
+									check_lynis
+									SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+									echo "$SNT"      
+								}>> $LOGFILE
+							else
+								{			
+									echo "with lynis"
+									check_lynis
+									SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+									echo "$SNT"      
+								}|tee -a $LOGFILE
+						fi
+					;;
+					P)
+						if [ "$USE_QUIET" != "no" ]
+							then
+								{
+									verify_package
+								}>> $LOGFILE
+							else
+								{
+									verify_package
+								}|tee -a $LOGFILE
+						fi
+					;;
+					\?) 
+						option_h #in case the option dont met display help
+				esac
+			done
+		echo "------------------------------------------------------------------" >> $LOGFILE
+	else
+		if [ "$USE_QUIET" != "no" ]
+			then
+				{
+					echo $INDEX
+					echo "file was created by $0"
+					echo "-----------------------------------------------------------------"
+					echo "with clamscan"
+					echo "with chkrootkit"
+					echo "with lynis"
+					check_antivir
+					check_lynis 
+					check_rootkit_checker
+				}>> $LOGFILE
+			else
+					{
+					echo $INDEX
+					echo "file was created by $0"
+					echo "-----------------------------------------------------------------"
+					echo "with clamscan"
+					echo "with chkrootkit"
+					echo "with lynis"
+					check_antivir
+					check_lynis 
+					check_rootkit_checker
+				}|tee -a $LOGFILE
+		fi
+		
+		if [ ! -z $EXCLUDE_DIRS ]
+			then
+				if [ "$USE_QUIET" != "no" ]
+					then
 							{
 								echo "with clamscan" 
 								echo "with excludedirs"
 								check_antivir
 								echo "Skiping"
-								
+							
 								for dir in ${DIRS[@]}
 									do
 										echo $dir
-									done
+								done
 				
 								E=$( exclude_this)
 								ANT=`$ANTIVIR -r -i $E /`
-								echo "$ANT" 
-						   }|tee -a $LOGFILE
-						else
+								echo "ANT" 
+							}|>> $LOGFILE
+					else
 							{
-								echo "with clamscan"
+								echo "with clamscan" 
+								echo "with excludedirs"
 								check_antivir
-								ANT=`$ANTIVIR -r -i /`
-								echo "$ANT" 
+								echo "Skiping"
+							
+								for dir in ${DIRS[@]}
+									do
+										echo $dir
+								done
+				
+								E=$( exclude_this)
+								ANT=`$ANTIVIR -r -i $E /`
+								echo "ANT" 
 							}|tee -a $LOGFILE
-					fi
-					;;
-					C) 
-					{
-						echo "with chkrootkit" 
-						check_rootkit_checker
-						CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-						echo "$CNT"		
-					}|tee -a $LOGFILE
-					;;
-					S) 
-					{			
-						echo "with lynis"
-						check_lynis
-						SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-						echo "$SNT"      
-					}|tee -a $LOGFILE
-					;;
-					P)
-					verify_package
-					;;
-					\?) 
-					option_h #in case the option dont met display help
-				esac
-			done
-		echo "------------------------------------------------------------------" >> $LOGFILE
-	else
-		{
-			echo $INDEX
-			echo "file was created by $0"
-			echo "-----------------------------------------------------------------"
-			echo "with clamscan"
-			echo "with chkrootkit"
-			echo "with lynis"
-			check_antivir
-			check_lynis 
-			check_rootkit_checker
-		}|tee -a $LOGFILE
-
-		if [ ! -z $EXCLUDE_DIRS ]
+				fi
+			else
+				if [ "$USE_QUIET" != "no" ]
+					then
+						{
+							echo "with clamscan"
+							check_antivir
+							ANT=`$ANTIVIR -r -i /`
+							echo "$ANT"
+						}>> $LOGFILE
+					else
+						{
+							echo "with clamscan"
+							check_antivir
+							ANT=`$ANTIVIR -r -i /`
+							echo "$ANT"
+						}|tee -a $LOGFILE
+				fi		
+		fi
+		if [ "$USE_QUIET" != "no" ]
 			then
 				{
-					echo "with clamscan" 
-					echo "with excludedirs"
-					check_antivir
-					echo "Skiping"
-					for dir in ${DIRS[@]}
-						do
-							echo $dir
-						done
-				
-					E=$( exclude_this)
-					ANT=`$ANTIVIR -r -i $E /`
-					echo "ANT" 
-				}|tee -a $LOGFILE
+					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+					echo "$CNT"		
+					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+					echo "$SNT"
+		
+					verify_package	
+
+					echo "------------------------------------------------------------------"
+
+				} >> $LOGFILE
 			else
-				{
-					echo "with clamscan"
-					check_antivir
-					ANT=`$ANTIVIR -r -i /`
-					echo "$ANT"
+						{
+					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+					echo "$CNT"		
+					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+					echo "$SNT"
+		
+					verify_package	
+
+					echo "------------------------------------------------------------------"
+
 				}|tee -a $LOGFILE
 		fi
-		{
-			CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-			echo "$CNT"		
-			SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-			echo "$SNT"
-		
-			verify_package	
-
-			echo "------------------------------------------------------------------"
-
-		}|tee -a $LOGFILE
 fi
 }	
 
@@ -359,8 +491,6 @@ exit 0
 
 #clean up the code
 #implement quite mode
-#use {} I/O redirection
 #colorize output
-#rpm verifaction has a bug 
-#function clamscan will be called twice
 #verify package is kind of broken
+#implement disks check health status
