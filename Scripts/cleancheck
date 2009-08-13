@@ -5,14 +5,14 @@
 #It checks system integrety and logs information
 #about the system. By default it will do a lot of scans
 #and will need a long runtime.
-#It creates Logfiles which can be inspeceted aferwards.
+#It creates Logfiles which can be inspected aferwards.
 
 ##help_option starts here
 option_h()
 {
 echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACPS]"
 echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
-echo "-c set path to  chkrootkit binary. if not set /usr/sbin/chkrootkit is used"
+echo "-c set path to  chkrootkit binary. if not set /usr/bin/rkhunter is used"
 echo "-e exclude these dirs for scanning for viruses"
 echo "you have to seperate the directories by : character"
 echo "		example -e /home/:/media/:/mnt/"
@@ -26,7 +26,7 @@ echo "      S: check security holes"
 echo "      P do an package integrety-check. RPMS only" 
 echo "   You may also use this option to set the order of checks performed"
 echo "   or to exclude actions that should not be performed."
-exit 1		
+exit 0	
 }
 ##help option ends here
 
@@ -338,11 +338,7 @@ check_root
 exit 0
 
 
-#the checking for valid is not much functional yet
-#use -x testoperator to make sure it is executable
-#use grep to grep for valid datanames
+
 #clean up the code
 #implement quite mode
-#print line by line make the output more readable to users (checkrootkit)
 #use {} I/O redirection
-#i switched to rkhunter because chkoortkit alway exist with 1 and rkhunter is cleaner
