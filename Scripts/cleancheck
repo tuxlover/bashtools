@@ -490,7 +490,6 @@ exit 0
 
 
 #clean up the code
-#implement quite mode
 #colorize output
 #verify package is kind of broken
 #implement disks check health status
