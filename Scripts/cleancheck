@@ -493,3 +493,5 @@ exit 0
 #colorize output
 #verify package is kind of broken
 #implement disks check health status
+#rkhunter check for updates to be more reliable
+#rkhunter first initilise database if not present yet
