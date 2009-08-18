@@ -1,0 +1,131 @@
+##Computer
+Summary
+--------
+->Computer
++CPU
++Memory
++Operating System
++User Name
++Date and Time
+-->Display
++Resolution
++OpenGL Renderer
++X11 Vendor
+-->Multimedia
++AudioAdapter
++Codecs
+--> Input Devices
++PC Speaker
++Power Button (FF)
++Power Button (CM)
++Keyboard
++Mouse
+--> Printers
++LPD0
+--> SCSI Disks
++internal
++external
+
+Operating System
+-----------------
+--> Version
++Kernel
++Compyiled Machine
++Compiled C library 
++default C compiler
++Dsitribution
+--> Current Session
++Computer Name
++User Name
++Home Directory
++Desktop Environment
+--> Misc
++Uptime
++Load Average
+
+Kernel Modules
+--------------
+
+Boot-Information
+----------------
+
+Installed Languages
+-------------------
+
+Filesystems
+-----------
+freesoace/used space
+
+Display
+-------
+parse /etc/X11/xorg.conf
+
+Environment Variables
+---------------------
+all environment variables
+
+Users and Groups
+----------------
+parse /etc/group
+parse /etc/passwd
+
+Prozesses
+---------
+-> treeview
+-> top 5
+-----------------
+##Devices
+CPU
+----
+--> Name
+--> Count
+Memory
+------
+Memory free/used/buffered
+PCI Devices
+-----------
+list PCIdevices
+USB Devices
+----------
+list USB Devices
+
+Printers
+--------
+battery
+-------
+Sensors
+-------
+--> cpu temp
+--> hddtemp
+--> gputemp
+BIOS
+---
+##Network
+Interfaces
+----------
+IP-Adresses and Ports
+---------------------
+Routing-Tables
+--------------
+Servers
+-------
+Stats
+-----
+Dirs
+----
+-->SAMBA
+-->NFS
+##Benchmark
+CPU Blowfish
+CPU Cryptohash
+CPU Fibonacci
+FPU FFT
+John Walkers
+
+
+#if a test fails because there the used programm is not installed print 
+a warn and info message
+
+
+
+
