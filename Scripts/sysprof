@@ -3,19 +3,29 @@
 #this script will profile and benchmark your system
 
 
+##VARS
+CPU_CORES=$(cat /proc/cpuinfo |grep "model name"|wc -l)
+CPU_TYPE=$(grep -m 1 "model name" /proc/cpuinfo | sed 's/^.*: //g')
+
+TOTAL_MEM=$(free -m -o| awk '{print $2}'|head -2|tail -1)
+USED_MEM=$(free -m -o| awk '{print $3}'|head -2|tail -1)
+FREE_MEM=$(free -m -o |awk '{print $4}'|head -2|tail -1)
+CACHED_MEM=$(free -m -o |awk '{print $7}'|head -2|tail -1)
+##VARS
+
 
 computer_info()
 {
 ##Variables that holds the information
-CPU_CORES=$(cat /proc/cpuinfo |grep "model name"|wc -l)
-CPU_TYPE=$(grep -m 1 "model name" /proc/cpuinfo | sed 's/^.*: //g')
 	
 echo "## Your Computer ##"
 echo "Summary"
 echo "-------"
 echo "--> Computer"
-echo "CPU: 		$CPU_CORES * $CPU_TYPE"
-echo "Memory:	"
+echo "CPU: 		$CPU_CORES x $CPU_TYPE"
+echo "Memory:	$TOTAL_MEM MB ($USED_MEM MB)"
+echo "Operating System:		" #howto get this information out of the machine
+
 }
 
 computer_info
@@ -23,7 +33,7 @@ computer_info
 exit 0
 
 
-#+Memory
+
 #+Operating System
 #+User Name
 #+Date and Time
@@ -146,3 +156,4 @@ exit 0
 #if a test fails because there the used programm is not installed print 
 #a warn and info message
 #create a logfile
+#work with spaces 
