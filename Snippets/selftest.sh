@@ -56,7 +56,18 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 		
 				chattr +i $SHA_SUM/init/SHA_SUMS
 			else
-				sha512sum -c $SHA_SUM/init/SHA_SUMS
+				SUMS=$(sha512sum -c $SHA_SUM/init/SHA_SUMS)
+					for sum in ${SUMS[@]}
+						do
+							if [[ "$sum"  = "FEHLSCHLAG" || "$sum" = "FAILED" ]]
+								then
+									echo  -e '\E[33mwarning:'; tput sgr0
+									echo "at least one invalid checksum found"
+									echo "use -f if you just updated your system"
+									exit 1
+							fi
+						done
+				echo -e '\E[32mall ok'; tput sgr0
 		fi
 fi
 
@@ -65,4 +76,4 @@ exit 0
 
 #option -f firstrun pretend to be the firstrun. this is usefull if you update your system and therefore the sha512sums dont match anymore
 #warning: be sure that you do this only when the system has been updated by rpm or whatever package manager you are using
-#check all binaries in clamav, lynsis, rkhunter, rpm or which might be used by them.
+#check all binaries in clamav, lynsis, rkhunter, rpm or which might be used by them. 
