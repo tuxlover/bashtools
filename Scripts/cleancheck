@@ -14,8 +14,11 @@ echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACPS]"
 echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set /usr/bin/rkhunter is used"
 echo "-e exclude these dirs for scanning for viruses"
-echo "you have to seperate the directories by : character"
+echo "   you have to seperate the directories by : character"
 echo "		example -e /home/:/media/:/mnt/"
+echo "-f pretend to be the firstrun. this is usefull if you update your system"
+echo "   and therefore the sha512sums dont match anymore"
+echo "   WARNING be sure that you do this only when the system has been updated by rpm"
 echo "-l set name and path to logdir"
 echo "-h show this help"
 echo "-q be as less verbose as possible and log only to logfile"
@@ -24,7 +27,7 @@ echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
 echo "      S: check security holes"
-echo "      P do an package integrety-check. RPMS only" 
+echo "      P: do an package integrety-check. RPMS only" 
 echo "   You may also use this option to set the order of checks performed"
 echo "   or to exclude actions that should not be performed."
 exit 0	
@@ -41,8 +44,10 @@ ROOTKIT_CHECKER=
 SECURITY_CHECKER=
 LOGFILE=
 USE_QUIET=
+FIRST_RUN=
 declare -a EXCLUDE_DIRS=
 declare -a WITH_FEATURE=
+SHA_SUM=/var/log/selftest
 
 option_a()
 {
@@ -58,6 +63,11 @@ option_e()
 {
 EXCLUDE_DIRS="$OPTARG"
 DIRS=$(echo $EXCLUDE_DIRS |  sed "s/:/\n/g" )
+}
+
+option_f()
+{
+FIRST_RUN="yes"	
 }
 
 option_l()
@@ -92,7 +102,7 @@ while [ $c -ge 0 ]
 
 
 
-while getopts a:c:l:e:s:w:hq opt
+while getopts a:c:l:e:s:w:fhq opt
 	do
 		case "$opt" in
 			a) option_a
@@ -104,6 +114,8 @@ while getopts a:c:l:e:s:w:hq opt
 			l) option_l
 			;;
 			e) option_e
+			;;
+			f) option_f
 			;;
 			s) option_s
 			;;
@@ -136,6 +148,10 @@ if [ -z $USE_QUIET ]
 		USE_QUIET="no"
 fi
 
+if [ -z $FIRST_RUN ]
+	then
+		FIRST_RUN="no"
+fi
 
 if [ -z $LOGFILE ]
 	then
@@ -239,15 +255,63 @@ rpm -q rpm 2> /dev/null && rpm -Va  || echo "not an rpm distribuition. skip this
 
 }
 
+
+self_test()
+{
+if [ ! -f $SHA_SUM/init/SHA_SUMS ]
+	then
+		echo "first run of $0. initilize sha512 checksums."
+		mkdir -p $SHA_SUM/init
+		{
+			sha512sum $0
+			sha512sum $ANTIVIR
+			sha512sum /usr/bin/freshclam
+			sha512sum $ROOTKIT_CHECKER
+			sha512sum $SECURITY_CHECKER
+			sha512sum /bin/rpm			
+		} >> $SHA_SUM/init/SHA_SUMS
+		#imutable the SHA_SUMS because this is the weakest part of the script
+		chattr +i $SHA_SUM/init/SHA_SUMS
+	else
+		if [ "$FIRST_RUN" != "no" ]
+			then
+				chattr -i $SHA_SUM/init/SHA_SUMS
+				cat /dev/null > $SHA_SUM/init/SHA_SUMS
+				{
+					sha512sum $0
+					sha512sum $ANTIVIR
+					sha512sum /usr/bin/freshclam
+					sha512sum $ROOTKIT_CHECKER
+					sha512sum $SECURITY_CHECKER
+					sha512sum /bin/rpm			
+				} >> $SHA_SUM/init/SHA_SUMS
+		
+				chattr +i $SHA_SUM/init/SHA_SUMS
+			else
+				SUMS=$(sha512sum -c $SHA_SUM/init/SHA_SUMS)
+					for sum in ${SUMS[@]}
+						do
+							if [[ "$sum"  = "FEHLSCHLAG" || "$sum" = "FAILED" ]]
+								then
+									echo  -e '\E[33mwarning:'; tput sgr0
+									echo "at least one invalid checksum found"
+									echo "use -f if you just updated your system"
+									exit 1
+							fi
+						done
+				echo -e '\E[32mall ok'; tput sgr0
+		fi
+fi	
+}
+
 #do the main action including check for dirs and files
 main()
 {
+self_test
 if [ ! -z $WITH_FEATURE ]
 	then
 		echo $INDEX >> $LOGFILE
-		echo "file was created by 
-
-$0" >> $LOGFILE
+		echo "file was created by $0" >> $LOGFILE
 		echo "-----------------------------------------------------------------" >> $LOGFILE
 		for feature in ${WITH_FEATURE[@]}
 			do
@@ -496,4 +560,4 @@ exit 0
 #rkhunter check for updates to be more reliable
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
-#even the script itself should be selftested
+#make freshclam an extra variable
