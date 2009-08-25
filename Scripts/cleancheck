@@ -10,7 +10,7 @@
 ##help_option starts here
 option_h()
 {
-echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACPS]"
+echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACPSU]"
 echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set /usr/bin/rkhunter is used"
 echo "-e exclude these dirs for scanning for viruses"
@@ -27,7 +27,8 @@ echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
 echo "      S: check security holes"
-echo "      P: do an package integrety-check. RPMS only" 
+echo "      P: do an package integrety-check. RPMS only"
+echo "      U: only update or check the sha512 sums" 
 echo "   You may also use this option to set the order of checks performed"
 echo "   or to exclude actions that should not be performed."
 exit 0	
@@ -258,12 +259,24 @@ rpm -q rpm 2> /dev/null && rpm -Va  || echo "not an rpm distribuition. skip this
 
 self_test()
 {
+SHA512_TEST=$(which sha512sum || echo "no")
+SHA512=${SHA512_TEST}
+
+if [ "$SHA512_TEST" = "no"  ]
+	then 
+		echo "the program for calculating the sha512 sum is not in the system"
+		echo "please install it and rerun again"
+		exit 1
+fi
+		
 if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 	then
 		echo "first run of $0. initilize sha512 checksums."
 		mkdir -p $SHA_SUM/init
 		{
+			sha512sum $SHA512
 			sha512sum $0
+			sha512sum /bin/bash
 			sha512sum $ANTIVIR
 			sha512sum /usr/bin/freshclam
 			sha512sum $ROOTKIT_CHECKER
@@ -278,7 +291,9 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 				chattr -i $SHA_SUM/init/SHA_SUMS
 				cat /dev/null > $SHA_SUM/init/SHA_SUMS
 				{
+					sha512sum $SHA512
 					sha512sum $0
+					sha512sum /bin/bash
 					sha512sum $ANTIVIR
 					sha512sum /usr/bin/freshclam
 					sha512sum $ROOTKIT_CHECKER
@@ -421,6 +436,8 @@ if [ ! -z $WITH_FEATURE ]
 								}|tee -a $LOGFILE
 						fi
 					;;
+					U) :
+					;;
 					\?) 
 						option_h #in case the option dont met display help
 				esac
@@ -561,3 +578,5 @@ exit 0
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
 #make freshclam an extra variable
+#need the sourcerpm of rkhunter to implement selfupdate
+#dont use options but find needed programs by the script itself using which
