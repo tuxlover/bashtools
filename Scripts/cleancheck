@@ -15,7 +15,7 @@ echo "-a set path to clamscan  binary. if not set /usr/bin/clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set /usr/bin/rkhunter is used"
 echo "-e exclude these dirs for scanning for viruses"
 echo "   you have to seperate the directories by : character"
-echo "		example -e /home/:/media/:/mnt/"
+echo "	 example -e /home/:/media/:/mnt/"
 echo "-f pretend to be the firstrun. this is usefull if you update your system"
 echo "   and therefore the sha512sums dont match anymore"
 echo "   WARNING be sure that you do this only when the system has been updated by rpm"
@@ -302,6 +302,7 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 				} >> $SHA_SUM/init/SHA_SUMS
 		
 				chattr +i $SHA_SUM/init/SHA_SUMS
+				echo -e '\E[32mall ok'; tput sgr0
 			else
 				SUMS=$(sha512sum -c $SHA_SUM/init/SHA_SUMS)
 					for sum in ${SUMS[@]}
@@ -322,12 +323,23 @@ fi
 #do the main action including check for dirs and files
 main()
 {
-self_test
 if [ ! -z $WITH_FEATURE ]
 	then
 		echo $INDEX >> $LOGFILE
 		echo "file was created by $0" >> $LOGFILE
 		echo "-----------------------------------------------------------------" >> $LOGFILE
+		for feature in ${WITH_FEATURE[@]}
+			do
+				case $feature in
+					A) check_antivir
+					;;
+					C) check_rootkit_checker
+					;;
+					S) check_lynis
+				esac
+			done
+		self_test
+		
 		for feature in ${WITH_FEATURE[@]}
 			do
 				case $feature in
@@ -339,7 +351,6 @@ if [ ! -z $WITH_FEATURE ]
 									{
 										echo "with clamscan" 
 										echo "with excludedirs"
-										check_antivir
 										echo "Skiping"
 								
 										for dir in ${DIRS[@]}
@@ -355,7 +366,6 @@ if [ ! -z $WITH_FEATURE ]
 									{
 										echo "with clamscan" 
 										echo "with excludedirs"
-										check_antivir
 										echo "Skiping"
 								
 										for dir in ${DIRS[@]}
@@ -373,14 +383,12 @@ if [ ! -z $WITH_FEATURE ]
 								then
 									{
 										echo "with clamscan"
-										check_antivir
 										ANT=`$ANTIVIR -r -i /`
 										echo "$ANT" 
 									}>> $LOGFILE
 								else
 									{
 										echo "with clamscan"
-										check_antivir
 										ANT=`$ANTIVIR -r -i /`
 										echo "$ANT" 
 									}|tee -a $LOGFILE
@@ -393,14 +401,12 @@ if [ ! -z $WITH_FEATURE ]
 							then
 								{
 									echo "with chkrootkit" 
-									check_rootkit_checker
 									CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
 									echo "$CNT"		
 								}>> $LOGFILE
 							else
 									{
-									echo "with chkrootkit" 
-									check_rootkit_checker
+									echo "with chkrootkit"
 									CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
 									echo "$CNT"		
 								}|tee -a $LOGFILE
@@ -411,14 +417,12 @@ if [ ! -z $WITH_FEATURE ]
 							then
 								{			
 									echo "with lynis"
-									check_lynis
 									SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
 									echo "$SNT"      
 								}>> $LOGFILE
 							else
 								{			
 									echo "with lynis"
-									check_lynis
 									SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
 									echo "$SNT"      
 								}|tee -a $LOGFILE
@@ -457,6 +461,7 @@ if [ ! -z $WITH_FEATURE ]
 					check_lynis 
 					check_rootkit_checker
 				}>> $LOGFILE
+				self_test
 			else
 					{
 					echo $INDEX
@@ -469,6 +474,7 @@ if [ ! -z $WITH_FEATURE ]
 					check_lynis 
 					check_rootkit_checker
 				}|tee -a $LOGFILE
+				self_test
 		fi
 		
 		if [ ! -z $EXCLUDE_DIRS ]
@@ -478,7 +484,6 @@ if [ ! -z $WITH_FEATURE ]
 							{
 								echo "with clamscan" 
 								echo "with excludedirs"
-								check_antivir
 								echo "Skiping"
 							
 								for dir in ${DIRS[@]}
@@ -494,9 +499,8 @@ if [ ! -z $WITH_FEATURE ]
 							{
 								echo "with clamscan" 
 								echo "with excludedirs"
-								check_antivir
 								echo "Skiping"
-							
+								
 								for dir in ${DIRS[@]}
 									do
 										echo $dir
