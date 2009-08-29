@@ -584,3 +584,4 @@ exit 0
 #make freshclam an extra variable
 #need the sourcerpm of rkhunter to implement selfupdate
 #dont use options but find needed programs by the script itself using which
+#if package has fatal error reinstall it
