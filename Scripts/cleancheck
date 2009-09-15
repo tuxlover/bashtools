@@ -250,9 +250,14 @@ for dir in  ${DIRS[@]}
 
 verify_package()
 {
+is_rpm=$(rpm -q rpm && echo "yes")
 
-echo "with package verification"
-rpm -q rpm 2> /dev/null && rpm -Va  || echo "not an rpm distribuition. skip this test"
+if [ "$is_rpm" == "yes" ]
+	then
+		echo "with rpm package verification"
+	else
+		echo "package verification for rpm skipped"
+fi
 
 }
 
@@ -585,3 +590,4 @@ exit 0
 #need the sourcerpm of rkhunter to implement selfupdate
 #dont use options but find needed programs by the script itself using which
 #if package has fatal error reinstall it
+#if rpm is not installed dont calculate checksum for program rpm
