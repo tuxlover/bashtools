@@ -1,0 +1,80 @@
+#!/bin/bash
+#bmh
+
+#bmh: backup my home is a simple backup utility for backing up a users
+#home directory.
+#it uses rsync, notify-send and zenity.
+
+#it rsyncs between two directories usinng rsync after finished the backup is tar bziped2 to save diskspace
+#call bmh $1=Sourcedir $2=Destdir $3=EXCLUDE (optional)
+
+##VARS
+SOURCE_DIR=$HOME #which directory should be a backup taken from
+DEST_DIR=$1 #the destination where to save
+EXCLUDE_FILE=$2 #use a seperate list of exclude patterns saved in a file
+#These Vars should be edited. e.g. when you want to run this as cron-job and have more than one
+##VARS
+
+HAS_RSYNC=$(which rsync || echo "no")
+
+
+
+#checks whether tools are set to inform the user
+#if not, the user will be warned and then the action is performed
+check_notification()
+{
+HAS_NOTIFY=$(which notify-send || echo "no") #using which to test presence
+HAS_ZENITY=$(which zenity || echo "no")
+
+if [[ "$HAS_ZENITY" == "no" || "$HAS_NOTIFY" == "no" ]]
+	then
+		echo -e '\E[33mYou are unable to use notification'; tput sgr0
+		echo "___________________________"
+		echo "notify-send: $HAS_NOTIFY"
+		echo "zenity: $HAS_ZENITY"
+		echo "___________________________"
+		NOTIFY_USER="no"
+	else
+		NOTIFY_USER="yes"
+fi
+
+unset HAS_NOTIFY #might not be neccessary and will removed later
+unset HAS_ZENITY #might not be neccessary and will removed later
+
+main 
+}
+
+main()
+{
+if [ $NOTIFY_USER == "yes" ]
+	then
+		echo "take some action with notification"
+		notify-send "A backup is in progresss"
+		zenity --notification --text "backup in progress"
+			
+			echo "bla" 
+		
+		notify-send "The backup is now finished"
+	else
+		echo "take some action without notification"
+		i=10
+fi
+}
+
+check_notification
+
+
+
+
+exit 0
+
+#test whether requirements for script are met
+#we just need $1 $2 (optional)
+
+#zenity should send a notification-icon during process and notify-send shoud send a notifcation when backup has finished and
+#when its stopped
+#scince this is an user-level programm it should be testeted wheter there are access to the destination-dir
+#remove old archive first
+#we need to arguments so we need to schift twice
+#check wehther destdir exists by 
+#help option
