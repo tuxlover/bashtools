@@ -1,0 +1,12 @@
+#!/bin/bash
+
+exec 3> > (zenity --notification --listen)
+
+for datei in $(ls)
+do 
+echo "tooltip: echo ${datei}" >&3
+done 
+echo "message: bal" >&3
+
+exec 3>&-
+
