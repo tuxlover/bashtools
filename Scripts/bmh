@@ -15,9 +15,26 @@ EXCLUDE_FILE=$2 #use a seperate list of exclude patterns saved in a file
 #These Vars should be edited. e.g. when you want to run this as cron-job and have more than one
 ##VARS
 
+check_rsync()
+{
 HAS_RSYNC=$(which rsync || echo "no")
 
-
+if [ "$HAS_RSYNC" == "no" ]
+	then
+		echo -e '\E[31mCould not find rsync'; tput sgr0
+		echo "__________________________"
+		echo "rsync: $HAS_RSYNC"
+		echo "Rsync is needed. Please install it."
+		echo "__________________________"
+		exit 1
+	else
+		echo "__________________________"
+		echo -e '\E[32mrsync:yes'; tput sgr0
+		echo "__________________________"
+		sleep 2 #for better human readability
+		check_notification
+fi
+}
 
 #checks whether tools are set to inform the user
 #if not, the user will be warned and then the action is performed
@@ -35,6 +52,11 @@ if [[ "$HAS_ZENITY" == "no" || "$HAS_NOTIFY" == "no" ]]
 		echo "___________________________"
 		NOTIFY_USER="no"
 	else
+		echo "___________________________"
+		echo -e '\E[32m notify-send: yes';tput sgr0
+		echo -e '\E[32m zenity: yes';tput sgr0
+		echo "____________________________"
+		sleep 2 #for better human readability
 		NOTIFY_USER="yes"
 fi
 
@@ -46,22 +68,29 @@ main
 
 main()
 {
+I=(1 2 3 4 5 6 7 8)
 if [ $NOTIFY_USER == "yes" ]
 	then
 		echo "take some action with notification"
 		notify-send "A backup is in progresss"
-		zenity --notification --text "backup in progress"
+		zenity --notification --text "backup in progress" > 3& 
+		#the >3& redirection puts the output to panel and lets the script work without interruption
 			
-			echo "bla" 
-		
+			#the whole function is only for testing purposes 
+			for i in ${I[@]}
+			do
+				sleep 2 
+				echo $i 
+			done
 		notify-send "The backup is now finished"
+		#the whole function is only for testing purposes
 	else
 		echo "take some action without notification"
 		i=10
 fi
 }
 
-check_notification
+check_rsync
 
 
 
@@ -69,6 +98,7 @@ check_notification
 exit 0
 
 #test whether requirements for script are met
+#scince we want to use tar and bz2 we should testing for this requirements too
 #we just need $1 $2 (optional)
 
 #zenity should send a notification-icon during process and notify-send shoud send a notifcation when backup has finished and
@@ -78,3 +108,5 @@ exit 0
 #we need to arguments so we need to schift twice
 #check wehther destdir exists by 
 #help option
+#we need a cron option -q (quiete) to have less verbosity 
+# how to kill zenity automaticly after script finished ?
