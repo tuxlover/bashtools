@@ -73,7 +73,7 @@ if [ $NOTIFY_USER == "yes" ]
 	then
 		echo "take some action with notification"
 		notify-send "A backup is in progresss"
-		zenity --notification --text "backup in progress" > 3& 
+		zenity --notification --text "backup in progress" >3& 
 		#the >3& redirection puts the output to panel and lets the script work without interruption
 			
 			#the whole function is only for testing purposes 
@@ -83,10 +83,10 @@ if [ $NOTIFY_USER == "yes" ]
 				echo $i 
 			done
 		notify-send "The backup is now finished"
+		rm 3
 		#the whole function is only for testing purposes
 	else
 		echo "take some action without notification"
-		i=10
 fi
 }
 
