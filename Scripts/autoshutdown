@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#autoshutdown
+
+#small script that can be used as cron-job for autoshutdown 
+#it will print a warn message and a timer. the user can cancel the action
+#when he needs to work. otherwise the script causes the shutdown of the computer.
+
+SHUT_TIME=02:00 #by default 2 nighttime. This Variable holds the time for the first ask
+TIME_STEP=30 #if the User is still working ask again in Miutes
+RUN_TIME=08:00 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
+counter=30 #the counter function. The time the user has to stop shutdown prozess
+
+#Script needs root privilegues
+
+timer()
+{
+while [ $counter -ne 0 ]
+	do
+		sleep 1
+		echo $counter
+		counter=$(($counter-1))
+ 	done
+}
+
+timer|zenity --progress --percentage=100 --auto-close  -- auto-kill --text="Computer is going to shutdown in $counter Seconds" && echo "haha" || zenity --info --text="Shutdown abborted by user."
+
