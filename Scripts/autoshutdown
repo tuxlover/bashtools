@@ -6,9 +6,9 @@
 #it will print a warn message and a timer. the user can cancel the action
 #when he needs to work. otherwise the script causes the shutdown of the computer.
 
-SHUT_TIME=02:00 #by default 2 nighttime. This Variable holds the time for the first ask
+SHUT_TIME=2 #by default 2 nighttime. This Variable holds the time for the first ask
 TIME_STEP=30 #if the User is still working ask again in Miutes
-RUN_TIME=08:00 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
+RUN_TIME=8 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
 counter=30 #the counter function. The time the user has to stop shutdown prozess
 
 #Script needs root privilegues
@@ -23,5 +23,37 @@ while [ $counter -ne 0 ]
  	done
 }
 
-timer|zenity --progress --percentage=100 --auto-close  -- auto-kill --text="Computer is going to shutdown in $counter Seconds" && echo "haha" || zenity --info --text="Shutdown abborted by user."
+shutdown_test()
+{
+DATE_NOW=$(date +%H)
+	
+		if [[ $SHUT_TIME -le $DATE_NOW  && $DATE_NOW -le $SHUT_TIME ]]
+			then
+				zenity --info --text="i shutdown the computer now."
 
+			else
+				zenity --info --text="a new day has begon"
+		fi
+			
+}
+
+ask_again()
+{
+	zenity --info --text="I will ask again in $TIME_STEP minutes."
+	WAIT_TIME=$(($TIME_STEP*60))
+	sleep $WAIT_TIME
+	#sleep 20
+	main
+}
+
+main()
+{
+timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in $counter Seconds" && shutdown_test || ask_again
+}
+
+main
+
+exit 0
+
+
+#must be allways ontop to not shutdown the computer eg while watching a movie
