@@ -6,9 +6,9 @@
 #it will print a warn message and a timer. the user can cancel the action
 #when he needs to work. otherwise the script causes the shutdown of the computer.
 
-SHUT_TIME=2 #by default 2 nighttime. This Variable holds the time for the first ask
+NIGHT_TIME=14 #by default 2 nighttime. This Variable holds the time in hours (24) for the first ask
 TIME_STEP=30 #if the User is still working ask again in Miutes
-RUN_TIME=8 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
+DAY_TIME=8 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
 counter=30 #the counter function. The time the user has to stop shutdown prozess
 
 #Script needs root privilegues
@@ -25,16 +25,27 @@ while [ $counter -ne 0 ]
 
 shutdown_test()
 {
-DATE_NOW=$(date +%H)
+x=$(date +%H) #the actual time
 	
-		if [[ $SHUT_TIME -le $DATE_NOW  && $DATE_NOW -le $SHUT_TIME ]]
-			then
-				zenity --info --text="i shutdown the computer now."
-
-			else
-				zenity --info --text="a new day has begon"
-		fi
-			
+	if [ $DAY_TIME -lt $NIGHT_TIME ] #(DT < NT)
+		then
+			if [[ $DAY_TIME -lt $x && $x -lt $NIGHT_TIME ]]
+			#intervall in which the computer never shuts down
+				then
+					zenity --info --text="it's still daytime"
+				else
+					zenity --info --text="i shutdown"
+			fi
+		else #(NT < DT)
+			if [[ $NIGHT_TIME -lt $x && $x -gt $DAY_TIME ]]
+			#intervall in which the computer never shuts down
+			#remember we are in a cyclic ring. so this defines an closed intervall as well
+				then
+					zenity --info --text="its still daytime"
+				else
+					zenity --info --text="i shutdown"
+			fi
+	fi
 }
 
 ask_again()
@@ -57,3 +68,5 @@ exit 0
 
 
 #must be allways ontop to not shutdown the computer eg while watching a movie
+#implement options -d $OPTARG (DAY_TIME) -n $OPTARG (NIGHT_TIME)
+#verify wehther OPTARG < 23 and whether OPTARG=integer value 
