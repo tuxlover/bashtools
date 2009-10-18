@@ -13,6 +13,60 @@ counter=30 #the counter function. The time the user has to stop shutdown prozess
 
 #Script needs root privilegues
 
+option_h() #a short help option starts here
+{
+	echo "call the script once as a cronjob"
+	echo "Usage $0 [-d TIME -n TIME]"
+	echo "-d set daytime"
+	echo "-n set nightime"
+	echo "Script will not shutdown the computer inbetween the intervall nighttime and daytime"
+}
+
+
+option_d() #set daytime in hours
+{
+unset DAY_TIME
+DAY_TIME=$OPTARG
+VALID_D=$(($DAY_TIME*0))
+
+if [[ $DAY_TIME -gt 23 || $VALID_D -ne 0 ]]
+	then
+		echo "not an vaild argument"
+		echo "argumnet must be an integer value between 0 and 23"
+		exit 1
+fi
+}
+
+option_n() #set nighttime in hours
+{
+unset NIGHT_TIME
+NIGHT_TIME=$OPTARG
+VALID_N=$(($NIGHT_TIME*1))
+
+if [[ $NIGHT_TIME -gt 23 || $VALID_N -ne 0 ]]
+	then
+		echo "not an vaild argument"
+		echo "argumnet must be an integer value between 0 and 23"
+		exit 1
+fi
+}
+
+while getopts d:n:h opt
+	do
+		case "$opt" in
+			d) option_d
+			;;
+			n) option_n
+			;;
+			h) option_h
+			;;
+			\?) option_h
+		esac
+	done
+shift `expr $OPTIND - 1`
+		
+
+
 timer()
 {
 while [ $counter -ne 0 ]
@@ -67,6 +121,5 @@ main
 exit 0
 
 
-#must be allways ontop to not shutdown the computer eg while watching a movie
-#implement options -d $OPTARG (DAY_TIME) -n $OPTARG (NIGHT_TIME)
-#verify wehther OPTARG < 23 and whether OPTARG=integer value 
+#must be allways ontop to not shutdown the computer eg while watching a movie 
+#check for integers does not work yet
