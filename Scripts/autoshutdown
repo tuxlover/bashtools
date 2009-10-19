@@ -2,11 +2,11 @@
 
 #autoshutdown
 
-#small script that can be used as cron-job for autoshutdown 
+#small script that manages autoshutdowns hourly
 #it will print a warn message and a timer. the user can cancel the action
 #when he needs to work. otherwise the script causes the shutdown of the computer.
 
-NIGHT_TIME=14 #by default 2 nighttime. This Variable holds the time in hours (24) for the first ask
+NIGHT_TIME=2 #by default 2 nighttime. This Variable holds the time in hours (24) for the first ask
 TIME_STEP=30 #if the User is still working ask again in Miutes
 DAY_TIME=8 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
 counter=30 #the counter function. The time the user has to stop shutdown prozess
@@ -16,12 +16,26 @@ counter=30 #the counter function. The time the user has to stop shutdown prozess
 ##options
 option_h() #a short help option starts here
 {
-	echo "call the script once as a cronjob"
-	echo "Usage $0 [-d TIME -n TIME]"
+	echo "set and manage autoshutdowns"
+	echo "Usage $0 [-d TIME -n TIME -f VALUE] [-c] "
+	echo "-c clear existing autoshutdown"
 	echo "-d set daytime"
 	echo "-n set nightime"
 	echo "-f set ask frequence. when press cancel ask again after n minutes where n can be any integer value greater 1"
 	echo "Script will not shutdown the computer inbetween the intervall daytime to nighttime"
+	exit 0
+}
+
+
+option_c()
+{
+if [ -f /etc/cron.d/autoshutdown ] 
+	then
+		rm /etc/cron.d/autoshutdown
+		exit 0
+	else
+		exit 0
+	fi
 }
 
 
@@ -95,9 +109,11 @@ if [ $NIGHT_TIME -le 23 ]
 fi
 }
 
-while getopts d:f:n:h opt
+while getopts d:f:n:hc opt
 	do
 		case "$opt" in
+			c) option_c
+			;;
 			d) option_d
 			;;
 			f) option_f
@@ -144,10 +160,11 @@ NOW_TIME=$(date +%H)
 			if [[ $DAY_TIME -lt $NOW_TIME && $NOW_TIME -lt $NIGHT_TIME ]]
 			#intervall in which the computer never shuts down
 				then
-					zenity --info --text="its daytime"
+					notify-send "its daytime" -t 12000 #hey wait ten seconds=12000 milliseconds
 					exit 0
 				else
-					zenity --info --text="i shutdown"
+					notify-send "i shutdown" -t 12000
+					rm /etc/cron.d/autoshutdown #remove from cronjoblist otherwise after restart the machine simply shuts down if its not daytime
 					echo "shutdown -h now"
 			fi
 		else #(NT < DT)
@@ -155,10 +172,11 @@ NOW_TIME=$(date +%H)
 			#intervall in which the computer never shuts down
 			#remember we are in a cyclic ring. so this defines an closed intervall as well
 				then
-					zenity --info --text="it is daytime"
+					notify-send "it is daytime" -t 12000
 					exit 0
 				else
-					zenity --info --text="i shutdown"
+					notify-send "i shutdown" -t 12000 #hey wait ten second =12000 milliseonds
+					rm /etc/cron.d/autoshutdown
 					echo "shutdown -h now"
 			fi
 	fi
@@ -179,15 +197,17 @@ timer|zenity --progress --percentage=100 --auto-close --text="Computer is going 
 
 main()
 {
-NOW_TIME=$(date +%H)
-		while [ $NOW_TIME -ne $NIGHT_TIME ]
-			do
-				echo "its not nighttime yet"
-				echo "trying again in 30 seconds"
-				sleep 30
-				NOW_TIME=$(date +%H)
-			done
-zenity_call
+#create a cronjob in /ect/cron.d/
+if [ -f /etc/cron.d/autoshutdown ] #check if /etc/cron.d/autoshutdown is present
+		then
+			echo "warning: a cronjob for autoshutdown allready exits"
+			echo "use $0 -c to clear an existing autoshutdown before creating a new one"
+			zenity_call
+		else
+			echo "#please use the autoshutdown script to manage autoshutdown" >> /etc/cron.d/autoshutdown
+			echo "0 $NIGHT_TIME * * *	$0 -d $DAY_TIME -n $NIGHT_TIME" >> /etc/cron.d/autoshutdown
+			zenity_call
+		fi
 }
 
 check_root
@@ -196,6 +216,5 @@ exit 0
 
 
 #must be allways ontop to not shutdown the computer eg while watching a movie
-#script makes no autoshutdown when not pressed the ok button
+#check whether notify-send and zenity are present
 #allert user through sound
-# -f option frequenz . when pressed cancel button ask again after n minutes
