@@ -13,19 +13,20 @@ counter=30 #the counter function. The time the user has to stop shutdown prozess
 
 #Script needs root privilegues
 
+##options
 option_h() #a short help option starts here
 {
 	echo "call the script once as a cronjob"
 	echo "Usage $0 [-d TIME -n TIME]"
 	echo "-d set daytime"
 	echo "-n set nightime"
-	echo "Script will not shutdown the computer inbetween the intervall nighttime and daytime"
+	echo "-f set ask frequence. when press cancel ask again after n minutes where n can be any integer value greater 1"
+	echo "Script will not shutdown the computer inbetween the intervall daytime to nighttime"
 }
 
 
 option_d() #set daytime in hours
 {
-unset DAY_TIME
 DAY_TIME=$OPTARG
 
 
@@ -38,12 +39,12 @@ if [ $DAY_TIME -le 23 ]
 			then
 				:
 			else
-				echo "not an vaild argument"
+				echo "-d not an vaild argument"
 				echo "argument must be an integer value between 0 and 23"
 			exit 1
 		fi
 	else
-		echo "not an vaild argument"
+		echo "-d not an vaild argument"
 		echo "argument must be an integer value between 0 and 23"
 		exit 1
 fi
@@ -51,9 +52,26 @@ fi
 
 }
 
+option_f()
+{
+TIME_STEP=$OPTARG
+
+#testing for integer needs only an integer comparsion
+#scince this can not be done on other datatypes
+#test result has exit status greater than 0 and 
+#therefore executes the body after else statement
+if [ $TIME_STEP -gt 0  ]
+	then
+		:
+	else
+		echo "-f not an valid argument"
+		echo "argument must be an integer value greater than 0"
+		exit 1
+fi
+
+}
 option_n() #set nighttime in hours
 {
-unset NIGHT_TIME
 NIGHT_TIME=$OPTARG
 
 
@@ -66,21 +84,23 @@ if [ $NIGHT_TIME -le 23 ]
 			then
 				:
 			else
-				echo "not an vaild argument"
+				echo "-n not an vaild argument"
 				echo "argument must be an integer value between 0 and 23"
 			exit 1
 		fi
 	else
-		echo "not an vaild argument"
+		echo "-n not an vaild argument"
 		echo "argument must be an integer value between 0 and 23"
 		exit 1
 fi
 }
 
-while getopts d:n:h opt
+while getopts d:f:n:h opt
 	do
 		case "$opt" in
 			d) option_d
+			;;
+			f) option_f
 			;;
 			n) option_n
 			;;
@@ -90,8 +110,19 @@ while getopts d:n:h opt
 		esac
 	done
 shift `expr $OPTIND - 1`
-		
+##options
 
+#simple function that checks for root priveleques
+check_root()
+{
+		if [ $UID -ne 0 ]
+			then
+				echo "need root priveleques"
+				exit 1
+			else
+				main
+		fi
+}
 
 timer()
 {
@@ -103,27 +134,32 @@ while [ $counter -ne 0 ]
  	done
 }
 
-shutdown_test()
+shut_me_down()
 {
-x=$(date +%H) #the actual time
-	
+#This function stops the asking for shutdown if it is daytime
+NOW_TIME=$(date +%H)
+
 	if [ $DAY_TIME -lt $NIGHT_TIME ] #(DT < NT)
 		then
-			if [[ $DAY_TIME -lt $x && $x -lt $NIGHT_TIME ]]
+			if [[ $DAY_TIME -lt $NOW_TIME && $NOW_TIME -lt $NIGHT_TIME ]]
 			#intervall in which the computer never shuts down
 				then
-					zenity --info --text="it's still daytime"
+					zenity --info --text="its daytime"
+					exit 0
 				else
 					zenity --info --text="i shutdown"
+					echo "shutdown -h now"
 			fi
 		else #(NT < DT)
-			if [[ $NIGHT_TIME -lt $x && $x -gt $DAY_TIME ]]
+			if [[ $NIGHT_TIME -lt $NOW_TIME && $NOW_TIME -gt $DAY_TIME ]]
 			#intervall in which the computer never shuts down
 			#remember we are in a cyclic ring. so this defines an closed intervall as well
 				then
-					zenity --info --text="its still daytime"
+					zenity --info --text="it is daytime"
+					exit 0
 				else
 					zenity --info --text="i shutdown"
+					echo "shutdown -h now"
 			fi
 	fi
 }
@@ -133,20 +169,33 @@ ask_again()
 	zenity --info --text="I will ask again in $TIME_STEP minutes."
 	WAIT_TIME=$(($TIME_STEP*60))
 	sleep $WAIT_TIME
-	#sleep 20
 	main
+}
+
+zenity_call()
+{
+timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in $counter Seconds" && shut_me_down || ask_again
 }
 
 main()
 {
-timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in $counter Seconds" && shutdown_test || ask_again
+NOW_TIME=$(date +%H)
+		while [ $NOW_TIME -ne $NIGHT_TIME ]
+			do
+				echo "its not nighttime yet"
+				echo "trying again in 30 seconds"
+				sleep 30
+				NOW_TIME=$(date +%H)
+			done
+zenity_call
 }
 
-main
+check_root
 
 exit 0
 
 
 #must be allways ontop to not shutdown the computer eg while watching a movie
-#last step it controlls every 10 seconds if its nighttime. When it is nioghttime it causes the Script to run.
-#else it waits 30 seconds and looks up the time again.
+#script makes no autoshutdown when not pressed the ok button
+#allert user through sound
+# -f option frequenz . when pressed cancel button ask again after n minutes
