@@ -27,26 +27,52 @@ option_d() #set daytime in hours
 {
 unset DAY_TIME
 DAY_TIME=$OPTARG
-VALID_D=$(($DAY_TIME*0))
 
-if [[ $DAY_TIME -gt 23 || $VALID_D -ne 0 ]]
+
+if [ $DAY_TIME -le 23 ]
+#scince comparsion is only usefull for integer this insures that $DAY_TIME
+#is an integer value in the range of 0 to 23.
+#apperently it didnt work if you use logical operator so we need a nested if.
 	then
+		if [ $DAY_TIME -gt 0 ]
+			then
+				:
+			else
+				echo "not an vaild argument"
+				echo "argument must be an integer value between 0 and 23"
+			exit 1
+		fi
+	else
 		echo "not an vaild argument"
-		echo "argumnet must be an integer value between 0 and 23"
+		echo "argument must be an integer value between 0 and 23"
 		exit 1
 fi
+
+
 }
 
 option_n() #set nighttime in hours
 {
 unset NIGHT_TIME
 NIGHT_TIME=$OPTARG
-VALID_N=$(($NIGHT_TIME*1))
 
-if [[ $NIGHT_TIME -gt 23 || $VALID_N -ne 0 ]]
+
+if [ $NIGHT_TIME -le 23 ]
+#scince comparsion is only usefull for integer this insures $NIGHT_TIME
+#is an integer value in the range of 0 to 23
+#apperently it didnet work with logical operators so we need a nested if.
 	then
+		if [ $NIGHT_TIME -gt 0 ]
+			then
+				:
+			else
+				echo "not an vaild argument"
+				echo "argument must be an integer value between 0 and 23"
+			exit 1
+		fi
+	else
 		echo "not an vaild argument"
-		echo "argumnet must be an integer value between 0 and 23"
+		echo "argument must be an integer value between 0 and 23"
 		exit 1
 fi
 }
@@ -121,5 +147,6 @@ main
 exit 0
 
 
-#must be allways ontop to not shutdown the computer eg while watching a movie 
-#check for integers does not work yet
+#must be allways ontop to not shutdown the computer eg while watching a movie
+#last step it controlls every 10 seconds if its nighttime. When it is nioghttime it causes the Script to run.
+#else it waits 30 seconds and looks up the time again.
