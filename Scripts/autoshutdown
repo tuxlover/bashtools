@@ -20,13 +20,13 @@ option_h() #a short help option starts here
 	echo "Usage $0 [-d TIME -n TIME]"
 	echo "-d set daytime"
 	echo "-n set nightime"
+	echo "-f set ask frequence. when press cancel ask again after n minutes where n can be any integer value greater 1"
 	echo "Script will not shutdown the computer inbetween the intervall daytime to nighttime"
 }
 
 
 option_d() #set daytime in hours
 {
-unset DAY_TIME
 DAY_TIME=$OPTARG
 
 
@@ -39,12 +39,12 @@ if [ $DAY_TIME -le 23 ]
 			then
 				:
 			else
-				echo "not an vaild argument"
+				echo "-d not an vaild argument"
 				echo "argument must be an integer value between 0 and 23"
 			exit 1
 		fi
 	else
-		echo "not an vaild argument"
+		echo "-d not an vaild argument"
 		echo "argument must be an integer value between 0 and 23"
 		exit 1
 fi
@@ -52,9 +52,26 @@ fi
 
 }
 
+option_f()
+{
+TIME_STEP=$OPTARG
+
+#testing for integer needs only an integer comparsion
+#scince this can not be done on other datatypes
+#test result has exit status greater than 0 and 
+#therefore executes the body after else statement
+if [ $TIME_STEP -gt 0  ]
+	then
+		:
+	else
+		echo "-f not an valid argument"
+		echo "argument must be an integer value greater than 0"
+		exit 1
+fi
+
+}
 option_n() #set nighttime in hours
 {
-unset NIGHT_TIME
 NIGHT_TIME=$OPTARG
 
 
@@ -67,21 +84,23 @@ if [ $NIGHT_TIME -le 23 ]
 			then
 				:
 			else
-				echo "not an vaild argument"
+				echo "-n not an vaild argument"
 				echo "argument must be an integer value between 0 and 23"
 			exit 1
 		fi
 	else
-		echo "not an vaild argument"
+		echo "-n not an vaild argument"
 		echo "argument must be an integer value between 0 and 23"
 		exit 1
 fi
 }
 
-while getopts d:n:h opt
+while getopts d:f:n:h opt
 	do
 		case "$opt" in
 			d) option_d
+			;;
+			f) option_f
 			;;
 			n) option_n
 			;;
@@ -129,7 +148,7 @@ NOW_TIME=$(date +%H)
 					exit 0
 				else
 					zenity --info --text="i shutdown"
-					shutdown -h now
+					echo "shutdown -h now"
 			fi
 		else #(NT < DT)
 			if [[ $NIGHT_TIME -lt $NOW_TIME && $NOW_TIME -gt $DAY_TIME ]]
@@ -140,7 +159,7 @@ NOW_TIME=$(date +%H)
 					exit 0
 				else
 					zenity --info --text="i shutdown"
-					shutdown -h now
+					echo "shutdown -h now"
 			fi
 	fi
 }
@@ -163,7 +182,7 @@ main()
 NOW_TIME=$(date +%H)
 		while [ $NOW_TIME -ne $NIGHT_TIME ]
 			do
-				echo "its not shuttime yet"
+				echo "its not nighttime yet"
 				echo "trying again in 30 seconds"
 				sleep 30
 				NOW_TIME=$(date +%H)
@@ -179,3 +198,4 @@ exit 0
 #must be allways ontop to not shutdown the computer eg while watching a movie
 #script makes no autoshutdown when not pressed the ok button
 #allert user through sound
+# -f option frequenz . when pressed cancel button ask again after n minutes
