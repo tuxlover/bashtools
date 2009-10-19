@@ -13,6 +13,7 @@ counter=30 #the counter function. The time the user has to stop shutdown prozess
 
 #Script needs root privilegues
 
+##options
 option_h() #a short help option starts here
 {
 	echo "call the script once as a cronjob"
@@ -90,8 +91,19 @@ while getopts d:n:h opt
 		esac
 	done
 shift `expr $OPTIND - 1`
-		
+##options
 
+#simple function that checks for root priveleques
+check_root()
+{
+		if [ $UID -ne 0 ]
+			then
+				echo "need root priveleques"
+				exit 1
+			else
+				main
+		fi
+}
 
 timer()
 {
@@ -106,7 +118,7 @@ while [ $counter -ne 0 ]
 shut_me_down()
 {
 #This function stops the asking for shutdown if it is daytime
-NOW_TIME=$(date %H)
+NOW_TIME=$(date +%H)
 
 	if [ $DAY_TIME -lt $NIGHT_TIME ] #(DT < NT)
 		then
@@ -159,9 +171,11 @@ NOW_TIME=$(date +%H)
 zenity_call
 }
 
-main
+check_root
 
 exit 0
 
 
 #must be allways ontop to not shutdown the computer eg while watching a movie
+#script makes no autoshutdown when not pressed the ok button
+#allert user through sound
