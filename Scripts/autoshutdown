@@ -6,13 +6,19 @@
 #it will print a warn message and a timer. the user can cancel the action
 #when he needs to work. otherwise the script causes the shutdown of the computer.
 
+
+##variables
+########################################################################
 NIGHT_TIME=2 #by default 2 nighttime. This Variable holds the time in hours (24) for the first ask
 TIME_STEP=30 #if the User is still working ask again in Miutes
 DAY_TIME=8 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
 counter=30 #the counter function. The time the user has to stop shutdown prozess
+##variables
+########################################################################
 
 #Script needs root privilegues
 
+########################################################################
 ##options
 option_h() #a short help option starts here
 {
@@ -127,17 +133,30 @@ while getopts d:f:n:hc opt
 	done
 shift `expr $OPTIND - 1`
 ##options
+########################################################################
 
 #simple function that checks for root priveleques
 check_root()
 {
-		if [ $UID -ne 0 ]
-			then
-				echo "need root priveleques"
-				exit 1
-			else
-				main
+if [ $UID -ne 0 ]
+	then
+		echo "need root priveleques"
+		exit 1
+	else
+		check_unequal
 		fi
+}
+
+check_unequal()
+{
+	if [ $DAY_TIME -eq $NIGHT_TIME ]
+		then
+			echo "-n -d wrong arguments"
+			echo "daytime and nightime must differ."
+			exit 1
+		else
+			main
+	fi
 }
 
 timer()
@@ -154,7 +173,7 @@ while [ $counter -ne 0 ]
 shut_me_down()
 {
 rm /etc/cron.d/autoshutdown #remove from cronjoblist otherwise after restart the machine simply shuts down
-shutdown -h -k "I shutdown" #the -k option is for testing purposes
+shutdown -h -k now I shutdown #the -k option is for testing purposes
 }
 
 zenity_call()
@@ -173,14 +192,12 @@ NOW_TIME=$(date +%k)
 					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 			fi
 		else #(NT < DT)
-			if [[ $NIGHT_TIME -gt $NOW_TIME && $NOW_TIME -lt $DAY_TIME ]]
-			#intervall in which the computer never shuts down
-			#remember we are in a cyclic ring. so this defines an closed intervall as well
+			if [[ $NIGHT_TIME -lt $NOW_TIME && $NOW_TIME -lt $DAY_TIME ]]
 				then
+					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
+				else
 					zenity --info --text="Your configuration has been saved"
 					exit 0
-				else
-					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 			fi
 	fi
 }
@@ -218,5 +235,3 @@ exit 0
 #check whether notify-send and zenity are present
 #allert user through sound
 #check whether daytime and nighttime are different
-#the zenity_call is broken and needs a new implementation
-
