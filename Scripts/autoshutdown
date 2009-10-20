@@ -49,7 +49,7 @@ if [ $DAY_TIME -le 23 ]
 #is an integer value in the range of 0 to 23.
 #apperently it didnt work if you use logical operator so we need a nested if.
 	then
-		if [ $DAY_TIME -gt 0 ]
+		if [ $DAY_TIME -ge 0 ]
 			then
 				:
 			else
@@ -94,7 +94,7 @@ if [ $NIGHT_TIME -le 23 ]
 #is an integer value in the range of 0 to 23
 #apperently it didnet work with logical operators so we need a nested if.
 	then
-		if [ $NIGHT_TIME -gt 0 ]
+		if [ $NIGHT_TIME -ge 0 ]
 			then
 				:
 			else
@@ -150,34 +150,37 @@ while [ $counter -ne 0 ]
  	done
 }
 
+
 shut_me_down()
 {
+rm /etc/cron.d/autoshutdown #remove from cronjoblist otherwise after restart the machine simply shuts down
+shutdown -h -k "I shutdown" #the -k option is for testing purposes
+}
+
+zenity_call()
+{
 #This function stops the asking for shutdown if it is daytime
-NOW_TIME=$(date +%H)
+NOW_TIME=$(date +%k)
 
 	if [ $DAY_TIME -lt $NIGHT_TIME ] #(DT < NT)
 		then
 			if [[ $DAY_TIME -lt $NOW_TIME && $NOW_TIME -lt $NIGHT_TIME ]]
 			#intervall in which the computer never shuts down
 				then
-					notify-send "its daytime" -t 12000 #hey wait ten seconds=12000 milliseconds
+					zenity --info --text="Your configuration has been saved"
 					exit 0
 				else
-					notify-send "i shutdown" -t 12000
-					rm /etc/cron.d/autoshutdown #remove from cronjoblist otherwise after restart the machine simply shuts down if its not daytime
-					echo "shutdown -h now"
+					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 			fi
 		else #(NT < DT)
-			if [[ $NIGHT_TIME -lt $NOW_TIME && $NOW_TIME -gt $DAY_TIME ]]
+			if [[ $NIGHT_TIME -gt $NOW_TIME && $NOW_TIME -lt $DAY_TIME ]]
 			#intervall in which the computer never shuts down
 			#remember we are in a cyclic ring. so this defines an closed intervall as well
 				then
-					notify-send "it is daytime" -t 12000
+					zenity --info --text="Your configuration has been saved"
 					exit 0
 				else
-					notify-send "i shutdown" -t 12000 #hey wait ten second =12000 milliseonds
-					rm /etc/cron.d/autoshutdown
-					echo "shutdown -h now"
+					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 			fi
 	fi
 }
@@ -190,17 +193,13 @@ ask_again()
 	main
 }
 
-zenity_call()
-{
-timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in $counter Seconds" && shut_me_down || ask_again
-}
 
 main()
 {
 #create a cronjob in /ect/cron.d/
 if [ -f /etc/cron.d/autoshutdown ] #check if /etc/cron.d/autoshutdown is present
 		then
-			echo "warning: a cronjob for autoshutdown allready exits"
+			echo "warning: a cronjob for autoshutdown allready exist"
 			echo "use $0 -c to clear an existing autoshutdown before creating a new one"
 			zenity_call
 		else
@@ -218,3 +217,6 @@ exit 0
 #must be allways ontop to not shutdown the computer eg while watching a movie
 #check whether notify-send and zenity are present
 #allert user through sound
+#check whether daytime and nighttime are different
+#the zenity_call is broken and needs a new implementation
+
