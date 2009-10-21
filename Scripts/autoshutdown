@@ -164,6 +164,7 @@ timer()
 while [ $counter -ne 0 ]
 	do
 		sleep 1
+		#echo -en "\007" #this is the beep command. it seems on some system it is aliassed but does not work yet why?
 		echo $counter
 		counter=$(($counter-1))
  	done
@@ -183,7 +184,7 @@ NOW_TIME=$(date +%k)
 
 	if [ $DAY_TIME -lt $NIGHT_TIME ] #(DT < NT)
 		then
-			if [[ $DAY_TIME -lt $NOW_TIME && $NOW_TIME -lt $NIGHT_TIME ]]
+			if [[ $DAY_TIME -lt $NOW_TIME && $NOW_TIME -le $NIGHT_TIME ]]
 			#intervall in which the computer never shuts down
 				then
 					zenity --info --text="Your configuration has been saved"
@@ -192,7 +193,7 @@ NOW_TIME=$(date +%k)
 					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 			fi
 		else #(NT < DT)
-			if [[ $NIGHT_TIME -lt $NOW_TIME && $NOW_TIME -lt $DAY_TIME ]]
+			if [[ $NIGHT_TIME -le $NOW_TIME && $NOW_TIME -lt $DAY_TIME ]]
 				then
 					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 				else
