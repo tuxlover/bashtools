@@ -146,7 +146,7 @@ if [ $UID -ne 0 ]
 		check_unequal
 		fi
 }
-
+#check whtether DAY_TIME is unequal NIGHT_TIME 
 check_unequal()
 {
 	if [ $DAY_TIME -eq $NIGHT_TIME ]
@@ -159,18 +159,19 @@ check_unequal()
 	fi
 }
 
+
+#timer counts backwarts and piped through zenity progressbar
 timer()
 {
 while [ $counter -ne 0 ]
 	do
 		sleep 1
-		#echo -en "\007" #this is the beep command. it seems on some system it is aliassed but does not work yet why?
 		echo $counter
 		counter=$(($counter-1))
  	done
 }
 
-
+#this does the actual shutdown
 shut_me_down()
 {
 rm /etc/cron.d/autoshutdown #remove from cronjoblist otherwise after restart the machine simply shuts down
@@ -184,7 +185,7 @@ NOW_TIME=$(date +%k)
 
 	if [ $DAY_TIME -lt $NIGHT_TIME ] #(DT < NT)
 		then
-			if [[ $DAY_TIME -lt $NOW_TIME && $NOW_TIME -le $NIGHT_TIME ]]
+			if [[ $DAY_TIME -lt $NOW_TIME && $NOW_TIME -lt $NIGHT_TIME ]]
 			#intervall in which the computer never shuts down
 				then
 					zenity --info --text="Your configuration has been saved"
