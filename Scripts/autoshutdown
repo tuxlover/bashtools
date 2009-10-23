@@ -20,6 +20,7 @@ counter=30 #the counter function. The time the user has to stop shutdown prozess
 
 ########################################################################
 ##options
+
 option_h() #a short help option starts here
 {
 	echo "set and manage autoshutdowns"
@@ -68,8 +69,6 @@ if [ $DAY_TIME -le 23 ]
 		echo "argument must be an integer value between 0 and 23"
 		exit 1
 fi
-
-
 }
 
 option_f()
@@ -90,6 +89,7 @@ if [ $TIME_STEP -gt 0  ]
 fi
 
 }
+
 option_n() #set nighttime in hours
 {
 NIGHT_TIME=$OPTARG
@@ -132,6 +132,7 @@ while getopts d:f:n:hc opt
 		esac
 	done
 shift `expr $OPTIND - 1`
+
 ##options
 ########################################################################
 
@@ -146,7 +147,8 @@ if [ $UID -ne 0 ]
 		check_unequal
 		fi
 }
-#check whtether DAY_TIME is unequal NIGHT_TIME 
+
+#check whether DAY_TIME is unequal NIGHT_TIME 
 check_unequal()
 {
 	if [ $DAY_TIME -eq $NIGHT_TIME ]
@@ -155,10 +157,25 @@ check_unequal()
 			echo "daytime and nightime must differ."
 			exit 1
 		else
-			main
+			check_zenity
 	fi
 }
 
+#this function checks whether zenity is present
+check_zenity()
+{
+has_zenity=$(zenity --version || echo "1")
+
+	if [ "$has_zenity" == "1" ]
+		then
+			echo "zenity not found."
+			echo "without zenity this script will not work."
+			echo "install zenity."
+			exit 1
+		else
+			main
+	fi
+}
 
 #timer counts backwarts and piped through zenity progressbar
 timer()
@@ -191,11 +208,13 @@ NOW_TIME=$(date +%k)
 					zenity --info --text="Your configuration has been saved"
 					exit 0
 				else
+					echo -en "\007"
 					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 			fi
 		else #(NT < DT)
 			if [[ $NIGHT_TIME -le $NOW_TIME && $NOW_TIME -lt $DAY_TIME ]]
 				then
+					echo -en "\007"
 					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
 				else
 					zenity --info --text="Your configuration has been saved"
@@ -234,6 +253,4 @@ exit 0
 
 
 #must be allways ontop to not shutdown the computer eg while watching a movie
-#check whether notify-send and zenity are present
 #allert user through sound
-#check whether daytime and nighttime are different
