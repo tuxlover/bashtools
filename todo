@@ -1,6 +1,12 @@
 TO-DO list for bashtools 0.6.x
 #1 Clean up code
 #2 Use more comments
+#2.1 Comment Guideline:
+#a)name of data and revison number. if in devolopment state use date
+#b)description
+#c)aspects on which this program might or might not run
+#d) author and helpers
+
 #3 no exit-codes only use exit 1 and an error message
 #4 all script should be able to run without any user interaction
 #5 
