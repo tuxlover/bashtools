@@ -225,13 +225,13 @@ NOW_TIME=$(date +%k)
 					exit 0
 				else
 					echo -en "\007"
-					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
+					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" --display $DISPLAY && shut_me_down || ask_again
 			fi
 		else #(NT < DT)
 			if [[ $NIGHT_TIME -le $NOW_TIME && $NOW_TIME -lt $DAY_TIME ]]
 				then
 					echo -en "\007"
-					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds" && shut_me_down || ask_again
+					timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds"  --display $DISPLAY && shut_me_down || ask_again
 				else
 					zenity --info --text="Your configuration has been saved"
 					exit 0
@@ -278,3 +278,4 @@ exit 0
 #added however you must have root privelegs to that
 #this needs also a new way of looking up a privileged user. check_root will no more satisfie this
 #implement 1 minute later to avoid problems with summer and winter time
+#use gtk --display and send  message to all logged on users to all users 
