@@ -2,9 +2,25 @@
 
 #autoshutdown
 
+#rev25102009
+
 #small script that manages autoshutdowns hourly
 #it will print a warn message and a timer. the user can cancel the action
 #when he needs to work. otherwise the script causes the shutdown of the computer.
+
+#most parts of the script do work
+#however there is an issue with the beep which does not work yet 
+
+#the second problem that the gui is not forced to go on front if for example
+#watching a video. i currently working on a method to stop xine or whatever plays the movie
+#to focus users intention.
+
+#however there is a smaller c++ solution for that but this is however not bashish and runs only
+#on opensuse 11.0 and properly above.
+
+#you must have installed zenity. i do not want this and hope i there is a better an easyier method
+#to do this. furthermore you need a cron setup propertly and a /etc/cron.d/ directory.
+# if you have however an other directory you have to setup this by editing this manualy.
 
 
 ##variables
@@ -12,7 +28,7 @@
 NIGHT_TIME=2 #by default 2 nighttime. This Variable holds the time in hours (24) for the first ask
 TIME_STEP=30 #if the User is still working ask again in Miutes
 DAY_TIME=8 #by default 8 daytime. This Variable holds the time the computer never asked to shutdown
-counter=30 #the counter function. The time the user has to stop shutdown prozess
+counter=30 #the counter function. The time the user has to stop shutdown process
 ##variables
 ########################################################################
 
@@ -251,6 +267,14 @@ check_root
 
 exit 0
 
-
+#todo:
 #must be allways ontop to not shutdown the computer eg while watching a movie
 #allert user through sound
+#let cronpath be a variable that holds the path to where cron check for jobs
+# let there be an option -p for setting up path to correct cron.
+#how to check correct cronpath
+#this might howver be complecated because we have to check wheter there are really cronjobs saved
+#shutdown.allow is not implemented yet: it yould work like this with the -a option a privileged user can be
+#added however you must have root privelegs to that
+#this needs also a new way of looking up a privileged user. check_root will no more satisfie this
+#implement 1 minute later to avoid problems with summer and winter time
