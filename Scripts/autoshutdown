@@ -258,7 +258,7 @@ if [ -f /etc/cron.d/autoshutdown ] #check if /etc/cron.d/autoshutdown is present
 			zenity_call
 		else
 			echo "#please use the autoshutdown script to manage autoshutdown" >> /etc/cron.d/autoshutdown
-			echo "0 $NIGHT_TIME * * *	$0 -d $DAY_TIME -n $NIGHT_TIME" >> /etc/cron.d/autoshutdown
+			echo "1 $NIGHT_TIME * * *	$0 -d $DAY_TIME -n $NIGHT_TIME" >> /etc/cron.d/autoshutdown
 			zenity_call
 		fi
 }
@@ -277,5 +277,4 @@ exit 0
 #shutdown.allow is not implemented yet: it yould work like this with the -a option a privileged user can be
 #added however you must have root privelegs to that
 #this needs also a new way of looking up a privileged user. check_root will no more satisfie this
-#implement 1 minute later to avoid problems with summer and winter time
-#use gtk --display and send  message to all logged on users to all users using who -m to find out who as a actual display
+#use gtk --display and send  message to all logged on users to all users using who -m to find out who has a actual display
