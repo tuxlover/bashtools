@@ -591,3 +591,4 @@ exit 0
 #dont use options but find needed programs by the script itself using which
 #if package has fatal error reinstall it
 #if rpm is not installed dont calculate checksum for program rpm
+#if rkhunter database is not created creta this first. use rkhunter --proupd in an f statement to do this
