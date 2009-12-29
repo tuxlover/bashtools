@@ -45,6 +45,7 @@ option_h() #a short help option starts here
 	echo "-d set daytime"
 	echo "-n set nightime"
 	echo "-f set ask frequence. when press cancel ask again after n minutes where n can be any integer value greater 1"
+	echo "-s shows the /ect/cron.d/autoshutdown"
 	echo "Script will not shutdown the computer inbetween the intervall daytime to nighttime"
 	exit 0
 }
@@ -131,7 +132,13 @@ if [ $NIGHT_TIME -le 23 ]
 fi
 }
 
-while getopts d:f:n:hc opt
+option_s()
+{
+cat /etc/cron.d/autoshutdown	
+exit 0
+}
+
+while getopts d:f:n:hcs opt
 	do
 		case "$opt" in
 			c) option_c
@@ -141,6 +148,8 @@ while getopts d:f:n:hc opt
 			f) option_f
 			;;
 			n) option_n
+			;;
+			s) option_s
 			;;
 			h) option_h
 			;;
