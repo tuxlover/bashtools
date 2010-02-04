@@ -17,7 +17,7 @@ option_h()
 {
 	echo "$0 [-u] [-h]"
 	echo "-h show this help"
-	echo "-u undo swapfile: turn swapfile and delete swapfile"
+	echo "-u undo swapfile: turn off swapfile and delete swapfile"
 	exit 0
 }
 
