@@ -23,8 +23,15 @@ option_h()
 
 option_u () #swapoff and delete swapfile
 {
-	swapoff $SAVE/$NAME
-	rm $SWAP/$NAME
+	if [ -f $SAVE/$NAME ]
+		then
+			swapoff $SAVE/$NAME
+			rm $SAVE/$NAME
+		else
+			echo "no swapfile in use"
+			drop_failure
+			exit 1
+	fi
 }
 
 ##options starts here
@@ -40,7 +47,7 @@ while getopts uh opt
 		esac
 	
 	done
-shift `expr $OPTIND -1`
+shift `expr $OPTIND - 1`
 
 check_root()
 {
