@@ -12,6 +12,13 @@ SAVE="/tmp"
 NAME="swapfile.swap"
 ##VARS
 
+##messages in first
+drop_failure()
+{
+	echo -e '\t\t\t\t \E[31mfailure'; tput sgr0
+}
+##messages in first
+
 ##options starts here
 option_h()
 {
@@ -70,10 +77,6 @@ main()
 	swapon -v $SAVE/$NAME
 }
 
-drop_failure()
-{
-	echo -e '\t\t\t\t \E[31mfailure'; tput sgr0
-}
 
 check_root
 
