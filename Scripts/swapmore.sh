@@ -10,6 +10,7 @@
 SIZE=512 #if no option is used swapmore creates a swapfile with nearly 512 MB in /tmp
 SAVE="/tmp"
 NAME="swapfile.swap"
+SETSIZE=no
 ##VARS
 
 ##messages in first
@@ -30,7 +31,19 @@ option_h()
 	echo "$0 [-u] [-h]"
 	echo "-h show this help"
 	echo "-u undo swapfile: turn off swapfile and delete swapfile"
+	echo "-m set optional size of swapfile in megabites"
+	echo "-g set optional size of swapfile in gigabites"
 	exit 0
+}
+
+option_g()
+{
+$PARTSIZE=$(df -h ${SAVE}/|awk {print ''})
+$SETSIZE=yes
+SIZE="OPTARG"
+#todo implemnet optargvaluecheck
+#todo test whether SETSIZE is not greater than volume
+ 
 }
 
 option_u () #swapoff and delete swapfile
@@ -50,9 +63,13 @@ option_u () #swapoff and delete swapfile
 
 ##options starts here
 
-while getopts uh opt
+while getopts g:m:uh opt
 	do
-		case $opt in 
+		case $opt in
+			m) option_m
+			;;
+			g) option_g
+			;;
 			u) option_u #unswap the swapfile
 			;;
 			h) option_h #get help 
