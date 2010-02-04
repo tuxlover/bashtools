@@ -17,6 +17,11 @@ drop_failure()
 {
 	echo -e '\t\t\t\t \E[31mfailure'; tput sgr0
 }
+
+drop_ok ()
+{
+	echo -e '\t \t \t \t \E[32mok'; tput sgr0
+}
 ##messages in first
 
 ##options starts here
@@ -34,6 +39,7 @@ option_u () #swapoff and delete swapfile
 		then
 			swapoff $SAVE/$NAME
 			rm $SAVE/$NAME
+			drop_ok
 			exit 0
 		else
 			echo "no swapfile in use"
