@@ -12,8 +12,35 @@ SAVE="/tmp"
 NAME="swapfile.swap"
 ##VARS
 
+##options starts here
+option_h()
+{
+	echo "$0 [-u] [-h]"
+	echo "-h show this help"
+	echo "-u undo swapfile: turn swapfile and delete swapfile"
+	exit 0
+}
 
+option_u () #swapoff and delete swapfile
+{
+	swapoff $SAVE/$NAME
+	rm $SWAP/$NAME
+}
 
+##options starts here
+
+while getopts uh opt
+	do
+		case $opt in 
+			u) option_u #unswap the swapfile
+			;;
+			h) option_h #get help 
+			;;
+			\?) option_h #get help in case of illegal options
+		esac
+	
+	done
+shift `expr $OPTIND -1`
 
 check_root()
 {
@@ -47,3 +74,5 @@ check_root
 #-m set size in megabytes
 #-g set size in gigabytes
 #-s set place and name where to create the Swapfile manualy
+#checking if there are enough bytes to proceed
+#-u unswap and remove existing swapfile
