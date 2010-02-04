@@ -34,6 +34,7 @@ option_u () #swapoff and delete swapfile
 		then
 			swapoff $SAVE/$NAME
 			rm $SAVE/$NAME
+			exit 0
 		else
 			echo "no swapfile in use"
 			drop_failure
@@ -86,3 +87,4 @@ check_root
 #-s set place and name where to create the Swapfile manualy
 #checking if there are enough bytes to proceed
 #-u unswap and remove existing swapfile
+#-p manage priority for exiting swapfiles
