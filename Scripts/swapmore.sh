@@ -2,6 +2,8 @@
 
 #swapmore
 
+#script doesnt work yet
+
 #script that is intent to give you more swapspace during runtime
 #however swapspace is not the same as the original created swap
 #and cannot replace low memory
@@ -41,7 +43,7 @@ option_g()
 $PARTSIZE=$(df -h ${SAVE}/|awk {print ''})
 $SETSIZE=yes
 SIZE="OPTARG"
-#todo implemnet optargvaluecheck
+#todo implement optargvaluecheck
 #todo test whether SETSIZE is not greater than volume
  
 }
