@@ -2,7 +2,6 @@
 
 #swapmore
 
-#script doesnt work yet
 
 #script that is intent to give you more swapspace during runtime
 #however swapspace is not the same as the original created swap
