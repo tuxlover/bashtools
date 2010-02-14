@@ -174,8 +174,6 @@ main()
 check_root
 
 #options
-#-m set size in megabytes
-#-g set size in gigabytes
 #-s set place and name where to create the Swapfile manualy
 #checking if there are enough bytes to proceed
 #-u unswap and remove existing swapfile
