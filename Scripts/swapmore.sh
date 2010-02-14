@@ -13,6 +13,7 @@ SIZE=512 #if no option is used swapmore creates a swapfile with nearly 512 MB in
 SAVE="/tmp"
 NAME="swapfile.swap"
 SETSIZE=no
+FORM=noform
 ##VARS
 
 ##messages in first
@@ -40,12 +41,59 @@ option_h()
 
 option_g()
 {
-$PARTSIZE=$(df -h ${SAVE}/|awk {print ''})
-$SETSIZE=yes
 SIZE="OPTARG"
-#todo implement optargvaluecheck
-#todo test whether SETSIZE is not greater than volume
- 
+#PARTSIZE is read in by df -h. the awk one liner prints the second column
+#marked by $2 print action satetment. and finaly sed cuts off the G by
+#replacing it with a blank space
+PARTSIZE=$(df -h ${SAVE}/|awk '{print $2}'|tail -1|sed 's/G/ /g') 
+#Allwosize is 60 percent of the size available
+ALLOWSIZE=$(((60*$PARTSIZE)/100))
+SETSIZE=yes
+FORM=GB
+#scince SIZE must match each numbers [0-9] this will also test for valid
+#integers
+if [[ $SIZE =~[0-9]+ && $SIZE -lt $ALLOWSIZE ]]
+	then
+		echo "Swapfilesize: $SIZE G"
+		echo "Allowed Size: $ALLOWSIZE"
+		drop_ok 
+	else
+		echo "$PARTSIZE G are free on this System."
+		echo "and $ALLOWSIZE are free for creating a swapfile in $SAVE"
+		echo "Your value is $SIZE which may be not an integer value"
+		echo "or the specified size is bigger than the allowed size"
+		drop_failure
+		exit 1
+fi
+ }
+
+
+option_m ()
+{
+SIZE="OPTARG"
+#PARTSIZE is read in by df -h. the awk one liner prints the second column
+#marked by $2 print action satetment. and finaly sed cuts off the G by
+#replacing it with a blank space
+PARTSIZE=$(df -m ${SAVE}/|awk '{print $2}'|tail -1|sed 's/G/ /g') 
+#Allwosize is 60 percent of the size available
+ALLOWSIZE=$(((60*$PARTSIZE)/100))
+SETSIZE=yes
+FORM=MB
+#scince SIZE must match each numbers [0-9] this will also test for valid
+#integers
+if [[ $SIZE =~[0-9]+ && $SIZE -lt $ALLOWSIZE ]]
+	then
+		echo "Swapfilesize: $SIZE G"
+		echo "Allowed Size: $ALLOWSIZE"
+		drop_ok 
+	else
+		echo "$PARTSIZE G are free on this System."
+		echo "and $ALLOWSIZE are free for creating a swapfile in $SAVE"
+		echo "Your value is $SIZE which may be not an integer value"
+		echo "or the specified size is bigger than the allowed size"
+		drop_failure
+		exit 1
+fi
 }
 
 option_u () #swapoff and delete swapfile
@@ -97,10 +145,28 @@ if [ $UID -ne 0 ]
 
 main()
 {
-	dd if=/dev/zero of=$SAVE/$NAME bs=1M count=$SIZE
-	chmod 0600 $SAVE/$NAME
-	mkswap $SAVE/$NAME
-	swapon -v $SAVE/$NAME
+	if [ $SETSIZE == "yes" ]
+		then
+			if [ $FORM == "GB" ]
+				then
+					dd if=/dev/zero of=/$SAVE/$NAME bs=1G count=$SIZE
+					chmod 0600 $SAVE/$NAME
+					mkswap $SAVE/$NAME
+					swapon -v $SWAPON/$NAME
+			
+			elif [ $FORM == "MB"  ]
+				then
+				dd if=/dev/zero of=$SAVE/$NAME bs=1M count=$SIZE
+				chmod 0600 $SAVE/$NAME
+				mkswap $SAVE/$NAME
+				swapon -v $SAVE/$NAME
+			fi
+		else
+			dd if=/dev/zero of=$SAVE/$NAME bs=1M count=$SIZE
+			chmod 0600 $SAVE/$NAME
+			mkswap $SAVE/$NAME
+			swapon -v $SAVE/$NAME
+	fi
 }
 
 
