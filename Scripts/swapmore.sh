@@ -41,7 +41,7 @@ option_h()
 
 option_g()
 {
-SIZE="OPTARG"
+SIZE="$OPTARG"
 #PARTSIZE is read in by df -h. the awk one liner prints the second column
 #marked by $2 print action satetment. and finaly sed cuts off the G by
 #replacing it with a blank space
@@ -52,15 +52,15 @@ SETSIZE=yes
 FORM=GB
 #scince SIZE must match each numbers [0-9] this will also test for valid
 #integers
-if [[ $SIZE =~[0-9]+ && $SIZE -lt $ALLOWSIZE ]]
+if [ "$SIZE" -lt "$ALLOWSIZE" ]
 	then
-		echo "Swapfilesize: $SIZE G"
-		echo "Allowed Size: $ALLOWSIZE"
+		echo "Swapfilesize: $SIZE GB"
+		echo "Allowed Size: $ALLOWSIZE GB"
 		drop_ok 
 	else
-		echo "$PARTSIZE G are free on this System."
-		echo "and $ALLOWSIZE are free for creating a swapfile in $SAVE"
-		echo "Your value is $SIZE which may be not an integer value"
+		echo "$PARTSIZE GB are free on this System."
+		echo "and $ALLOWSIZE GB are free for creating a swapfile in $SAVE"
+		echo "Your value is $SIZE GB which may be not an integer value"
 		echo "or the specified size is bigger than the allowed size"
 		drop_failure
 		exit 1
@@ -70,7 +70,7 @@ fi
 
 option_m ()
 {
-SIZE="OPTARG"
+SIZE="$OPTARG"
 #PARTSIZE is read in by df -h. the awk one liner prints the second column
 #marked by $2 print action satetment. and finaly sed cuts off the G by
 #replacing it with a blank space
@@ -81,14 +81,14 @@ SETSIZE=yes
 FORM=MB
 #scince SIZE must match each numbers [0-9] this will also test for valid
 #integers
-if [[ $SIZE =~[0-9]+ && $SIZE -lt $ALLOWSIZE ]]
+if [ "$SIZE" -lt "$ALLOWSIZE" ]
 	then
-		echo "Swapfilesize: $SIZE G"
-		echo "Allowed Size: $ALLOWSIZE"
+		echo "Swapfilesize: $SIZE MB"
+		echo "Allowed Size: $ALLOWSIZE MB"
 		drop_ok 
 	else
-		echo "$PARTSIZE G are free on this System."
-		echo "and $ALLOWSIZE are free for creating a swapfile in $SAVE"
+		echo "$PARTSIZE MB are free on this System."
+		echo "and $ALLOWSIZE MB are free for creating a swapfile in $SAVE"
 		echo "Your value is $SIZE which may be not an integer value"
 		echo "or the specified size is bigger than the allowed size"
 		drop_failure
@@ -145,16 +145,17 @@ if [ $UID -ne 0 ]
 
 main()
 {
-	if [ $SETSIZE == "yes" ]
+	if [ "$SETSIZE" = "yes" ]
 		then
-			if [ $FORM == "GB" ]
+			if [ "$FORM" = "GB" ]
 				then
-					dd if=/dev/zero of=/$SAVE/$NAME bs=1G count=$SIZE
+					SIZE=$(($SIZE*1024))
+					dd if=/dev/zero of=/$SAVE/$NAME bs=1M count=$SIZE
 					chmod 0600 $SAVE/$NAME
 					mkswap $SAVE/$NAME
 					swapon -v $SWAPON/$NAME
 			
-			elif [ $FORM == "MB"  ]
+			elif [ "$FORM" = "MB"  ]
 				then
 				dd if=/dev/zero of=$SAVE/$NAME bs=1M count=$SIZE
 				chmod 0600 $SAVE/$NAME
