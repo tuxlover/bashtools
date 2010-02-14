@@ -592,3 +592,5 @@ exit 0
 #if package has fatal error reinstall it
 #if rpm is not installed dont calculate checksum for program rpm
 #if rkhunter database is not created creta this first. use rkhunter --proupd in an f statement to do this
+#test whether packages match if not install them
+#use aide to prevent filesystem infiltration
