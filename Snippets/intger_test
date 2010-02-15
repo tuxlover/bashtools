@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#testing for integers. long time i tried to find something usefull to
+#have bash testing for integers.
+#lukyly i came up with this hack. which uses a grep statement and 
+#a relatively simple regular expression
+
+int=$1
+
+
+if [ ! $(echo "$int" | grep -E "^[0-9]+$") ]
+	then
+		echo "$int is not an integer"
+		exit 1
+	else
+	echo "$int is an integer."
+fi
+
