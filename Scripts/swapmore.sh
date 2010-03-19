@@ -2,7 +2,6 @@
 
 #swapmore
 
-
 #script that is intent to give you more swapspace during runtime
 #however swapspace is not the same as the original created swap
 #and cannot replace low memory
@@ -71,9 +70,8 @@ option_m ()
 {
 SIZE="$OPTARG"
 #PARTSIZE is read in by df -h. the awk one liner prints the second column
-#marked by $2 print action satetment. and finaly sed cuts off the G by
-#replacing it with a blank space
-PARTSIZE=$(df -m ${SAVE}/|awk '{print $4}'|tail -1|sed 's/G/ /g') 
+#marked by $2 print action satetment. no sed needed
+PARTSIZE=$(df -m ${SAVE}/|awk '{print $4}'|tail -1) 
 #Allwosize is 60 percent of the size available
 ALLOWSIZE=$(((60*$PARTSIZE)/100))
 SETSIZE=yes
@@ -175,6 +173,8 @@ main()
 check_root
 
 #options
+#-m set size in megabytes
+#-g set size in gigabytes
 #-s set place and name where to create the Swapfile manualy
 #checking if there are enough bytes to proceed
 #-u unswap and remove existing swapfile
