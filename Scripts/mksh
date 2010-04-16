@@ -106,3 +106,6 @@ exit 1
 check_root
 
 exit 0
+
+
+#mksh should only work for /home and /media
