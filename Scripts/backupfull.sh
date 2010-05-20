@@ -64,7 +64,7 @@ manage()
 #external mounted device  but not installed by any package. then get these files and
 #its metadata saved to a sperate file using find
 
-(3)#Backup Users Preferences and Files
+(3)#Backup Users Preferences and Files for #root and for users
 
 ###Restoreprozess
 #like backup but in reverse order.
