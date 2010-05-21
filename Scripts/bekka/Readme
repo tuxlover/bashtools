@@ -1,0 +1,29 @@
+This is just an other Script idea.
+Bekka is a backuptool for both SUSE and Debian/Ubuntu as
+i use both systems.
+
+!!!NOTE!!! that bekka is still development work and not even ready to run.
+It is expected that things are not working probertly and maybe crach or
+freeze the system or even causes serious data loss.
+
+How does bekka work:
+Bekka first tries to find datas which are not owned by any package.
+than copies these files in a seperated directory as well as a file
+list structure and packs them as tar.gz file.
+
+Bekka also will backup and download packages installed and tar.bz2 them.
+So if things went wrong after upgrading a system a recovery is still possible.
+
+Other things Bekka will backup:
+Users /home and /root directories. Save a branch of /etc like git and restore
+them.
+
+Save the MBR 
+
+Do backups based on given timeintervalls or at time marks. Choose Backup
+directories. 
+
+
+If you are a programmer and like to help out with things i welcome you to
+help me with your ideas and inspirations or showing me how things can be done
+or can be done better. 
