@@ -15,8 +15,8 @@ Bekka also will backup and download packages installed and tar.bz2 them.
 So if things went wrong after upgrading a system a recovery is still possible.
 
 Other things Bekka will backup:
-Users /home and /root directories. Save a branch of /etc like git and restore
-them.
+Users /home and /root directories. Save a branch of files in /etc like git 
+and restore them.
 
 Save the MBR 
 
