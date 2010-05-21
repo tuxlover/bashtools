@@ -31,8 +31,6 @@ done
 #now creating the list of all files which are not belonging to either packages
 #there might be a better method with uniq somehow but doesnt work
 
-exit 0
-
 NOT_IN=$(cat notinstallled.lst)
 #reading list of not installed files into variable
 
@@ -60,4 +58,3 @@ rm -rf /tmp/save_bekka
 #remove the temporary files
 
 exit 0
-
