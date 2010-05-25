@@ -19,9 +19,9 @@ done
 #containing files. than writing each filename to the installed.lst
 ##Todo: each package starts with /.  we need to avoid this
 
-FIND_TREE=$(find / -path /mnt -prune -o -path /media -prune -o -path /home -prune -o -path /root -prune -o -path /dev -prune -o -path /sys -prune -o -path /proc -prune -o -path /boot -prune -o -path /tmp -prune -o -path /etc -prune -o -print)
+FIND_TREE=$(find / -path /mnt -prune -o -path /media -prune -o -path /home -prune -o -path /root -prune -o -path /dev -prune -o -path /sys -prune -o -path /proc -prune -o -path /boot -prune -o -path /tmp -prune -o -path /etc -prune -o -path /var/cache/apt/ -prune -o -print)
 #getting all  files present on the system
-# we exclde /media /mnt /home /root /dev /sys /proc /boot /tmp /etc
+# we exclde /media /mnt /home /root /dev /sys /proc /boot /tmp /etc /var/cache/apt
 #for certain reasons
 
 for f in $FIND_TREE
