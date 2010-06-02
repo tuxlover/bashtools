@@ -58,3 +58,4 @@ exit 0
 
 #Todo: a more sattisfying method would be to save also the list of files which have 
 #a differnet md5sum and tehrefor must have been changed either by user or by configuration
+#+give more output to the user
