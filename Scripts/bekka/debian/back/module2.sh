@@ -3,6 +3,39 @@
 #this script implements the debian method of retrieving all installed
 #packages. it then downloads them  and packs them in tar.bz2 format
 
+
+##optional functions
+option_u()
+{
+dpkg --clear-avail
+aptitude update
+aptitude safe-upgrade
+}
+
+option_h()
+{
+echo "-h: print this help"
+echo "-u: do a system upgrade before downloading the packages"
+}
+
+##optional functions
+
+
+
+while getopts u opt
+	do
+		case "$opt" in
+			u) option_u
+			;;
+			\?) option_h
+		esac
+
+#main function does the main action this script is
+#implemneted to
+#actually this should include all neccessary actions
+# that run without any options
+main()
+{
 mkdir /tmp/save_packages
 #creating a direcotry save_packages in  /tmp/ holding the apt.sources list
 #and the downloaded packages.
@@ -29,4 +62,9 @@ for p in $INST_P
 	done
 #this downloads all installed package to /var/cache/apt/archives
 #so we can grep them later
+
+
+}
+
+main
 
