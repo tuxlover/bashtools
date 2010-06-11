@@ -6,10 +6,12 @@
 apt-get clean
 #clean cache of not needed packages to save runtime in /var
 
-INST_P=$(dpkg -l |awk '{print $2}') #returns an array each element  holding
+INST_P=$(dpkg -l|grep ^i |awk '{print $2}') 
+#returns an array each element  holding
 #a valid installed package
 #awk use to get only the names of packages
-#Todo: truncate unneccary pattern string in the beginning
+#grep ^i is to get only installed files and
+#avoid unneccessary patterns reading into INST_P 
 
 for p in $INST_P
 	do
