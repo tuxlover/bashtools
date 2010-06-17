@@ -197,14 +197,13 @@ fi
 #check whether programs and argumets are set correctly
 check_antivir()
 {	
-echo "checking for $ANTIVIR" 2> /dev/null
+echo "checking for Antivirs detection" 2> /dev/null
 if [ "$ANTIVIR" = "no" ]
 	then
 		drop_failure
-		echo "$ANTIVIR is not installed."
+		echo "An Virus detection tool is not installed."
 		echo "trying to get one"
-		aptitude install -y clamav clamav-freshclam || zypper in clamav clamav-db || we_fail
-		exit 1
+		apt-get install -y --install-recommends clamav || zypper in clamav clamav-db || we_fail
 	else
 		drop_ok
 		echo "trying to update daily.cvd file"
@@ -214,13 +213,13 @@ fi
 
 check_rootkit_checker()
 {
-echo "checking for $ROOTKIT_CHECKER" 2> /dev/null
+echo "checking for rootkit checker" 2> /dev/null
 if [ "$ROOTKIT_CHECKER" = "no" ] 
 	then
 		drop_failure
-		echo "$ROOTKIT_CHECKER is not installed"
+		echo "A rootkit checker is not installed"
 		echo "trying to get one"
-		aptitude install -y rkhunter || zypper in rkhunter || we_fail
+		apt-get install -y --install-recommends rkhunter || zypper in rkhunter || we_fail
 	else
 		drop_ok
 fi
@@ -228,13 +227,13 @@ fi
 
 check_lynis()
 {
-echo "checking for $SECURITY_CHECKER" 2> /dev/null
+echo "checking for security checker" 2> /dev/null
 if [ "$SECURITY_CHECKER" = "no" ]
 	then
 		drop_failure
-		echo "$SECURITY_CHECKER is not a installed"
+		echo "A security checker is not a installed"
 		echo "trying to get one"
-		aptitude install -y lynis || zypper in lynis || we_fail
+		apt-get install -y  --install-recommends lynis || zypper in lynis || we_fail
 	else
 		drop_ok
 fi
@@ -604,3 +603,6 @@ exit 0
 #use aide to prevent filesystem infiltration
 #check for both rkhunter and chkrootkit
 #implement all stuff in a nicer interface
+#if no option is given clamscan runs twice
+#if no network is present clamscan tries to update takes to long
+#if no package manager is present try to build form scratch
