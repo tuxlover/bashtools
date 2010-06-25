@@ -588,6 +588,7 @@ exit 0
 
 #clean up the code
 #colorize output
+#aide check and encrypt 
 #verify package is kind of broken
 #implement disks check health status
 #rkhunter check for updates to be more reliable
