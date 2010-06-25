@@ -1,5 +1,19 @@
 #!/bin/bash
 
+#git-20102606_0140
+#This is cleancheck
+#cleancheck is currently under heavly development
+#it is expected that things are not working or not
+#working probertly although we test it as hard as we
+#can.
+
+#for bug reporting, please use github bugtracker and commit a fix
+#if possible
+
+#for feature requests please use github comments. however there are several
+#things here we will never implement. one of them would be support for ubuntu
+#because its freaking me out.
+
 #cleancheck.sh
 #Script that does several Systemscans.
 #It checks system integrety and logs information
@@ -10,7 +24,7 @@
 ##help_option starts here
 option_h()
 {
-echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACPSU]"
+echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDPSU]"
 echo "-a set path to clamscan  binary. if not set, which clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set /usr/bin/rkhunter is used"
 echo "-e exclude these dirs for scanning for viruses"
@@ -26,6 +40,7 @@ echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
+echo "      D: check health of current disks (not implemented yet)"
 echo "      S: check security holes"
 echo "      P: do an package integrety-check. RPMS only"
 echo "      U: only update or check the sha512 sums" 
@@ -43,6 +58,7 @@ INDEX=$(date +%Y%m%d%H%M%S)
 ANTIVIR=
 ROOTKIT_CHECKER=
 SECURITY_CHECKER=
+DISK_CHECKER=
 LOGFILE=
 USE_QUIET=
 FIRST_RUN=
@@ -144,6 +160,11 @@ if [ -z $SECURITY_CHECKER ] #check for open security holes
 		SECURITY_CHECKER=$(which lynis || echo "no")
 fi
 
+if [ -z DISK_CHECKER ] #check disk health status
+	then
+		DISK_CHECKER=$(which smartctl|| echo "no")
+fi
+
 if [ -z $USE_QUIET ]
 	then
 		USE_QUIET="no"
@@ -198,12 +219,13 @@ fi
 check_antivir()
 {	
 echo "checking for Antivirs detection" 2> /dev/null
-if [ "$ANTIVIR" = "no" ]
+if [ "$ANTIVIR" == "no" ]
 	then
 		drop_failure
 		echo "An Virus detection tool is not installed."
 		echo "trying to get one"
-		apt-get install -y --install-recommends clamav || zypper in clamav clamav-db || we_fail
+		zypper in clamav clamav-db || we_fail
+		freshclam || echo "not possible"
 	else
 		drop_ok
 		echo "trying to update daily.cvd file"
@@ -214,12 +236,12 @@ fi
 check_rootkit_checker()
 {
 echo "checking for rootkit checker" 2> /dev/null
-if [ "$ROOTKIT_CHECKER" = "no" ] 
+if [ "$ROOTKIT_CHECKER" == "no" ] 
 	then
 		drop_failure
 		echo "A rootkit checker is not installed"
 		echo "trying to get one"
-		apt-get install -y --install-recommends rkhunter || zypper in rkhunter || we_fail
+		zypper in rkhunter || we_fail
 	else
 		drop_ok
 fi
@@ -228,12 +250,26 @@ fi
 check_lynis()
 {
 echo "checking for security checker" 2> /dev/null
-if [ "$SECURITY_CHECKER" = "no" ]
+if [ "$SECURITY_CHECKER" == "no" ]
 	then
 		drop_failure
 		echo "A security checker is not a installed"
 		echo "trying to get one"
-		apt-get install -y  --install-recommends lynis || zypper in lynis || we_fail
+		zypper in lynis || we_fail
+	else
+		drop_ok
+fi
+}
+
+check_smartctl()
+{
+echo "checking for smartmontools" 2> /dev/null
+if [ "$DISK_CHECKER" == "no" ]
+	then
+		drop_failure
+		echo "Smartctl is not installed"
+		echo "trying to get it"
+		zypper in smartmontools || we_fail
 	else
 		drop_ok
 fi
@@ -261,6 +297,18 @@ fi
 
 }
 
+
+disk_check()
+{
+#checking disks using smartmontools	
+all_devices=$(ls /dev/sd*) #fixme: check only disks not partitions
+
+for device in $all_devices
+	do
+		smartctl -H $device
+	done
+	
+}
 
 self_test()
 {
@@ -328,6 +376,7 @@ fi
 #do the main action including check for dirs and files
 main()
 {
+#select special features		
 if [ ! -z $WITH_FEATURE ]
 	then
 		echo $INDEX >> $LOGFILE
@@ -339,6 +388,8 @@ if [ ! -z $WITH_FEATURE ]
 					A) check_antivir
 					;;
 					C) check_rootkit_checker
+					;;
+					D) check_smartctl
 					;;
 					S) check_lynis
 				esac
@@ -364,7 +415,7 @@ if [ ! -z $WITH_FEATURE ]
 										done
 				
 										E=$( exclude_this)
-										ANT=`$ANTIVIR -r -i $E /`
+										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys  $E /`
 										echo "$ANT" 
 									} >> $LOGFILE
 								else
@@ -379,7 +430,7 @@ if [ ! -z $WITH_FEATURE ]
 										done
 				
 										E=$( exclude_this)
-										ANT=`$ANTIVIR -r -i $E /`
+										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys $E /`
 										echo "$ANT" 
 									}|tee -a $LOGFILE
 							fi
@@ -388,20 +439,19 @@ if [ ! -z $WITH_FEATURE ]
 								then
 									{
 										echo "with clamscan"
-										ANT=`$ANTIVIR -r -i /`
+										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
 										echo "$ANT" 
 									}>> $LOGFILE
 								else
 									{
 										echo "with clamscan"
-										ANT=`$ANTIVIR -r -i /`
+										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
 										echo "$ANT" 
 									}|tee -a $LOGFILE
 							fi
 					fi
 					;;
 					C) 
-					
 						if [ "$USE_QUIET" != "no" ]
 							then
 								{
@@ -415,6 +465,20 @@ if [ ! -z $WITH_FEATURE ]
 									CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
 									echo "$CNT"		
 								}|tee -a $LOGFILE
+						fi
+					;;
+					D)
+						if [ "$USE_QUIET" != "no" ]
+							then
+								{
+									echo "with smartmontools"
+									disk_check
+								} >> $LOGFILE
+							else
+								{
+									echo "with smartmontools"
+									disk_check
+								} |tee -a $LOGFILE
 						fi
 					;;
 					S)
@@ -452,6 +516,7 @@ if [ ! -z $WITH_FEATURE ]
 				esac
 			done
 		echo "------------------------------------------------------------------" >> $LOGFILE
+#with all features
 	else
 		if [ "$USE_QUIET" != "no" ]
 			then
@@ -465,6 +530,7 @@ if [ ! -z $WITH_FEATURE ]
 					check_antivir
 					check_lynis 
 					check_rootkit_checker
+					check_smartctl
 				}>> $LOGFILE
 				self_test
 			else
@@ -497,7 +563,7 @@ if [ ! -z $WITH_FEATURE ]
 								done
 				
 								E=$( exclude_this)
-								ANT=`$ANTIVIR -r -i $E /`
+								ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys $E /`
 								echo "ANT" 
 							}|>> $LOGFILE
 					else
@@ -512,7 +578,7 @@ if [ ! -z $WITH_FEATURE ]
 								done
 				
 								E=$( exclude_this)
-								ANT=`$ANTIVIR -r -i $E /`
+								ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys $E /`
 								echo "ANT" 
 							}|tee -a $LOGFILE
 				fi
@@ -522,14 +588,14 @@ if [ ! -z $WITH_FEATURE ]
 						{
 							echo "with clamscan"
 							check_antivir
-							ANT=`$ANTIVIR -r -i /`
+							ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
 							echo "$ANT"
 						}>> $LOGFILE
 					else
 						{
 							echo "with clamscan"
 							check_antivir
-							ANT=`$ANTIVIR -r -i /`
+							ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
 							echo "$ANT"
 						}|tee -a $LOGFILE
 				fi		
@@ -539,6 +605,7 @@ if [ ! -z $WITH_FEATURE ]
 				{
 					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
 					echo "$CNT"		
+					disk_check
 					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
 					echo "$SNT"
 		
@@ -550,7 +617,8 @@ if [ ! -z $WITH_FEATURE ]
 			else
 						{
 					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-					echo "$CNT"		
+					echo "$CNT"
+					disk_check		
 					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
 					echo "$SNT"
 		
@@ -585,12 +653,13 @@ check_root
 exit 0
 
 
-
+##Todo:
+#use more comments
 #clean up the code
 #colorize output
 #aide check and encrypt 
+#use -u to udated aide database
 #verify package is kind of broken
-#implement disks check health status
 #rkhunter check for updates to be more reliable
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
@@ -599,6 +668,7 @@ exit 0
 #dont use options but find needed programs by the script itself using which
 #if package has fatal error reinstall it
 #if rpm is not installed dont calculate checksum for program rpm
+##dropped: we dont cover others than rpms
 #if rkhunter database is not created creta this first. use rkhunter --proupd in an f statement to do this
 #test whether packages match if not install them
 #use aide to prevent filesystem infiltration
@@ -607,3 +677,4 @@ exit 0
 #if no option is given clamscan runs twice
 #if no network is present clamscan tries to update takes to long
 #if no package manager is present try to build form scratch
+#use extra functions for every function in the script
