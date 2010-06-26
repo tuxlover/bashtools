@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#git-20102606_0140
+#git-20102606_2112
 #This is cleancheck
 #cleancheck is currently under heavly development
 #it is expected that things are not working or not
@@ -43,7 +43,7 @@ echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
-echo "      D: check health of current disks (not implemented yet)"
+echo "      D: check health of current disks"
 echo "      S: check security holes"
 echo "      P: do an package integrety-check. RPMS only"
 echo "      U: only update or check the sha512 sums" 
@@ -287,6 +287,65 @@ for dir in  ${DIRS[@]}
 	done
 }
 
+
+###Each Action has its own function starts here
+
+#this is the actual scan for viruses using clamscan
+virus_scan()
+{
+if [ ! -z $EXCLUDE_DIRS ]
+	then
+		if [ "$USE_QUIET" != "no" ]
+			then
+				{
+				echo "with clamscan" 
+				echo "with excludedirs"
+				echo "Skiping"
+								
+					for dir in ${DIRS[@]}
+						do
+							echo $dir
+						done
+				
+				E=$( exclude_this)
+				ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys  $E /`
+				echo "$ANT" 
+				} >> $LOGFILE
+			else
+				{
+				echo "with clamscan" 
+				echo "with excludedirs"
+				echo "Skiping"
+								
+					for dir in ${DIRS[@]}
+						do
+							echo $dir
+						done
+				
+				E=$( exclude_this)
+				ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys $E /`
+				echo "$ANT" 
+				}|tee -a $LOGFILE
+			fi
+		else
+			if [ "$USE_QUIET" != "no" ]
+				then
+					{
+					echo "with clamscan"
+					ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
+					echo "$ANT" 
+					}>> $LOGFILE
+				else
+					{
+					echo "with clamscan"
+					ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
+					echo "$ANT" 
+					}|tee -a $LOGFILE
+			fi
+fi
+}
+
+
 verify_package()
 {
 is_rpm=$(rpm -q rpm && echo "yes")
@@ -363,7 +422,7 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 				SUMS=$(sha512sum -c $SHA_SUM/init/SHA_SUMS)
 					for sum in ${SUMS[@]}
 						do
-							if [[ "$sum"  = "FEHLSCHLAG" || "$sum" = "FAILED" ]]
+							if [[ "$sum"  == "FEHLSCHLAG" || "$sum" == "FAILED" ]]
 								then
 									echo  -e '\E[33mwarning:'; tput sgr0
 									echo "at least one invalid checksum found"
@@ -375,6 +434,8 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 		fi
 fi	
 }
+###Each action has its own function ends here
+
 
 #do the main action including check for dirs and files
 main()
@@ -402,57 +463,7 @@ if [ ! -z $WITH_FEATURE ]
 		for feature in ${WITH_FEATURE[@]}
 			do
 				case $feature in
-					A)
-					if [ ! -z $EXCLUDE_DIRS ]
-						then
-							if [ "$USE_QUIET" != "no" ]
-								then
-									{
-										echo "with clamscan" 
-										echo "with excludedirs"
-										echo "Skiping"
-								
-										for dir in ${DIRS[@]}
-											do
-												echo $dir
-										done
-				
-										E=$( exclude_this)
-										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys  $E /`
-										echo "$ANT" 
-									} >> $LOGFILE
-								else
-									{
-										echo "with clamscan" 
-										echo "with excludedirs"
-										echo "Skiping"
-								
-										for dir in ${DIRS[@]}
-											do
-												echo $dir
-										done
-				
-										E=$( exclude_this)
-										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys $E /`
-										echo "$ANT" 
-									}|tee -a $LOGFILE
-							fi
-						else
-							if [ "$USE_QUIET" != "no" ]
-								then
-									{
-										echo "with clamscan"
-										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
-										echo "$ANT" 
-									}>> $LOGFILE
-								else
-									{
-										echo "with clamscan"
-										ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
-										echo "$ANT" 
-									}|tee -a $LOGFILE
-							fi
-					fi
+					A) virus_scan
 					;;
 					C) 
 						if [ "$USE_QUIET" != "no" ]
@@ -550,59 +561,8 @@ if [ ! -z $WITH_FEATURE ]
 				}|tee -a $LOGFILE
 				self_test
 		fi
+				virus_scan
 		
-		if [ ! -z $EXCLUDE_DIRS ]
-			then
-				if [ "$USE_QUIET" != "no" ]
-					then
-							{
-								echo "with clamscan" 
-								echo "with excludedirs"
-								echo "Skiping"
-							
-								for dir in ${DIRS[@]}
-									do
-										echo $dir
-								done
-				
-								E=$( exclude_this)
-								ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys $E /`
-								echo "ANT" 
-							}|>> $LOGFILE
-					else
-							{
-								echo "with clamscan" 
-								echo "with excludedirs"
-								echo "Skiping"
-								
-								for dir in ${DIRS[@]}
-									do
-										echo $dir
-								done
-				
-								E=$( exclude_this)
-								ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys $E /`
-								echo "ANT" 
-							}|tee -a $LOGFILE
-				fi
-			else
-				if [ "$USE_QUIET" != "no" ]
-					then
-						{
-							echo "with clamscan"
-							check_antivir
-							ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
-							echo "$ANT"
-						}>> $LOGFILE
-					else
-						{
-							echo "with clamscan"
-							check_antivir
-							ANT=`$ANTIVIR -r -i --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/sys /`
-							echo "$ANT"
-						}|tee -a $LOGFILE
-				fi		
-		fi
 		if [ "$USE_QUIET" != "no" ]
 			then
 				{
@@ -646,8 +606,8 @@ echo -e '\t \t \t \t \E[32mok'; tput sgr0
 
 we_fail()
 {
-echo "failed"	
-echo "stop"
+echo -e '\t \t \t \t \E[31mfailed'; tput sgr0	
+echo -e '\t \t \t \t \E[31mstop'; tput sgr0
 exit 1
 }
 
@@ -667,7 +627,6 @@ exit 0
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
 #need the sourcerpm of rkhunter to implement selfupdate
-#dont use options but find needed programs by the script itself using which
 #if package has fatal error reinstall it
 #if rpm is not installed dont calculate checksum for program rpm
 ##dropped: we dont cover others than rpms in the moment
@@ -676,8 +635,17 @@ exit 0
 #use aide to prevent filesystem infiltration
 #check for both rkhunter and chkrootkit
 #implement all stuff in a nicer interface
-#if no option is given clamscan runs twice
 #if no network is present clamscan tries to update takes to long
 #if no package manager is present try to build form scratch
 #use extra functions for every function in the script
 #implement file-integrety checker
+#it mitght also be usefull to create additional logfiles  
+
+#aoutosectools: (maybe should replace lynis in future)
+#crypt hash grub randomly
+#set ntp damon
+#disable not needed services
+#find and uninstall not needed compilers
+#find and disabe account with weak passwords #howto do this
+#disable not valid shells in /etc/shells
+#setting kernel options according to lynis
