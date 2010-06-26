@@ -7,6 +7,9 @@
 #working probertly although we test it as hard as we
 #can.
 
+#As you can see the todo list is quiet long and there will be a long
+#time as the final version will be out.
+
 #for bug reporting, please use github bugtracker and commit a fix
 #if possible
 
@@ -225,11 +228,11 @@ if [ "$ANTIVIR" == "no" ]
 		echo "An Virus detection tool is not installed."
 		echo "trying to get one"
 		zypper in clamav clamav-db || we_fail
-		freshclam || echo "not possible"
+		ping http://www.clamav.net && freshclam || echo "not possible"
 	else
 		drop_ok
 		echo "trying to update daily.cvd file"
-		freshclam || echo "not possible"
+		ping http://www.clamav.net && freshclam || echo "not possible"
 fi
 }
 
@@ -663,12 +666,11 @@ exit 0
 #rkhunter check for updates to be more reliable
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
-#make freshclam an extra variable
 #need the sourcerpm of rkhunter to implement selfupdate
 #dont use options but find needed programs by the script itself using which
 #if package has fatal error reinstall it
 #if rpm is not installed dont calculate checksum for program rpm
-##dropped: we dont cover others than rpms
+##dropped: we dont cover others than rpms in the moment
 #if rkhunter database is not created creta this first. use rkhunter --proupd in an f statement to do this
 #test whether packages match if not install them
 #use aide to prevent filesystem infiltration
@@ -678,3 +680,4 @@ exit 0
 #if no network is present clamscan tries to update takes to long
 #if no package manager is present try to build form scratch
 #use extra functions for every function in the script
+#implement file-integrety checker
