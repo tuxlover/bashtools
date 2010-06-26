@@ -346,6 +346,44 @@ fi
 }
 
 
+chk_rootkit()
+{
+if [ "$USE_QUIET" != "no" ]
+	then
+		{
+		echo "with chkrootkit" 
+		CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+		echo "$CNT"		
+		}>> $LOGFILE
+	else
+		{
+		echo "with chkrootkit"
+		CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
+		echo "$CNT"		
+		}|tee -a $LOGFILE
+fi	
+}
+
+chk_sec()
+{
+	
+if [ "$USE_QUIET" != "no" ]
+	then
+		{			
+		echo "with lynis"
+		SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+		echo "$SNT"      
+		}>> $LOGFILE
+	else
+		{			
+		echo "with lynis"
+		SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
+		echo "$SNT"      
+		}|tee -a $LOGFILE
+fi
+}
+
+
 verify_package()
 {
 is_rpm=$(rpm -q rpm && echo "yes")
@@ -465,21 +503,7 @@ if [ ! -z $WITH_FEATURE ]
 				case $feature in
 					A) virus_scan
 					;;
-					C) 
-						if [ "$USE_QUIET" != "no" ]
-							then
-								{
-									echo "with chkrootkit" 
-									CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-									echo "$CNT"		
-								}>> $LOGFILE
-							else
-									{
-									echo "with chkrootkit"
-									CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-									echo "$CNT"		
-								}|tee -a $LOGFILE
-						fi
+					C) chk_rootkit
 					;;
 					D)
 						if [ "$USE_QUIET" != "no" ]
@@ -495,21 +519,7 @@ if [ ! -z $WITH_FEATURE ]
 								} |tee -a $LOGFILE
 						fi
 					;;
-					S)
-						if [ "$USE_QUIET" != "no" ]
-							then
-								{			
-									echo "with lynis"
-									SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-									echo "$SNT"      
-								}>> $LOGFILE
-							else
-								{			
-									echo "with lynis"
-									SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-									echo "$SNT"      
-								}|tee -a $LOGFILE
-						fi
+					S) chk_sec
 					;;
 					P)
 						if [ "$USE_QUIET" != "no" ]
@@ -562,35 +572,9 @@ if [ ! -z $WITH_FEATURE ]
 				self_test
 		fi
 				virus_scan
-		
-		if [ "$USE_QUIET" != "no" ]
-			then
-				{
-					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-					echo "$CNT"		
-					disk_check
-					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-					echo "$SNT"
-		
-					verify_package	
-
-					echo "------------------------------------------------------------------"
-
-				} >> $LOGFILE
-			else
-						{
-					CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-					echo "$CNT"
-					disk_check		
-					SNT=`$SECURITY_CHECKER -c -Q --no-colors --no-log`
-					echo "$SNT"
-		
-					verify_package	
-
-					echo "------------------------------------------------------------------"
-
-				}|tee -a $LOGFILE
-		fi
+				chk_rootkit
+				chk_sec
+				verify_package
 fi
 }	
 
