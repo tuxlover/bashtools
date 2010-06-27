@@ -605,9 +605,6 @@ if [ ! -z $WITH_FEATURE ]
 					echo $INDEX
 					echo "file was created by $0"
 					echo "-----------------------------------------------------------------"
-					echo "with clamscan"
-					echo "with chkrootkit"
-					echo "with lynis"
 				    
 				    look_for_updates
 					self_test
@@ -622,9 +619,6 @@ if [ ! -z $WITH_FEATURE ]
 					echo $INDEX
 					echo "file was created by $0"
 					echo "-----------------------------------------------------------------"
-					echo "with clamscan"
-					echo "with chkrootkit"
-					echo "with lynis"
 					
 					look_for_updates
 					self_test
