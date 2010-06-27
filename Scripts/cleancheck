@@ -24,6 +24,9 @@
 #and will need a long runtime.
 #It creates logfiles which can be inspected aferwards.
 
+#Caution the goal of cleancheck is not to prevent intrusion
+#but to detect intrusion and find out security leaks.
+
 ##help_option starts here
 option_h()
 {
@@ -386,13 +389,36 @@ fi
 
 verify_package()
 {
-is_rpm=$(rpm -q rpm && echo "yes")
+rpm -q rpm && is_rpm="yes" || is_rpm="no"
 
 if [ "$is_rpm" == "yes" ]
 	then
 		echo "with rpm package verification"
+		PACKAGES=$(rpm -qa) #get all installaed packages
+		
+		if [ "$USE_QUIET" != "no" ]
+			then
+				{			
+					for package in $PACKAGES
+						do
+							echo "========================="
+							echo "Checkiing package $package"
+							rpm -V $package
+						done
+				}>> $LOGFILE
+			else
+				{			
+					for package in $PACKAGES
+						do
+							echo "========================="
+							echo "Checkiing package $package"
+							rpm -V $package
+						done
+				}|tee -a $LOGFILE
+		fi
 	else
 		echo "package verification for rpm skipped"
+		echo "You are trying to run rpm on a non rpm system"
 fi
 
 }
@@ -521,17 +547,7 @@ if [ ! -z $WITH_FEATURE ]
 					;;
 					S) chk_sec
 					;;
-					P)
-						if [ "$USE_QUIET" != "no" ]
-							then
-								{
-									verify_package
-								}>> $LOGFILE
-							else
-								{
-									verify_package
-								}|tee -a $LOGFILE
-						fi
+					P) verify_package
 					;;
 					U) :
 					;;
@@ -568,6 +584,7 @@ if [ ! -z $WITH_FEATURE ]
 					check_antivir
 					check_lynis 
 					check_rootkit_checker
+					check_smartctl
 				}|tee -a $LOGFILE
 				self_test
 		fi
@@ -606,24 +623,25 @@ exit 0
 #colorize output
 #aide check and encrypt 
 #use -u to udated aide database
-#verify package is kind of broken
 #rkhunter check for updates to be more reliable
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
 #need the sourcerpm of rkhunter to implement selfupdate
 #if package has fatal error reinstall it
-#if rpm is not installed dont calculate checksum for program rpm
-##dropped: we dont cover others than rpms in the moment
 #if rkhunter database is not created creta this first. use rkhunter --proupd in an f statement to do this
 #test whether packages match if not install them
 #use aide to prevent filesystem infiltration
 #check for both rkhunter and chkrootkit
 #implement all stuff in a nicer interface
-#if no network is present clamscan tries to update takes to long
 #if no package manager is present try to build form scratch
 #use extra functions for every function in the script
 #implement file-integrety checker
 #it mitght also be usefull to create additional logfiles  
+#use different Logfiles for each than display a summary when finished
+#if no changes in package where detected dont display it
+#find files which are not belonging to any package and calculate there checksum
+#make zypper non interactive
+#md5sum  program should be verifierd by which
 
 #aoutosectools: (maybe should replace lynis in future)
 #crypt hash grub randomly
