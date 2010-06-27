@@ -438,14 +438,33 @@ if [ "$USE_QUIET" != "no" ]
 	then
 		{
 		echo "with chkrootkit" 
-		CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-		echo "$CNT"		
+		
+		if [ ! -f /var/lib/rkhunter/db/rkhunter.dat ]
+			then
+				echo "create initial database"
+				$ROOTKIT_CHECKER --propupd
+				CNT=`$ROOTKIT_CHECKER -c  --novl --nocolors -sk`
+				echo "$CNT"
+			else
+				CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk`
+				echo "$CNT"
+		fi		
 		}>> $LOGFILE
 	else
 		{
 		echo "with chkrootkit"
-		CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk --nolog`
-		echo "$CNT"		
+		
+		if [ ! -f /var/lib/rkhunter/db/rkhunter.dat ]
+			then
+				echo "create initial database"
+				$ROOTKIT_CHECKER --propupd
+				CNT=`$ROOTKIT_CHECKER -c  --novl --nocolors -sk`
+				echo "$CNT"
+			else
+				CNT=`$ROOTKIT_CHECKER -c --novl --nocolors -sk`
+				echo "$CNT"
+		fi	
+
 		}|tee -a $LOGFILE
 fi	
 }
@@ -715,10 +734,16 @@ exit 0
 #use different Logfiles for each than display a summary when finished
 #if no changes in package where detected dont display it
 #find files which are not belonging to any package and calculate there checksum
-#if diskcheck is not passed stop the script
 #implement -C: run in cron mode
 #create a snapshot of actual system before doing autoupdate
 #implement -j just upgrade tools 
+#check_rootkit should also install tools recomned by rkhunter like tripewire
+#checking for newer versions for:
+#GnuPG
+#OpenSSL
+#MTA
+#OpenSSH   
+#setup tripwire
 
 #aoutosectools: (maybe should replace lynis in future)
 #set up autidor
@@ -730,3 +755,4 @@ exit 0
 #disable not valid shells in /etc/shells
 #setting kernel options according to lynis
 #set automaticly to secure without yast #howto do that
+
