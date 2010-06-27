@@ -50,6 +50,7 @@ echo "      D: check health of current disks"
 echo "      S: check security holes"
 echo "      P: do an package integrety-check. RPMS only"
 echo "      U: only update or check the sha512 sums" 
+echo "      u: only update the system"
 echo "   You may also use this option to set the order of checks performed"
 echo "   or to exclude actions that should not be performed."
 exit 0	
@@ -71,6 +72,9 @@ FIRST_RUN=
 declare -a EXCLUDE_DIRS=
 declare -a WITH_FEATURE=
 SHA_SUM=/var/log/selftest
+DISTRIBUTION=$(head -1 /etc/SuSE-release|awk '{print $1}')
+RELEASE=$(head -1 /etc/SuSE-release|awk '{print $2}')
+SUSE_RELEASE=${DISTRIBUTION}_${RELEASE}
 
 option_a()
 {
@@ -227,6 +231,30 @@ if [ $UID -ne 0 ]
 fi
 }
 
+look_for_updates()
+#check if updates are available if internetconnection is present
+{
+#first check if the suse security repo and updaterepo are present
+#if not present add it here
+zypper lr -u|awk '{print $11}'|grep "http://download.opensuse.org/update/$RELEASE" || zypper ar -f http://download.opensuse.org/update/$RELEASE/ update
+
+zypper lr -u |awk '{print $11}'|grep "repositories/security/$SUSE_RELEASE" || zypper ar -f ftp://ftp5.gwdg.de/pub/opensuse/repositories/security/$SUSE_RELEASE/ security
+
+#than check if connection to server can be established
+ping http://download.opensuse.org && is_reachable="yes" || is_reachable="no"
+ping ftp://ftp5.gwdg.de && is_reachable="yes" || is_reachable="no"
+
+if [ "$is_reachable" == "yes" ]
+	then
+		zypper ref
+		zypper -n up
+		export FIRST_RUN="yes"
+	else
+		echo "zypper cannot connect to the updateserver"
+		echo "maybe your connection is down or the server maybe overloaded"
+fi
+}
+
 #check whether programs and argumets are set correctly
 check_antivir()
 {				
@@ -239,6 +267,7 @@ if [ "$ANTIVIR" == "no" ]
 		zypper -n in clamav clamav-db || we_fail
 		ping http://www.clamav.net && freshclam || echo "not possible"
 	else
+		#check for newer version
 		drop_ok
 		echo "trying to update daily.cvd file"
 		ping http://www.clamav.net && freshclam || echo "not possible"
@@ -256,6 +285,7 @@ if [ "$ROOTKIT_CHECKER" == "no" ]
 		echo "trying to get one"
 		zypper -n in rkhunter || we_fail
 	else
+		#todo: check for newer version
 		drop_ok
 fi
 }
@@ -267,10 +297,11 @@ echo "checking fo r security checker" 2> /dev/null
 if [ "$SECURITY_CHECKER" == "no" ]
 	then
 		drop_failure
-		echo "A security checker is not a installed"
+		echo "A security checker is not installed"
 		echo "trying to get one"
 		zypper -n in lynis || we_fail
 	else
+		#todo: check for newer version
 		drop_ok
 fi
 }
@@ -526,7 +557,6 @@ if [ ! -z $WITH_FEATURE ]
 		echo $INDEX >> $LOGFILE
 		echo "file was created by $0" >> $LOGFILE
 		echo "-----------------------------------------------------------------" >> $LOGFILE
-
 		self_test
 		
 		for feature in ${WITH_FEATURE[@]}
@@ -554,6 +584,8 @@ if [ ! -z $WITH_FEATURE ]
 					;;
 					P) verify_package
 					;;
+					u) look_for_updates
+					;;
 					U) :
 					;;
 					\?) 
@@ -572,7 +604,8 @@ if [ ! -z $WITH_FEATURE ]
 					echo "with clamscan"
 					echo "with chkrootkit"
 					echo "with lynis"
-				
+				    
+				    look_for_updates
 					self_test
 					disk_check
 					virus_scan
@@ -589,6 +622,7 @@ if [ ! -z $WITH_FEATURE ]
 					echo "with chkrootkit"
 					echo "with lynis"
 					
+					look_for_updates
 					self_test
 					disk_check
 					virus_scan
