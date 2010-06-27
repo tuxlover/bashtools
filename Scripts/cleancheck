@@ -522,7 +522,7 @@ if [ "$USE_QUIET" != "no" ]
 			
 			for device in $all_devices
 				do
-					smartctl -H $device
+					smartctl -H $device || exit 1
 				done
 		} >> $LOGFILE
 	else
@@ -531,7 +531,7 @@ if [ "$USE_QUIET" != "no" ]
 			
 			for device in $all_devices
 				do
-					smartctl -H $device
+					smartctl -H $device || exit 1
 				done						
 									
 		} |tee -a $LOGFILE
@@ -718,6 +718,7 @@ exit 0
 #if diskcheck is not passed stop the script
 #implement -C: run in cron mode
 #create a snapshot of actual system before doing autoupdate
+#implement -j just upgrade tools 
 
 #aoutosectools: (maybe should replace lynis in future)
 #set up autidor
@@ -728,3 +729,4 @@ exit 0
 #find and disabe account with weak passwords #howto do this
 #disable not valid shells in /etc/shells
 #setting kernel options according to lynis
+#set automaticly to secure without yast #howto do that
