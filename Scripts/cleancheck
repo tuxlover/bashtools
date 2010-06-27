@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#git-20102706_1159
+#git-20102706_1909
 #This is cleancheck
 #cleancheck is currently under heavly development
 #it is expected that things are not working or not
@@ -267,7 +267,21 @@ if [ "$ANTIVIR" == "no" ]
 		zypper -n in clamav clamav-db || we_fail
 		ping http://www.clamav.net && freshclam || echo "not possible"
 	else
-		#check for newer version
+		echo "checking if newer version is available"
+		test $(zypper -n --no-refresh se -s -t package  --match-exact clamav|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name clamav|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+			
+		if [ "$new_version" == "yes" ]
+			then
+                echo "there is a newer version available"
+                echo "trying to update"
+                VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact clamav|grep ^v|awk '{print $11}')
+                zypper -n --no-refresh in -n --from $VENDOR clamav clamav-db
+                echo "finished"
+			else
+                echo "no update available"
+		fi
+
+		
 		drop_ok
 		echo "trying to update daily.cvd file"
 		ping http://www.clamav.net && freshclam || echo "not possible"
@@ -285,7 +299,21 @@ if [ "$ROOTKIT_CHECKER" == "no" ]
 		echo "trying to get one"
 		zypper -n in rkhunter || we_fail
 	else
-		#todo: check for newer version
+	
+		echo "checking if newer version is available"
+		test $(zypper -n --no-refresh se -s -t package  --match-exact rkhunter|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name rkhunter|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+			
+		if [ "$new_version" == "yes" ]
+			then
+                echo "there is a newer version available"
+                echo "trying to update"
+                VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact rkhunter|grep ^v|awk '{print $11}')
+                zypper -n --no-refresh in -n --from $VENDOR rkhunter
+                echo "finished"
+			else
+                echo "no update available"
+		fi
+	
 		drop_ok
 fi
 }
@@ -293,7 +321,7 @@ fi
 check_lynis()
 {
 
-echo "checking fo r security checker" 2> /dev/null
+echo "checking for security checker" 2> /dev/null
 if [ "$SECURITY_CHECKER" == "no" ]
 	then
 		drop_failure
@@ -301,7 +329,19 @@ if [ "$SECURITY_CHECKER" == "no" ]
 		echo "trying to get one"
 		zypper -n in lynis || we_fail
 	else
-		#todo: check for newer version
+		echo "checking if newer version is available"
+		test $(zypper -n --no-refresh se -s -t package  --match-exact lynis|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name lynis|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+			
+		if [ "$new_version" == "yes" ]
+			then
+                echo "there is a newer version available"
+                echo "trying to update"
+                VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact lynis|grep ^v|awk '{print $11}')
+                zypper -n --no-refresh in -n --from $VENDOR lynis
+                echo "finished"
+			else
+                echo "no update available"
+		fi
 		drop_ok
 fi
 }
@@ -662,29 +702,22 @@ exit 0
 #colorize output
 #aide check and encrypt
 #use -u to udated aide database
-
-#rkhunter check for updates to be more reliable
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
-#need the sourcerpm of rkhunter to implement selfupdate
 #if package has fatal error reinstall it
 #if rkhunter database is not created creta this first. use rkhunter --proupd in an f statement to do this
 #test whether packages match if not install them
 #use aide to prevent filesystem infiltration
 #check for both rkhunter and chkrootkit
 #implement all stuff in a nicer interface
-#if no package manager is present try to build form scratch
-#use extra functions for every function in the script
 #implement file-integrety checker
 #it mitght also be usefull to create additional logfiles  
 #use different Logfiles for each than display a summary when finished
 #if no changes in package where detected dont display it
 #find files which are not belonging to any package and calculate there checksum
-#make zypper non interactive
-#md5sum  program should be verifierd by which
 #if diskcheck is not passed stop the script
-#implement -c: run as cron-job
-
+#implement -C: run in cron mode
+#create a snapshot of actual system before doing autoupdate
 
 #aoutosectools: (maybe should replace lynis in future)
 #set up autidor
