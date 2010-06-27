@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#git-20102606_2112
+#git-20102706_1159
 #This is cleancheck
 #cleancheck is currently under heavly development
 #it is expected that things are not working or not
@@ -151,25 +151,31 @@ while getopts a:c:l:e:s:w:fhq opt
 	done
 shift `expr $OPTIND - 1`
 
+
+#assign the ANTIVIR variable must be declared here to run the script correctly
 if [ -z $ANTIVIR ]
 	then
-		ANTIVIR=$(which clamscan || echo "no") #enter the path to clamscan or the path to your virus scanner
+		ANTIVIR=$(which clamscan || echo "no")
 fi
 
+#assign the ROOTKIT_CHECKER variable must be declared here to run the script correctly
 if [ -z $ROOTKIT_CHECKER ]
 	then
-		ROOTKIT_CHECKER=$(which rkhunter || echo "no") #enter the path to your rootkitchecker
+		ROOTKIT_CHECKER=$(which rkhunter || echo "no")
 fi
 
+#assign the SECURITY_CHECKER variable must declared here to run the script correctly
 if [ -z $SECURITY_CHECKER ] #check for open security holes
 	then
 		SECURITY_CHECKER=$(which lynis || echo "no")
 fi
 
+#assign the DISK_CHECKER variable must be declared here to run the script correctly
 if [ -z DISK_CHECKER ] #check disk health status
 	then
 		DISK_CHECKER=$(which smartctl|| echo "no")
 fi
+
 
 if [ -z $USE_QUIET ]
 	then
@@ -223,14 +229,14 @@ fi
 
 #check whether programs and argumets are set correctly
 check_antivir()
-{	
-echo "checking for Antivirs detection" 2> /dev/null
+{				
+echo "checking for Antivirus detection" 2> /dev/null
 if [ "$ANTIVIR" == "no" ]
 	then
 		drop_failure
 		echo "An Virus detection tool is not installed."
 		echo "trying to get one"
-		zypper in clamav clamav-db || we_fail
+		zypper -n in clamav clamav-db || we_fail
 		ping http://www.clamav.net && freshclam || echo "not possible"
 	else
 		drop_ok
@@ -241,13 +247,14 @@ fi
 
 check_rootkit_checker()
 {
+
 echo "checking for rootkit checker" 2> /dev/null
 if [ "$ROOTKIT_CHECKER" == "no" ] 
 	then
 		drop_failure
 		echo "A rootkit checker is not installed"
 		echo "trying to get one"
-		zypper in rkhunter || we_fail
+		zypper -n in rkhunter || we_fail
 	else
 		drop_ok
 fi
@@ -255,13 +262,14 @@ fi
 
 check_lynis()
 {
-echo "checking for security checker" 2> /dev/null
+
+echo "checking fo r security checker" 2> /dev/null
 if [ "$SECURITY_CHECKER" == "no" ]
 	then
 		drop_failure
 		echo "A security checker is not a installed"
 		echo "trying to get one"
-		zypper in lynis || we_fail
+		zypper -n in lynis || we_fail
 	else
 		drop_ok
 fi
@@ -269,13 +277,14 @@ fi
 
 check_smartctl()
 {
+
 echo "checking for smartmontools" 2> /dev/null
 if [ "$DISK_CHECKER" == "no" ]
 	then
 		drop_failure
 		echo "Smartctl is not installed"
 		echo "trying to get it"
-		zypper in smartmontools || we_fail
+		zypper -n in smartmontools || we_fail
 	else
 		drop_ok
 fi
@@ -296,6 +305,7 @@ for dir in  ${DIRS[@]}
 #this is the actual scan for viruses using clamscan
 virus_scan()
 {
+check_antivir	
 if [ ! -z $EXCLUDE_DIRS ]
 	then
 		if [ "$USE_QUIET" != "no" ]
@@ -351,6 +361,8 @@ fi
 
 chk_rootkit()
 {
+check_rootkit_checker	
+	
 if [ "$USE_QUIET" != "no" ]
 	then
 		{
@@ -369,6 +381,7 @@ fi
 
 chk_sec()
 {
+check_lynis
 	
 if [ "$USE_QUIET" != "no" ]
 	then
@@ -426,6 +439,8 @@ fi
 
 disk_check()
 {
+check_smartctl
+	
 #checking disks using smartmontools	
 all_devices=$(ls /dev/sd*) #fixme: check only disks not partitions
 
@@ -460,6 +475,7 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 			sha512sum /usr/bin/freshclam
 			sha512sum $ROOTKIT_CHECKER
 			sha512sum $SECURITY_CHECKER
+			sha512sum $DISK_CHECKER
 			sha512sum /bin/rpm			
 		} >> $SHA_SUM/init/SHA_SUMS
 		#imutable the SHA_SUMS because this is the weakest part of the script
@@ -510,18 +526,7 @@ if [ ! -z $WITH_FEATURE ]
 		echo $INDEX >> $LOGFILE
 		echo "file was created by $0" >> $LOGFILE
 		echo "-----------------------------------------------------------------" >> $LOGFILE
-		for feature in ${WITH_FEATURE[@]}
-			do
-				case $feature in
-					A) check_antivir
-					;;
-					C) check_rootkit_checker
-					;;
-					D) check_smartctl
-					;;
-					S) check_lynis
-				esac
-			done
+
 		self_test
 		
 		for feature in ${WITH_FEATURE[@]}
@@ -567,12 +572,14 @@ if [ ! -z $WITH_FEATURE ]
 					echo "with clamscan"
 					echo "with chkrootkit"
 					echo "with lynis"
-					check_antivir
-					check_lynis 
-					check_rootkit_checker
-					check_smartctl
+				
+					self_test
+					disk_check
+					virus_scan
+					chk_rootkit
+					chk_sec
+					verify_package
 				}>> $LOGFILE
-				self_test
 			else
 					{
 					echo $INDEX
@@ -581,17 +588,17 @@ if [ ! -z $WITH_FEATURE ]
 					echo "with clamscan"
 					echo "with chkrootkit"
 					echo "with lynis"
-					check_antivir
-					check_lynis 
-					check_rootkit_checker
-					check_smartctl
+					
+					self_test
+					disk_check
+					virus_scan
+					chk_rootkit
+					chk_sec
+					verify_package
 				}|tee -a $LOGFILE
-				self_test
+				
 		fi
-				virus_scan
-				chk_rootkit
-				chk_sec
-				verify_package
+				
 fi
 }	
 
@@ -621,8 +628,9 @@ exit 0
 #use more comments
 #clean up the code
 #colorize output
-#aide check and encrypt 
+#aide check and encrypt
 #use -u to udated aide database
+
 #rkhunter check for updates to be more reliable
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
@@ -642,8 +650,12 @@ exit 0
 #find files which are not belonging to any package and calculate there checksum
 #make zypper non interactive
 #md5sum  program should be verifierd by which
+#if diskcheck is not passed stop the script
+#implement -c: run as cron-job
+
 
 #aoutosectools: (maybe should replace lynis in future)
+#set up autidor
 #crypt hash grub randomly
 #set ntp damon
 #disable not needed services
