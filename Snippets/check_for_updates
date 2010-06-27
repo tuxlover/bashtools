@@ -1,0 +1,21 @@
+#!/bin/bash
+#Snippet that checks for updates of a specifivc package
+#This is just a proof of concept 
+
+package=$1
+ 
+
+zypper -n --no-refresh se -s -t package --match-exact $package | grep ^v && new_version="yes" || new_version="no"
+
+if [ "$new_version" == "yes" ]
+	then
+		echo "there is a newer version available"
+		echo "trying to update"
+		VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact $package|grep ^v|awk '{print $11}')
+		zypper -n --no-refresh in -n --from $VENDOR ${package}
+		echo "finished"
+	else
+		echo "no update available"
+fi
+
+exit 0
