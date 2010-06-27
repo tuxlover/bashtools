@@ -1,11 +1,12 @@
 #!/bin/bash
-#Snippet that checks for updates of a specifivc package
+#Snippet that checks for updates of a specific package
 #This is just a proof of concept 
 
 package=$1
  
 
-zypper -n --no-refresh se -s -t package --match-exact $package | grep ^v && new_version="yes" || new_version="no"
+#if mor than one version is installed the first version must not the right version
+test $(zypper -n --no-refresh se -s -t package --match-exact $package|grep ^i|awk '{print $7}' | tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name $package | grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1) && new_version="yes" || new_version="no"
 
 if [ "$new_version" == "yes" ]
 	then
@@ -19,3 +20,5 @@ if [ "$new_version" == "yes" ]
 fi
 
 exit 0
+
+#zypper -n se -s -t package --match-exact $package|grep ^v|awk '{print $7}'|tr -d [:punct:]
