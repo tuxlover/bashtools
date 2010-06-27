@@ -475,11 +475,27 @@ check_smartctl
 #checking disks using smartmontools	
 all_devices=$(ls /dev/sd*) #fixme: check only disks not partitions
 
-for device in $all_devices
-	do
-		smartctl -H $device
-	done
-	
+if [ "$USE_QUIET" != "no" ]
+	then
+		{
+		echo "with smartmontools"
+			
+			for device in $all_devices
+				do
+					smartctl -H $device
+				done
+		} >> $LOGFILE
+	else
+		{
+		echo "with smartmontools"
+			
+			for device in $all_devices
+				do
+					smartctl -H $device
+				done						
+									
+		} |tee -a $LOGFILE
+fi
 }
 
 self_test()
@@ -566,19 +582,7 @@ if [ ! -z $WITH_FEATURE ]
 					;;
 					C) chk_rootkit
 					;;
-					D)
-						if [ "$USE_QUIET" != "no" ]
-							then
-								{
-									echo "with smartmontools"
-									disk_check
-								} >> $LOGFILE
-							else
-								{
-									echo "with smartmontools"
-									disk_check
-								} |tee -a $LOGFILE
-						fi
+					D) disk_check						
 					;;
 					S) chk_sec
 					;;
