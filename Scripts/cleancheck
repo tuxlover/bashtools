@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#broken version
+
 #git-20102706_1909
 #This is cleancheck
 #cleancheck is currently under heavly development
@@ -32,7 +34,7 @@ option_h()
 {
 echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDPSU]"
 echo "-a set path to clamscan  binary. if not set, which clamscan is used"
-echo "-c set path to  chkrootkit binary. if not set /usr/bin/rkhunter is used"
+echo "-c set path to  chkrootkit binary. if not set which rkhunter is used"
 echo "-e exclude these dirs for scanning for viruses"
 echo "   you have to seperate the directories by : character"
 echo "	 example -e /home/:/media/:/mnt/"
@@ -42,7 +44,9 @@ echo "   WARNING be sure that you do this only when the system has been updated 
 echo "-l set name and path to logdir"
 echo "-h show this help"
 echo "-q be as less verbose as possible and log only to logfile"
-echo "-s set path to lynis binary. if not set /usr/bin/lynis is used"
+echo "-s set path to lynis binary. if not set which lynis is used"
+echo "-t set path to the tripwire checking tool. if not set which tripwire is used"
+echo "-T set path to the tripwire admin tool. if not set which twadmin is used"
 echo "-w with feature explizit set feature"
 echo "      A: scan for viruses"
 echo "      C: check for rootkits"
@@ -65,6 +69,8 @@ INDEX=$(date +%Y%m%d%H%M%S)
 ANTIVIR=
 ROOTKIT_CHECKER=
 SECURITY_CHECKER=
+TRIPWIRE_CHECK=
+TRIPWIRE_ADMIN=
 DISK_CHECKER=
 LOGFILE=
 USE_QUIET=
@@ -112,6 +118,16 @@ option_s()
 SECURITY_CHECKER="$OPTARG"	
 }
 
+option_t()
+{
+TRIPWIRE_CHECK="$OPTARG"
+}
+
+option_T()
+{
+TRIPWIRE_ADMIN="$OPTARG"	
+}
+
 option_w()
 {
 W_F="$OPTARG"
@@ -129,7 +145,7 @@ while [ $c -ge 0 ]
 
 
 
-while getopts a:c:l:e:s:w:fhq opt
+while getopts a:c:l:e:s:t:T:w:fhq opt
 	do
 		case "$opt" in
 			a) option_a
@@ -145,6 +161,10 @@ while getopts a:c:l:e:s:w:fhq opt
 			f) option_f
 			;;
 			s) option_s
+			;;
+			t) option_t
+			;;
+			T) option_T
 			;;
 			q) option_q
 			;;
@@ -172,6 +192,17 @@ fi
 if [ -z $SECURITY_CHECKER ] #check for open security holes
 	then
 		SECURITY_CHECKER=$(which lynis || echo "no")
+fi
+
+#assign Tripwire variable must declared here to run the script correctly
+if [ -z $TRIPWIRE_CHECK ]
+	then
+		TRIPWIRE_CHECK=$(which tripwire || echo "no" ) #tripwire is used by rkhunter
+fi
+
+if [ -z $TRIPWIRE_ADMIN ]
+	then
+		TRIPWIRE_ADMIN=$(which twadmin || echo "no" )
 fi
 
 #assign the DISK_CHECKER variable must be declared here to run the script correctly
@@ -288,9 +319,28 @@ if [ "$ANTIVIR" == "no" ]
 fi
 }
 
+
+check_tripwire()
+{
+echo "checking essential tool for rootkit checker"
+#first checking path to tripwire checking tool
+if [[ "$TRIPWIRE_CHECK"  == "no" || "TRIPWIRE_ADMIN" == "no" ]]
+	then
+		drop_failure
+		echo "basic tripwire tool is not installed"
+		echo "or not installed correctly"
+		echo "trying to get it"
+		zypper -n in tripwire || we_fail
+	else
+		echo "checking if newer version is available"
+		test $(zypper -n --no-refresh se -s -t package  --match-exact tripwire|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name tripwire|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+
+
+#checking path and files neccessary to tripwire
+}
+
 check_rootkit_checker()
 {
-
 echo "checking for rootkit checker" 2> /dev/null
 if [ "$ROOTKIT_CHECKER" == "no" ] 
 	then
@@ -724,10 +774,8 @@ exit 0
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
 #if package has fatal error reinstall it
-#if rkhunter database is not created creta this first. use rkhunter --proupd in an f statement to do this
 #test whether packages match if not install them
 #use aide to prevent filesystem infiltration
-#check for both rkhunter and chkrootkit
 #implement all stuff in a nicer interface
 #implement file-integrety checker
 #it mitght also be usefull to create additional logfiles  
@@ -737,7 +785,9 @@ exit 0
 #implement -C: run in cron mode
 #create a snapshot of actual system before doing autoupdate
 #implement -j just upgrade tools 
-#check_rootkit should also install tools recomned by rkhunter like tripewire
+#check_rootkit should also install tools recommend by rkhunter like tripewire
+#check if manually set path is set correctly
+
 #checking for newer versions for:
 #GnuPG
 #OpenSSL
@@ -755,4 +805,3 @@ exit 0
 #disable not valid shells in /etc/shells
 #setting kernel options according to lynis
 #set automaticly to secure without yast #howto do that
-
