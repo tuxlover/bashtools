@@ -42,6 +42,7 @@ echo "-f pretend to be the firstrun. this is usefull if you update your system"
 echo "   and therefore the sha512sums dont match anymore"
 echo "   WARNING be sure that you do this only when the system has been updated by rpm"
 echo "-l set name and path to logdir"
+echo "-n run without tripwire support"
 echo "-h show this help"
 echo "-q be as less verbose as possible and log only to logfile"
 echo "-s set path to lynis binary. if not set which lynis is used"
@@ -108,6 +109,11 @@ option_l()
 LOGFILE="$OPTARG"
 }
 
+option_n()
+{
+without_triptwire="yes"
+}
+	
 option_q()
 {
 USE_QUIET="yes"
@@ -145,7 +151,7 @@ while [ $c -ge 0 ]
 
 
 
-while getopts a:c:l:e:s:t:T:w:fhq opt
+while getopts a:c:l:e:s:t:T:w:fhnq opt
 	do
 		case "$opt" in
 			a) option_a
@@ -159,6 +165,8 @@ while getopts a:c:l:e:s:t:T:w:fhq opt
 			e) option_e
 			;;
 			f) option_f
+			;;
+			n) option_n
 			;;
 			s) option_s
 			;;
@@ -208,7 +216,7 @@ fi
 #assign the DISK_CHECKER variable must be declared here to run the script correctly
 if [ -z DISK_CHECKER ] #check disk health status
 	then
-		DISK_CHECKER=$(which smartctl|| echo "no")
+		DISK_CHECKER=$(which smartctl || echo "no")
 fi
 
 
@@ -320,7 +328,7 @@ fi
 }
 
 
-check_tripwire()
+check_tripwire ()
 {
 echo "checking essential tool for rootkit checker"
 #first checking path to tripwire checking tool
@@ -335,12 +343,104 @@ if [[ "$TRIPWIRE_CHECK"  == "no" || "TRIPWIRE_ADMIN" == "no" ]]
 		echo "checking if newer version is available"
 		test $(zypper -n --no-refresh se -s -t package  --match-exact tripwire|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name tripwire|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
 
-
+		if [ "$new_version" == "yes" ]
+			then
+				echo "there is a newer version available"
+				echo "trying to update"
+				VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact tripwire|grep ^v|awk '{print $11}')
+				zypper -n --no-refresh in -n --from $VENDOR tripwire
+				echo "finished"
+			else
+				echo "no update available"
+		fi
+		
+		drop_ok
+fi 
+				
 #checking path and files neccessary to tripwire
+#lookup the files wich needs to be up for tripwire check
+ls /etc/tripwire/*txt && TRIPWIRE_WARN="yes" || TRIPWIRE_WARN="no" 
+ls /etc/tripwire/tw.cfg &&  TRIPWIRE_CFG="yes" || TRIPWIRE_CFG="no"
+ls /etc/tripwire/tw.pol && TRIPWIRE_POL="yes" || TRIPWIRE_POL="no"
+ls /var/lib/tripwire/$HOSTNAME.twd && TRIPWIRE_DATABASE="yes" || TRIPWIRE_DATABASE="no"
+ls /etc/tripwire/site.key && TRIPWIRE_KEY_LOCAL="yes" || TRIPWIRE_KEY_LOCAL="no"
+ls /etc/tripwire/$HOSTNAME-local.key && TRIPWIRE_KEY_HOST="yes" || TRIPWIRE_KEY_HOST="no"
+
+echo "Checking your Tripwire configuration"
+
+
+echo "checking tripwire encryption keys..."
+if [[ "$TRIPWIRE_KEY_HOST" == "yes" && "$TRIPWIRE_KEY_LOCAL" == "yes"  ]]
+	then
+		echo "found"
+		drop_ok
+else
+	echo "no"
+	drop_failure
+	echo "It looks like your tripwire installation is not completely setup yet"
+	echo "you should setup your tripwire installation befor using it"
+	return
+fi
+
+
+echo "checking for tripwire policy..."
+if [ "$TRIPWIRE_POL" == "no" ]
+	then
+		echo "no"
+		drop_failure
+		echo "It looks like your tripwire installation is not completely setup yet."
+		echo "you should setup your tripwire installation before using it"
+		return
+	else
+		echo "yes"
+		drop_ok
+fi
+
+echo "checking for tripwire configuration file..."
+if [ "$TRIPWIRE_CFG" == "no" ]
+	then
+		echo "no"
+		drop_failure
+		echo "It looks like your tripwire installation is not completely setup yet"
+		echo "you should setup tripwire installaion before using it"
+		return
+	else
+		echo "yes"
+	drop_ok
+fi
+
+echo "checking for unencrypted setup files..."
+if [ "$TRIPWIRE_WARN" == "yes" ]
+	then
+		echo "warning"
+		drop_failure
+		echo "You have unencrypted tripwire setup files"
+		echo "I move them to roots directory"
+		mv /etc/tripwire/*txt /root/
+	else
+		drop_ok
+fi
+
+echo "checking for tripwire database..."
+
+if [ "$TRIPWIRE_DATABASE" == "no" ]
+	then
+		echo "no"
+		echo "dont worry i create one now"
+		tripwire --init --cfgfile /etc/tripwire/tw.cfg || return
+	else
+		echo "yes"
+		drop_ok
+fi
 }
 
 check_rootkit_checker()
 {
+if [ "$without_triptwire" != "yes" ]
+	then
+		check_tripwire
+fi
+
 echo "checking for rootkit checker" 2> /dev/null
 if [ "$ROOTKIT_CHECKER" == "no" ] 
 	then
@@ -769,13 +869,13 @@ exit 0
 #use more comments
 #clean up the code
 #colorize output
-#aide check and encrypt
-#use -u to udated aide database
+#tripwire check and encrypt
+#use option to udated tripwire database
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
 #if package has fatal error reinstall it
 #test whether packages match if not install them
-#use aide to prevent filesystem infiltration
+#use tripwire to prevent filesystem infiltration
 #implement all stuff in a nicer interface
 #implement file-integrety checker
 #it mitght also be usefull to create additional logfiles  
@@ -785,8 +885,10 @@ exit 0
 #implement -C: run in cron mode
 #create a snapshot of actual system before doing autoupdate
 #implement -j just upgrade tools 
-#check_rootkit should also install tools recommend by rkhunter like tripewire
 #check if manually set path is set correctly
+#option to disable tripwire
+#tripwire setup function
+#check tripwire configuration for permissions
 
 #checking for newer versions for:
 #GnuPG
