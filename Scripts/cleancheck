@@ -327,6 +327,38 @@ if [ "$ANTIVIR" == "no" ]
 fi
 }
 
+tripwire_setup()
+{
+	echo "not implemented yet"
+}	
+
+tripwire_setup_keys()
+{
+clear	
+echo "Give the password for the local hosts key:"
+twadmin --generate-keys -L /etc/tripwire/${HOSTNAME}-local.key
+
+clear
+echo "Give the password for the sites key"
+twadmin --generate-keys -S /etc/tripwire/site.key
+
+}
+
+tripwire_setup_config()
+{
+clear	
+echo "Setting up tripwire configuration file"
+twadmin --create-cfgfile --cfgfile /etc/tripwire/tw.cfg -S /etc/tripwire/site.key /etc/tripwire/twcfg.txt
+}	
+
+
+tripwire_setup_pol()
+{
+clear
+echo "Setting up a tripwire default policy"
+cp /usr/share/doc/packages/tripwire/twpol-Linux.txt /etc/tripwire/twpol.txt
+twadmin --creatxse-polfile --cfgfile /etc/tripwire/tw.cfg -S /etc/tripwire/site.key /etc/tripwire/twpol.txt
+}	
 
 check_tripwire ()
 {
@@ -378,32 +410,38 @@ else
 	echo "no"
 	drop_failure
 	echo "It looks like your tripwire installation is not completely setup yet"
-	echo "you should setup your tripwire installation befor using it"
-	return
+	echo "You should setup your the keys for your local machine."
+	read -s -t 10 -n 1 -p "Do you want to setup them now? y/n?" ANSWER
+	${ANSWER:=n} 2> /dev/null
+	test $ANSWER == "y" && tripwire_setup_keys || return
 fi
 
 
 echo "checking for tripwire policy..."
-if [ "$TRIPWIRE_POL" == "no" ]
+if [ "$TRIPWIRE_CFG" == "no" ]
 	then
 		echo "no"
 		drop_failure
 		echo "It looks like your tripwire installation is not completely setup yet."
-		echo "you should setup your tripwire installation before using it"
-		return
+		echo "You should setup a tripwire configuration file."
+		read -s -t 10 -n 1 -p "Do you want to setup one now? y/n?" ANSWER
+		${ANSWER:=n} 2> /dev/null
+		test $ANSWER == "y" && tripwire_setup_config || return
 	else
 		echo "yes"
 		drop_ok
 fi
 
 echo "checking for tripwire configuration file..."
-if [ "$TRIPWIRE_CFG" == "no" ]
+if [ "$TRIPWIRE_POL" == "no" ]
 	then
 		echo "no"
 		drop_failure
 		echo "It looks like your tripwire installation is not completely setup yet"
-		echo "you should setup tripwire installaion before using it"
-		return
+		echo "you should setup a tripwire setup policy."
+		read -s -t 10 -n 1 -p "Do you want to setup a default policy now? y/n?" ANSWER
+		${ANSWER:=n} 2> /dev/null
+		test $ANSWER == "y" && tripwire_setup_pol || return
 	else
 		echo "yes"
 	drop_ok
