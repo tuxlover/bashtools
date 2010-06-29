@@ -2,7 +2,7 @@
 
 #broken version
 
-#git-20102906_0007
+#git-20102906_1310
 #This is cleancheck
 #cleancheck is currently under heavly development
 #it is expected that things are not working or not
@@ -41,6 +41,7 @@ echo "	 example -e /home/:/media/:/mnt/"
 echo "-f pretend to be the firstrun. this is usefull if you update your system"
 echo "   and therefore the sha512sums dont match anymore"
 echo "   WARNING be sure that you do this only when the system has been updated by rpm"
+echo "-j do no other action but upgrade system basic tools"
 echo "-l set name and path to logdir"
 echo "-n run without tripwire support"
 echo "-h show this help"
@@ -109,6 +110,75 @@ option_l()
 LOGFILE="$OPTARG"
 }
 
+option_j()
+{		
+echo "You choose to just upgrade the scripts toolchain."
+echo "Other Options will be ignored"
+echo "Refreshing zyppers Database..."
+
+zypper -n ref
+
+echo "checking if newer version of clamscan is available..."
+test $(zypper -n --no-refresh se -s -t package  --match-exact clamav|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name clamav|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+			
+if [ "$new_version" == "yes" ]
+	then
+		echo "there is a newer version available"
+		echo "trying to update"
+		VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact clamav|grep ^v|awk '{print $11}')
+		zypper -n --no-refresh in -n --from $VENDOR clamav clamav-db
+		echo "finished"
+	else
+		echo "no update available"
+fi
+
+
+echo "checking if newer version of tripwire available..."
+test $(zypper -n --no-refresh se -s -t package  --match-exact tripwire|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name tripwire|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+
+if [ "$new_version" == "yes" ]
+	then
+		echo "there is a newer version available"
+		echo "trying to update"
+		VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact tripwire|grep ^v|awk '{print $11}')
+		zypper -n --no-refresh in -n --from $VENDOR tripwire
+		echo "finished"
+	else
+		echo "no update available"
+fi
+	
+
+echo "checking if newer version of rkhunter is available..."
+test $(zypper -n --no-refresh se -s -t package  --match-exact rkhunter|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name rkhunter|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+
+if [ "$new_version" == "yes" ]
+	then
+		echo "there is a newer version available"
+		echo "trying to update"
+		VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact rkhunter|grep ^v|awk '{print $11}')
+		zypper -n --no-refresh in -n --from $VENDOR rkhunter
+		echo "finished"
+	else
+		echo "no update available"
+fi
+
+echo "checking if newer version of lynis is available..."
+test $(zypper -n --no-refresh se -s -t package  --match-exact lynis|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name lynis|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
+
+if [ "$new_version" == "yes" ]
+	then
+		echo "there is a newer version available"
+		echo "trying to update"
+		VENDOR=$(zypper -n --no-refresh se -s -t package --match-exact lynis|grep ^v|awk '{print $11}')
+		zypper -n --no-refresh in -n --from $VENDOR lynis
+		echo "finished"
+	else
+		echo "no update available"
+fi
+
+exit 1
+}
+
 option_n()
 {
 without_triptwire="yes"
@@ -151,7 +221,7 @@ while [ $c -ge 0 ]
 
 
 
-while getopts a:c:l:e:s:t:T:w:fhnq opt
+while getopts a:c:l:e:s:t:T:w:fhjnq opt
 	do
 		case "$opt" in
 			a) option_a
@@ -165,6 +235,8 @@ while getopts a:c:l:e:s:t:T:w:fhnq opt
 			e) option_e
 			;;
 			f) option_f
+			;;
+			j) option_j
 			;;
 			n) option_n
 			;;
@@ -306,7 +378,7 @@ if [ "$ANTIVIR" == "no" ]
 		zypper -n in clamav clamav-db || we_fail
 		ping http://www.clamav.net && freshclam || echo "not possible"
 	else
-		echo "checking if newer version is available"
+		echo "checking if newer version of clamscan is available"
 		test $(zypper -n --no-refresh se -s -t package  --match-exact clamav|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name clamav|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
 			
 		if [ "$new_version" == "yes" ]
@@ -921,12 +993,16 @@ exit 0
 #if no changes in package where detected dont display it
 #find files which are not belonging to any package and calculate there checksum
 #implement -C: run in cron mode
+#+ just do the action and print the reports
+#+update tripwire databases
+#+ no updates
+
 #create a snapshot of actual system before doing autoupdate
-#implement -j just upgrade tools 
 #check if manually set path is set correctly
 #option to disable tripwire
 #tripwire setup function
 #check tripwire configuration for permissions
+#fixme: unary operator expected.
 
 #checking for newer versions for:
 #GnuPG
