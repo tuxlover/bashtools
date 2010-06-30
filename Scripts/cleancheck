@@ -509,7 +509,7 @@ if [ "$TRIPWIRE_POL" == "no" ]
 		echo "no"
 		drop_failure
 		echo "It looks like your tripwire installation is not completely setup yet"
-		echo "you should setup a tripwire setup policy."
+		echo "you should setup a tripwire policy."
 		read -s -t 10 -n 1 -p "Do you want to setup a default policy now? y/n?" ANSWER
 		${ANSWER:=n} 2> /dev/null
 		test $ANSWER == "y" && tripwire_setup_pol || return
@@ -537,6 +537,9 @@ if [ "$TRIPWIRE_DATABASE" == "no" ]
 		echo "no"
 		echo "dont worry i create one now"
 		$TRIPWIRE_CHECK --init --cfgfile /etc/tripwire/tw.cfg || return
+		#Todo/Fixme: after database initilisation we have to run at least one check to create
+		#a valid report
+		#check for valid report file
 	else
 		echo "yes"
 		drop_ok
