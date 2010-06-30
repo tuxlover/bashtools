@@ -30,7 +30,8 @@
 ##help_option starts here
 option_h()
 {
-echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIRS] [-h] [-s PATH] [-w ACDPSU]"
+echo "$0 [-a PATH] [-c PATH] [-l NAME] [-e DIR1:DIR2:...] [-h] [-s PATH] [-w ACDPSU]"
+echo "[-n] [-q] [-t PATH] [-T PATH] {-j}"
 echo "-a set path to clamscan  binary. if not set, which clamscan is used"
 echo "-c set path to  chkrootkit binary. if not set which rkhunter is used"
 echo "-e exclude these dirs for scanning for viruses"
@@ -406,11 +407,11 @@ tripwire_setup_keys()
 {
 clear	
 echo "Give the password for the local hosts key:"
-twadmin --generate-keys -L /etc/tripwire/${HOSTNAME}-local.key
+$TRIPWIRE_ADMIN --generate-keys -L /etc/tripwire/${HOSTNAME}-local.key
 
 clear
 echo "Give the password for the sites key"
-twadmin --generate-keys -S /etc/tripwire/site.key
+$TRIPWIRE_ADMIN --generate-keys -S /etc/tripwire/site.key
 
 }
 
@@ -418,7 +419,7 @@ tripwire_setup_config()
 {
 clear	
 echo "Setting up tripwire configuration file"
-twadmin --create-cfgfile --cfgfile /etc/tripwire/tw.cfg -S /etc/tripwire/site.key /etc/tripwire/twcfg.txt
+$TRIPWIRE_ADMIN --create-cfgfile --cfgfile /etc/tripwire/tw.cfg -S /etc/tripwire/site.key /etc/tripwire/twcfg.txt
 }	
 
 
@@ -427,7 +428,7 @@ tripwire_setup_pol()
 clear
 echo "Setting up a tripwire default policy"
 cp /usr/share/doc/packages/tripwire/twpol-Linux.txt /etc/tripwire/twpol.txt
-twadmin --creatxse-polfile --cfgfile /etc/tripwire/tw.cfg -S /etc/tripwire/site.key /etc/tripwire/twpol.txt
+$TRIPWIRE_ADMIN --creatxse-polfile --cfgfile /etc/tripwire/tw.cfg -S /etc/tripwire/site.key /etc/tripwire/twpol.txt
 }	
 
 check_tripwire ()
@@ -535,7 +536,7 @@ if [ "$TRIPWIRE_DATABASE" == "no" ]
 	then
 		echo "no"
 		echo "dont worry i create one now"
-		tripwire --init --cfgfile /etc/tripwire/tw.cfg || return
+		$TRIPWIRE_CHECK --init --cfgfile /etc/tripwire/tw.cfg || return
 	else
 		echo "yes"
 		drop_ok
@@ -977,8 +978,7 @@ exit 0
 #use more comments
 #clean up the code
 #colorize output
-#tripwire check and encrypt
-#use option to udated tripwire database
+#use option to update tripwire database
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
 #if package has fatal error reinstall it
@@ -994,13 +994,15 @@ exit 0
 #+ just do the action and print the reports
 #+update tripwire databases
 #+ no updates
+#run tripwire database update after systemupgrade
 
 #create a snapshot of actual system before doing autoupdate
 #check if manually set path is set correctly
-#option to disable tripwire
-#tripwire setup function
 #check tripwire configuration for permissions
+#if we have set path manually dont try to update via zypper
 #fixme: unary operator expected.
+
+#calculate md5sum of tripwire database
 
 #checking for newer versions for:
 #GnuPG
@@ -1008,7 +1010,8 @@ exit 0
 #MTA
 #OpenSSH   
 #setup tripwire
-
+#tripwire  -m u -a --cfgfile /etc/tripwire/tw.cfg -V nano -r /var/lib/tripwire/report/Dickkopf-20100630-004904.twr 
+#tripwire  -m u --cfgfile /etc/tripwire/tw.cfg -V nano -r /var/lib/tripwire/report/Dickkopf-20100630-004904.twr
 #aoutosectools: (maybe should replace lynis in future)
 #set up autidor
 #crypt hash grub randomly
