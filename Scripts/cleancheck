@@ -1029,3 +1029,5 @@ exit 0
 #disable not valid shells in /etc/shells
 #setting kernel options according to lynis
 #set automaticly to secure without yast #howto do that
+
+#we are looking for new features
