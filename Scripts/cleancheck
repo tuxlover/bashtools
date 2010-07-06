@@ -840,6 +840,8 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 			sha512sum $0
 			sha512sum /bin/bash
 			sha512sum $ANTIVIR
+			sha512sum $TRIPWIRE_ADMIN
+			sha512sum $TRIPWIRE_CHECK
 			sha512sum /usr/bin/freshclam
 			sha512sum $ROOTKIT_CHECKER
 			sha512sum $SECURITY_CHECKER
@@ -861,6 +863,8 @@ if [ ! -f $SHA_SUM/init/SHA_SUMS ]
 					sha512sum /usr/bin/freshclam
 					sha512sum $ROOTKIT_CHECKER
 					sha512sum $SECURITY_CHECKER
+					sha512sum $TRIPWIRE_ADMIN
+					sha512sum $TRIPWIRE_CHECK
 					sha512sum /bin/rpm			
 				} >> $SHA_SUM/init/SHA_SUMS
 		
