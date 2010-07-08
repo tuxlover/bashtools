@@ -394,7 +394,7 @@ if [ "$ANTIVIR" == "no" ]
 		
 		drop_ok
 		echo "trying to update daily.cvd file"
-		ping http://www.clamav.net && freshclam || echo "not possible"
+		ping clamav.net && freshclam || echo "not possible"
 fi
 }
 
