@@ -348,7 +348,7 @@ look_for_updates()
 #if not present add it here
 zypper lr -u|awk '{print $11}'|grep "http://download.opensuse.org/update/$RELEASE" || zypper ar -f http://download.opensuse.org/update/$RELEASE/ update
 
-zypper lr -u |awk '{print $11}'|grep "repositories/security/$SUSE_RELEASE" || zypper ar -f ftp://ftp5.gwdg.de/pub/opensuse/repositories/security/$SUSE_RELEASE/ security
+zypper lr -u |awk '{print $11}'|grep "repositories/security/$SUSE_RELEASE" || zypper ar -f http://download.opensuse.org/repositories/security/$SUSE_RELEASE/ security
 
 #than check if connection to server can be established
 ping http://download.opensuse.org && is_reachable="yes" || is_reachable="no"
@@ -375,7 +375,7 @@ if [ "$ANTIVIR" == "no" ]
 		echo "An Virus detection tool is not installed."
 		echo "trying to get one"
 		zypper -n in clamav clamav-db || we_fail
-		ping http://www.clamav.net && freshclam || echo "not possible"
+		ping clamav.net && freshclam || echo "not possible"
 	else
 		echo "checking if newer version of clamscan is available"
 		test $(zypper -n --no-refresh se -s -t package  --match-exact clamav|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name clamav|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
@@ -1002,6 +1002,7 @@ exit 0
 #+update tripwire databases
 #+ no updates
 #run tripwire database update after systemupgrade
+#set Updatebaseserver manualy option
 
 #create a snapshot of actual system before doing autoupdate
 #check if manually set path is set correctly
@@ -1031,3 +1032,5 @@ exit 0
 #set automaticly to secure without yast #howto do that
 
 #we are looking for new features
+#set alias for /bin/su
+#show ids on logon
