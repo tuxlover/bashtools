@@ -351,8 +351,8 @@ zypper lr -u|awk '{print $11}'|grep "http://download.opensuse.org/update/$RELEAS
 zypper lr -u |awk '{print $11}'|grep "repositories/security/$SUSE_RELEASE" || zypper ar -f http://download.opensuse.org/repositories/security/$SUSE_RELEASE/ security
 
 #than check if connection to server can be established
-ping http://download.opensuse.org && is_reachable="yes" || is_reachable="no"
-ping ftp://ftp5.gwdg.de && is_reachable="yes" || is_reachable="no"
+ping -c 5 http://download.opensuse.org && is_reachable="yes" || is_reachable="no"
+ping -c 5 ftp://ftp5.gwdg.de && is_reachable="yes" || is_reachable="no"
 
 if [ "$is_reachable" == "yes" ]
 	then
@@ -375,7 +375,7 @@ if [ "$ANTIVIR" == "no" ]
 		echo "An Virus detection tool is not installed."
 		echo "trying to get one"
 		zypper -n in clamav clamav-db || we_fail
-		ping clamav.net && freshclam || echo "not possible"
+		ping -c 6 clamav.net && freshclam || echo "not possible"
 	else
 		echo "checking if newer version of clamscan is available"
 		test $(zypper -n --no-refresh se -s -t package  --match-exact clamav|grep ^i|awk '{print $7}'|tr -d [:punct:]) -lt $(zypper -n --no-refresh se -s -t package --match-exact --sort-by-name clamav|grep ^v|awk '{print $7}'|tr -d [:punct:]|head -1 ) && new_version="yes" || new_version="no"
@@ -394,7 +394,7 @@ if [ "$ANTIVIR" == "no" ]
 		
 		drop_ok
 		echo "trying to update daily.cvd file"
-		ping clamav.net && freshclam || echo "not possible"
+		ping -c 6 clamav.net && freshclam || echo "not possible"
 fi
 }
 
@@ -1030,7 +1030,9 @@ exit 0
 #disable not valid shells in /etc/shells
 #setting kernel options according to lynis
 #set automaticly to secure without yast #howto do that
-
-#we are looking for new features
 #set alias for /bin/su
 #show ids on logon
+#setup the clamav daemon
+
+#we are looking for new features
+
