@@ -1009,6 +1009,7 @@ exit 0
 #check tripwire configuration for permissions
 #if we have set path manually dont try to update via zypper
 #fixme: unary operator expected.
+#fixme: if rkhunter is not on the system it is not installed automaticly
 
 #calculate md5sum of tripwire database
 
