@@ -1014,6 +1014,7 @@ exit 0
 #calculate md5sum of tripwire database
 
 #checking for newer versions for:
+#enable the clamav and freshclam dameon if disabled
 #GnuPG
 #OpenSSL
 #MTA
