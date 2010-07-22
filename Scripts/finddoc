@@ -157,7 +157,7 @@ do
 	  p) package_search;;
 	  s) speed_search;;
 	  w) write_search;;
-      \?)		# unknown flag
+      \?) get_help::		# unknown flag
       	  echo >&2 \
 	  "Usage: $0 [-e] [-l] [-n] [p] [s] [w] keyword. Use -h for help."
 	  exit 1;;
@@ -172,3 +172,6 @@ exit 0
 #how to fix that
 #how to make it only to find txt and html files
 #no help implemented yet
+
+#use find -exec grep "LOG" '{}' /dev/null \; -print for example
+#if in Documents was matched not further surch has to be done

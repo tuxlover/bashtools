@@ -1011,6 +1011,7 @@ exit 0
 #fixme: unary operator expected.
 #fixme: if rkhunter is not on the system it is not installed automaticly
 
+#if -t is used check if the corresponding -T is also specified and vise versa
 #calculate md5sum of tripwire database
 
 #checking for newer versions for:
