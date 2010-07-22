@@ -175,3 +175,4 @@ exit 0
 
 #use find -exec grep "LOG" '{}' /dev/null \; -print for example
 #if in Documents was matched not further surch has to be done
+#use xargs instead of -exec to increase speed: example find . -name $1 | xargs -r grep bla
