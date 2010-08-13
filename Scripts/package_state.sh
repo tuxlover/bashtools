@@ -6,15 +6,23 @@
 #it uses zypper for 11.3 but 11.2 may also work.
 #all version using zypper < opensuse 11.2 are not tested
 #suse verion 11.0 and below are not supported
-CURRENT_PACK=$(zypper se -i |awk '{print $3}')
+CURRENT_PACK=$(zypper se -i |awk '{print $3}'|tail +6)
 
 option_s()
 {
 zypper cc #clean cache for older packages
+
+i=0
 for p in $CURRENT_PACK 
 	do 
-		zypper -n in -f -d -l $p
+		
+		packages[$i]=$p
+		i=$(($i+1))
 	done
+
+
+printf "${packages[*]}"|xargs  zypper -n in -f -d -l 
+
 }
 
 option_h()
