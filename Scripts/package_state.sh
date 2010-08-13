@@ -6,7 +6,8 @@
 #it uses zypper for 11.3 but 11.2 may also work.
 #all version using zypper < opensuse 11.2 are not tested
 #suse verion 11.0 and below are not supported
-CURRENT_PACK=$(zypper se -i |awk '{print $3}'|tail +6)
+CURRENT_PACK=$(zypper se  -t package -i |awk '{print $2 $3 $4}'|tail +6|tr '|' '"')
+DATE_STRING=$(date +%F-%M)
 
 option_s()
 {
@@ -23,6 +24,11 @@ for p in $CURRENT_PACK
 
 printf "${packages[*]}"|xargs  zypper -n in -f -d -l 
 
+mkdir rpms
+find /var/cache/zypp/packages/ -type f -name "*rpm" -exec mv -v {} rpms/ \;
+
+tar cvjf packages_$DATE_STRING.tar.bz2 rpms
+rm -r rpms/
 }
 
 option_h()
