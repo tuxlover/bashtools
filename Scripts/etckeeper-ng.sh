@@ -62,6 +62,7 @@ if [ ! -s $BACKUPDIR/content.bak ]
 		if [ "$ANSWER" != "y"  ]
 			then
 				echo "use -i option to do an initial backup"
+				exit 1
 		fi				
 fi
 #first make sue we are on master
