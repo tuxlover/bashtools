@@ -2,7 +2,8 @@
 
 #etckeeper-ng
 
-BACKUPDIR=$HOME/testdir
+#change the value BACKUPDIR if $HOME does not fit your needs
+BACKUPDIR=$HOME
 
 #This Programm should be able to backup and restore a complete etc-tree
 #It uses git and rsync to archive this
@@ -10,6 +11,18 @@ BACKUPDIR=$HOME/testdir
 
 #First check if needed programms are present
 #git #awk #stat #grep #find
+
+#help function starts here
+get_help()
+{
+echo "$0 -i|-b|-l|-r [Branch]|-h"
+echo "etckeeper-ng can do a snapshot based backup of the /etc folder using git version control"
+echo "-i do the initial backup. there must be an initial backup to do new branched backups"
+echo "-b do a new branch backup. if no initiallized backup exists you will be asked"
+echo "-l lists all existing branches"
+echo "-r [Branch] restore /etc from [Branch] if no Branch is specified use the last existing master branch (not implemented yet)"
+echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
+}
 
 #do the initial backup
 initial_git()
@@ -112,7 +125,7 @@ git branch
 }
 
 #options starts here
-while getopts ibl opt
+while getopts iblh opt
 	do
 		case "$opt" in
 			i) initial_git
@@ -120,7 +133,10 @@ while getopts ibl opt
 			b) backup_git
 			;;
 			l) list_git || echo "no initial backup and no git repo found"
-
+			;;
+			h) get_help
+			;
+			\?) get_help
 		esac
 	done
 shift `expr $OPTIND - 1`
@@ -138,4 +154,4 @@ shift `expr $OPTIND - 1`
 #check if we have all tools installed we need
 #    git config --global user.name "Your Name"
 #    git config --global user.email you@example.com
-
+#-l: if no branch exists give a message
