@@ -15,7 +15,7 @@ BACKUPDIR=$HOME
 #help function starts here
 get_help()
 {
-echo "$0 -i|-b|-l|-r [Branch]|-h"
+echo "$0 [ -i ] [ -b ] [ -l ] [ -r Branch ] [ -h ]"
 echo "etckeeper-ng can do a snapshot based backup of the /etc folder using git version control"
 echo "-i do the initial backup. there must be an initial backup to do new branched backups"
 echo "-b do a new branch backup. if no initiallized backup exists you will be asked"
@@ -76,6 +76,8 @@ if [ ! -s $BACKUPDIR/content.bak ]
 			then
 				echo "use -i option to do an initial backup"
 				exit 1
+			else
+				initial_git && exit 0 || exit  && exit 0 || exit 11
 		fi				
 fi
 #first make sue we are on master
@@ -135,7 +137,7 @@ while getopts iblh opt
 			l) list_git || echo "no initial backup and no git repo found"
 			;;
 			h) get_help
-			;
+			;;
 			\?) get_help
 		esac
 	done
