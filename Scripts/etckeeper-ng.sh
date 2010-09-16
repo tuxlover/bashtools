@@ -20,13 +20,27 @@ echo "etckeeper-ng can do a snapshot based backup of the /etc folder using git v
 echo "-i do the initial backup. there must be an initial backup to do new branched backups"
 echo "-b do a new branch backup. if no initiallized backup exists you will be asked"
 echo "-l lists all existing branches"
-echo "-r [Branch] restore /etc from [Branch] if no Branch is specified use the last existing master branch (not implemented yet)"
+echo "-r [Branch] restore /etc from Branch if no Branch is specified use the last existing master branch (not implemented yet)"
 echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
+}
+
+
+#check whether we are root
+check_root()
+{
+if [ $UID -ne 0 ]
+	then 
+		drop_failure
+		echo "not root"
+		exit 1
+fi
 }
 
 #do the initial backup
 initial_git()
 {
+check_root
+
 #check if an older backup already exists
 if [ -s $BACKUPDIR/content.bak  ]
 	then
@@ -64,6 +78,8 @@ git add etc_bak/ && git add content.bak && git commit -m "$(date +%F-%H-%M)"
 #to a branched backup
 backup_git()
 {
+check_root
+
 DATE=$(date +%F-%H-%M)
 #check if the initial backup exists
 if [ ! -s $BACKUPDIR/content.bak ]
@@ -120,10 +136,23 @@ while [ $count -gt 0  ]
 
 list_git()
 {
+check_root
+
 cd $BACKUPDIR 2> /dev/null || return 1
 git branch
 
 
+}
+
+#mesage funcions
+drop_failure ()
+{
+echo -e '\t \t \t \t \E[31mfailure'; tput sgr0
+}
+
+drop_ok ()
+{
+echo -e '\t \t \t \t \E[32mok'; tput sgr0
 }
 
 #options starts here
@@ -156,4 +185,3 @@ shift `expr $OPTIND - 1`
 #check if we have all tools installed we need
 #    git config --global user.name "Your Name"
 #    git config --global user.email you@example.com
-#-l: if no branch exists give a message
