@@ -13,7 +13,8 @@
 declare -i BREAK_AFTER=3 #How often the script should try to ping 
 SECS=30 #Change this if you want more or less than 30 seconds interval probe pinging 
 #PINGHOST=127.0.0.1 #Can be used to test the script
-PINGHOST=google.de #Here you should enter a valid adress for pinging
+PINGHOST=$1 #Here you should enter a valid adress for pinging
+${PINGHOST:=google.de} #Here you should enter a valid adress for pinging
 ##VARS
 
 text_info ()
@@ -60,3 +61,8 @@ graphical_info || text_info
 
 
  exit 0
+
+# Todo: 
+# implement a help option
+# Fixme:
+# ping command does not send an exit status greater > 0 but function should return 1 if running was unseccessfull
