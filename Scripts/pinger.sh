@@ -14,7 +14,7 @@ declare -i BREAK_AFTER=3 #How often the script should try to ping
 SECS=30 #Change this if you want more or less than 30 seconds interval probe pinging 
 #PINGHOST=127.0.0.1 #Can be used to test the script
 PINGHOST=$1 #Here you should enter a valid adress for pinging
-${PINGHOST:=google.de} #Here you should enter a valid adress for pinging
+${PINGHOST:="google.de"} #Here you should enter a valid adress for pinging
 ##VARS
 
 text_info ()
