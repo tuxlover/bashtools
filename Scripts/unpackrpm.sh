@@ -102,3 +102,5 @@ rpm -Uhv --ignorearch --nodeps --force  --root $1 $2 || unknown_error
 
 exit 0
 
+#Todo:
+#better method to test whether this is realy a rpm: od rpm |head -1|awk '$2' == 12755
