@@ -751,6 +751,22 @@ if [ "$USE_QUIET" != "no" ]
 fi
 }
 
+#find and remove files in tmp based on certain rules
+clean_tmp()
+{
+	#find and remove old torrent files
+	find /tmp -iname "*.torrent" -delete
+	#find and remove old pdf files
+	find /tmp -iname "*.pdf" -delete
+	#find and remove all files bigger than 5M
+	# to be implemented
+
+	#find and remove all files and direcitroes older than 30 days
+	find /tmp -atime 30+ -exec rm -rf {} \;
+
+
+}
+
 
 verify_package()
 {
