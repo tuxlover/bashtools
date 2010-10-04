@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#git-20102906_1409
+#git-20101004_1907
 #This is cleancheck
 #cleancheck is currently under heavly development
 #it is expected that things are not working or not
