@@ -1053,5 +1053,7 @@ exit 0
 #show ids on logon
 #setup the clamav daemon
 
+#most security features are in contrib so we want to add this one too
+
 #we are looking for new features
 
