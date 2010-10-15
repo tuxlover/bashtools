@@ -1052,6 +1052,8 @@ exit 0
 #set alias for /bin/su
 #show ids on logon
 #setup the clamav daemon
+#loook for uncommon setuid and setguid bit 
+#find uncommon opened and accesseed files
 
 #most security features are in contrib so we want to add this one too
 
