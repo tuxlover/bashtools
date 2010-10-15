@@ -1054,6 +1054,7 @@ exit 0
 #setup the clamav daemon
 #loook for uncommon setuid and setguid bit 
 #find uncommon opened and accesseed files
+#check /etc/sudoers for fullpath aliasses
 
 #most security features are in contrib so we want to add this one too
 
