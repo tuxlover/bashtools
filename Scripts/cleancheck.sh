@@ -351,8 +351,8 @@ zypper lr -u|awk '{print $11}'|grep "http://download.opensuse.org/update/$RELEAS
 zypper lr -u |awk '{print $11}'|grep "repositories/security/$SUSE_RELEASE" || zypper ar -f http://download.opensuse.org/repositories/security/$SUSE_RELEASE/ security
 
 #than check if connection to server can be established
-ping -c 5 http://download.opensuse.org && is_reachable="yes" || is_reachable="no"
-ping -c 5 ftp://ftp5.gwdg.de && is_reachable="yes" || is_reachable="no"
+ping -c 5 download.opensuse.org && is_reachable="yes" || is_reachable="no"
+ping -c 5 ftp5.gwdg.de && is_reachable="yes" || is_reachable="no"
 
 if [ "$is_reachable" == "yes" ]
 	then
