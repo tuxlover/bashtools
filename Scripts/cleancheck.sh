@@ -54,6 +54,7 @@ echo "      C: check for rootkits"
 echo "      D: check health of current disks"
 echo "      S: check security holes"
 echo "      P: do an package integrety-check. RPMS only"
+echo "      T: do check of /tmp and delete unnecessary files"
 echo "      U: only update or check the sha512 sums" 
 echo "      u: only update the system"
 echo "   You may also use this option to set the order of checks performed"
@@ -749,6 +750,8 @@ if [ "$USE_QUIET" != "no" ]
 		echo "$SNT"      
 		}|tee -a $LOGFILE
 fi
+
+
 }
 
 #find and remove files in tmp based on certain rules
@@ -758,11 +761,12 @@ clean_tmp()
 	find /tmp -iname "*.torrent" -delete
 	#find and remove old pdf files
 	find /tmp -iname "*.pdf" -delete
-	#find and remove all files bigger than 5M
-	# to be implemented
+	#find and remove all files bigger than 1M
+	find /tmp -size +1M -ok rm {} \; 
 
 	#find and remove all files and direcitroes older than 30 days
-	find /tmp -atime 30+ -exec rm -rf {} \;
+	find /tmp -atime +2 -exec rm -rf {} \;
+	find /tmp -atime +30 -exec rm -rf {} \;
 
 
 }
@@ -929,6 +933,8 @@ if [ ! -z $WITH_FEATURE ]
 					;;
 					P) verify_package
 					;;
+					T) clean_tmp
+					;;
 					u) look_for_updates
 					;;
 					U) :
@@ -953,6 +959,7 @@ if [ ! -z $WITH_FEATURE ]
 					virus_scan
 					chk_rootkit
 					chk_sec
+					check_tmp
 					verify_package
 				}>> $LOGFILE
 			else
@@ -967,6 +974,7 @@ if [ ! -z $WITH_FEATURE ]
 					virus_scan
 					chk_rootkit
 					chk_sec
+					check_tmp
 					verify_package
 				}|tee -a $LOGFILE
 				
