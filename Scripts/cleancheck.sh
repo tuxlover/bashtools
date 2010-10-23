@@ -1062,7 +1062,11 @@ exit 0
 #setup the clamav daemon
 #loook for uncommon setuid and setguid bit 
 #find uncommon opened and accesseed files
-#check /etc/sudoers for fullpath aliasses
+#check /etc/sudoers for fullpath aliasse
+
+#do not allow user root to acccess X11
+# check if user root is allowed if not ok, if so do an xhost -SI:localhost:root to remove root from being allowd 
+# accessing X
 
 #most security features are in contrib so we want to add this one too
 
