@@ -58,12 +58,15 @@ for f in ${FILES[@]}
 
 
 #check whether we are root
-if [ $UID -ne 0 ]
+#only if one of the words on or off is used
+if [[ $STATUS == "on" || $STATUS == "off" ]]
 	then
-		echo "not root"
-		exit 1
-fi	
-
+		if [ $UID -ne 0 ]
+			then
+				echo "not root"
+				exit 1
+		fi	
+fi
 
 case $STATUS in
 	on) on
