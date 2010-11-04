@@ -3,6 +3,8 @@
 #disable and enable icmp redirection
 
 STATUS=$1
+FILES=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects  /proc/sys/net/ipv6/conf/default/accept_redirects /proc/sys/net/ipv4/conf/default/accept_redirects)
+
 
 #test whether we have a non empty variable
 if [ -z $STATUS	]
@@ -15,7 +17,6 @@ fi
 status()
 {
 
-FILES=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects  /proc/sys/net/ipv6/conf/default/accept_redirects)
 
 echo "Security mode is"
 
@@ -33,7 +34,6 @@ for f in ${FILES[@]}
 
 on()
 {
-FILES=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects /proc/sys/net/ipv6/conf/default/accept_redirects)
 
 	
 for f in ${FILES[@]}
@@ -45,7 +45,6 @@ for f in ${FILES[@]}
 
 off()
 {
-FILES=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects /proc/sys/net/ipv6/conf/default/accept_redirects)
 
 	
 for f in ${FILES[@]}
