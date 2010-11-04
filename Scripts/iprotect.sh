@@ -21,7 +21,7 @@ echo "Security mode is"
 
 for f in ${FILES[@]}
 	do
-		if [ $(cat $f) == "1" ]
+		if [ $(cat $f) == "0" ]
 			then
 				echo "$f" && echo -e "\E[32m  activated"; tput sgr0
 			else
@@ -38,7 +38,7 @@ FILES=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/
 	
 for f in ${FILES[@]}
 	do
-				echo "1" > $f
+				echo "0" > $f
 				echo "$f" && echo -e "\E[32m  activated"; tput sgr0
 	done	
 }
@@ -50,7 +50,7 @@ FILES=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/
 	
 for f in ${FILES[@]}
 	do
-				echo "0" > $f
+				echo "1" > $f
 				echo "$f" && echo -e "\E[31m  deactivated"; tput sgr0
 	done		
 	
