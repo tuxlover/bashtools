@@ -1,9 +1,15 @@
 #!/bin/bash
 
 #disable and enable icmp redirection
+#enable kernel specific security options
 
 STATUS=$1
-FILES=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects  /proc/sys/net/ipv6/conf/default/accept_redirects /proc/sys/net/ipv4/conf/default/accept_redirects /proc/sys/kernel/core_uses_pid)
+#echo 0
+FILES_D=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects  /proc/sys/net/ipv6/conf/default/accept_redirects /proc/sys/net/ipv4/conf/default/accept_redirects)
+
+#echo 1
+FILES_E=(/proc/sys/kernel/core_uses_pid)
+
 
 #test whether we have a non empty variable
 if [ -z $STATUS	]
@@ -19,7 +25,7 @@ status()
 
 echo "Security mode is"
 
-for f in ${FILES[@]}
+for f in ${FILES_D[@]}
 	do
 		if [ $(cat $f) == "0" ]
 			then
@@ -29,29 +35,52 @@ for f in ${FILES[@]}
 		fi
 	done	
 
-}
+for f in ${FILES_E[@]}
+	do
+		if [ $(cat $f) == "1" ]
+			then
+				echo "$f" && echo -e "\E[32m  activated"; tput sgr0			
+			else
+				echo "$f" && echo -e "\E[31m deactivated"; tput sgr0
+		fi
+	done
+}	
 
 on()
 {
 
 	
-for f in ${FILES[@]}
+for f in ${FILES_D[@]}
 	do
 				echo "0" > $f
 				echo "$f" && echo -e "\E[32m  activated"; tput sgr0
 	done	
+
+for f in ${FILES_E[@]}
+	do
+				echo "1" > $f
+				echo "$f" && echo -e "\E[32m  activated"; tput sgr0
+	done	
+
 }
 
 off()
 {
 
 	
-for f in ${FILES[@]}
+for f in ${FILES_D[@]}
 	do
 				echo "1" > $f
 				echo "$f" && echo -e "\E[31m  deactivated"; tput sgr0
 	done		
 	
+for f in ${FILES_E[@]}
+	do
+				echo "0" > $f
+				echo "$f" && echo -e "\E[31m  deactivated"; tput sgr0
+	done	
+
+
 }
 
 
