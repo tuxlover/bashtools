@@ -959,7 +959,7 @@ if [ ! -z $WITH_FEATURE ]
 					virus_scan
 					chk_rootkit
 					chk_sec
-					check_tmp
+					clean_tmp
 					verify_package
 				}>> $LOGFILE
 			else
@@ -974,7 +974,7 @@ if [ ! -z $WITH_FEATURE ]
 					virus_scan
 					chk_rootkit
 					chk_sec
-					check_tmp
+					clean_tmp
 					verify_package
 				}|tee -a $LOGFILE
 				
