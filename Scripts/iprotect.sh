@@ -5,7 +5,7 @@
 
 STATUS=$1
 #echo 0
-FILES_D=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects  /proc/sys/net/ipv6/conf/default/accept_redirects /proc/sys/net/ipv4/conf/default/accept_redirects)
+FILES_D=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects  /proc/sys/net/ipv6/conf/default/accept_redirects /proc/sys/net/ipv4/conf/default/accept_redirects /proc/sys/net/ipv4/tcp_timestamps)
 
 #echo 1
 FILES_E=(/proc/sys/kernel/core_uses_pid)
