@@ -101,4 +101,6 @@ case $STATUS in
 	off) off
 	;;
 	status) status
+	;;
+	*) echo "I dont understand $1. Usage: $0 on off status" && exit 1
 esac
