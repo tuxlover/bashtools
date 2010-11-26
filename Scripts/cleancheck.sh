@@ -779,25 +779,25 @@ rpm -q rpm && is_rpm="yes" || is_rpm="no"
 if [ "$is_rpm" == "yes" ]
 	then
 		echo "with rpm package verification"
-		PACKAGES=$(rpm -qa) #get all installaed packages
+		P_FILES=$(rpm -Va|awk '{print $NF}') #get all files with changed items
 		
 		if [ "$USE_QUIET" != "no" ]
 			then
 				{			
-					for package in $PACKAGES
+					for pfile in ${P_FILES[@]}
 						do
 							echo "========================="
-							echo "Checkiing package $package"
-							rpm -V $package
+							echo "Changed package $(rpm -qf $pfile) with file $pfile"
+							echo "Detail: $(rpm -Vf $pfile)"
 						done
 				}>> $LOGFILE
 			else
 				{			
-					for package in $PACKAGES
+					for pfile in ${P_FILES[@]}
 						do
 							echo "========================="
-							echo "Checkiing package $package"
-							rpm -V $package
+							echo "Changed package $(rpm -qf $pfile) with file $pfile"
+							echo "Detail: $(rpm -Vf $pfile)"
 						done
 				}|tee -a $LOGFILE
 		fi
