@@ -1070,5 +1070,11 @@ exit 0
 
 #most security features are in contrib so we want to add this one too
 
+#Replace the Tripwire and co with my own integrety checker
+#look for files which are not belonging to any package
+#than calculate there md5sum and write this file to a file in /roots home
+
 #we are looking for new features
+
+
 
