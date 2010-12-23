@@ -1013,6 +1013,8 @@ exit 0
 #rkhunter first initilise database if not present yet
 #selftests: look up if the binarys which being used are valid or have been changed
 #if package has fatal error reinstall it
+##definig at this point what we understand by fatal error
+##which files should be seen critical when changed and which can we leave untoched
 #test whether packages match if not install them
 #use tripwire to prevent filesystem infiltration
 #implement all stuff in a nicer interface
@@ -1073,6 +1075,9 @@ exit 0
 #Replace the Tripwire and co with my own integrety checker
 #look for files which are not belonging to any package
 #than calculate there md5sum and write this file to a file in /roots home
+
+#lets kickk the whole tripwire and rkhunter suite. we can build ouer own intrusion detection system
+#using the tools rpm and md5sum provides. this way we are able to speed up the script
 
 #we are looking for new features
 
