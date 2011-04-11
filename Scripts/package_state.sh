@@ -1,69 +1,145 @@
 #!/bin/bash
 
+#debug mode.
+#set -x
+
 #package_state
 
 #this script is for backing up a current state of package
 #it uses zypper for 11.3 but 11.2 may also work.
 #all version using zypper < opensuse 11.2 are not tested
 #suse verion 11.0 and below are not supported
-CURRENT_PACK=$(zypper se  -t package -i |awk '{print $2 $3 $4}'|tail +6|tr '|' '"')
+
+
+ 
+
+#the date string is needed to verify package states by date
+#and used for backup suffix indicating the time when backup was created
 DATE_STRING=$(date +%F-%M)
 
-option_s()
-{
-zypper cc #clean cache for older packages
+CURRENT_DIR=$PWD
 
+#here we start the action
+save_state()
+{
+#we are wise and uisng rpms --qf option
+#this will work faster
+unset CURRENT_PACK
+CURRENT_PACK=$(rpm -qa --qf "\"%{name}-%{version}-%{release}\" \n")
+
+
+#creating the rpms directory which holds afeterwards all
+#information of a package state and a descr and lists_all file
+#set -x
+mkdir rpms
+read -e  -n 256 -p "give a Short Description of the package state:" DESCR
+if [ ! -z "$DESCR" ]
+	then
+		echo "$DESCR" >> rpms/descr
+fi	
+
+#generating a real array 
+#this takes some time here but saves a lot of time afterwards
 i=0
 for p in $CURRENT_PACK 
 	do 
-		
 		packages[$i]=$p
+		echo ${packages[$i]} >> rpms/lists_all 
 		i=$(($i+1))
 	done
+#set +x
+#piping array to zypper install command
+#-d is for download only
+#-n skipps update process and chooses autobreak when getting in trouble
+#-f does forece the installation remember we only download them
+#-l autoagrees to licenses
+check=0
+until [ $check == "4"  ]
+	do	
+		echo "Cache maybe overloaded. Waiting 20 seconds"
+		sleep 20                                                          
+		printf "${packages[*]}"|xargs  zypper -n in -f -d -l -n  && break #sometimes the cache was not successfull so we trie it again
+		check=$(( $check + 1  ))                                         #does'nt work so we should trie writing packages to a file
+		echo "try again: $(( $check - 1)) / 3 tries ..."
+	done
 
+if [ $check == "4"  ]
+	then
+		echo "giving up"
+		echo "This shit happens. we dont know why."
+		echo "dont wory try again"
+		exit 1
+fi
 
-printf "${packages[*]}"|xargs  zypper -n in -f -d -l 
+#zip and package
+mkdir packages
+find /var/cache/zypp/packages/ -type f -name "*.rpm" -exec mv -v {} rpms/ \;
+tar cvfz rpms.tar.gz rpms/
 
-mkdir rpms
-find /var/cache/zypp/packages/ -type f -name "*rpm" -exec mv -v {} rpms/ \;
-
-tar cvjf packages_$DATE_STRING.tar.bz2 rpms
+#cleaning up
 rm -r rpms/
+rm -r packages
+#rm rpms.tar
+
+if [ -f $CURRENT_DIR/.package_state.sh.swp ]
+	then
+		rm .package_state.sh.swp
+fi
+
 }
 
 option_h()
 {
-echo "other option are not supported yet we are working"
-echo "on it."	
+echo "$0 -h -u -s"
+echo "-s: save a packages sate"
+echo "-u first do the update action than save the state of packages"
+echo "Other options are not supporteed yet. we are working on it."	
+}
+
+we_fail()
+{
+echo -e '\t \t \t \t \E[31mfailed'; tput sgr0	
+echo -e '\t \t \t \t \E[31mstop'; tput sgr0
+exit 1
 }
 
 
-
-
-
 #check whether you are root
+if [ $UID != "0" ]
+	then
+		echo "Only root can use zypper"
+		we_fail
+fi
 
-
-
-while getopts s opt
+#set +x
+while getopts hsu opt
 	do
 		case "$opt" in
-			s) option_s
+			s) zypper cc && save_state
+			;;
+			u) zypper ref && zypper -n up && save_state
+			;;
+			h) option_h
 			;;
 			\?) option_h
 		esac
 	done
 shift `expr $OPTIND - 1`
-
+#set +x
 		
 		
 
-
+#Fixme: sometimes the script hangs up unfinished. it seems that the problem has soemthing todo how bash cashes big variabe ebntires
+        # howto get arround that problem that tar does not pack in packages as we want it rather pack in var/cache... which might be a problem when restoring
 
 #options for later implementation
-#-s save package state and exit
 #-n just do backup of rpms in /var/cache 
 	#do not download them 
-#-u first do an update than do the backup action
-	#skip packagees that are allready in /var/cache
 #-d show diff of two archives or of newstate and oldstate
+#-r should restore a state of packages
+#Todo: rather use wget than zypper for downloading packages to save runtime
+#Todo: Save the packages list
+#-b select a backup base directory
+#improve speed by using tar on the fly 
+# mkdir /rpm 
+#mv description rpm/
