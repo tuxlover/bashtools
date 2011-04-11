@@ -25,7 +25,7 @@ save_state()
 #we are wise and uisng rpms --qf option
 #this will work faster
 unset CURRENT_PACK
-CURRENT_PACK=$(rpm -qa --qf "\"%{name}-%{version}-%{release}\" \n")
+CURRENT_PACK=$(rpm -qa --qf "\"%{name}-%{version}-%{release}\" \n" |grep -v '^.*gpg-pubkey.*.*$')
 
 
 #creating the rpms directory which holds afeterwards all
