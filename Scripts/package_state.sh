@@ -58,7 +58,7 @@ until [ $check == "4"  ]
 	do	
 		echo "Cache maybe overloaded. Waiting 20 seconds"
 		sleep 20                                                          
-		printf "${packages[*]}"|xargs  zypper -n in -f -d -l -n  && break #sometimes the cache was not successfull so we trie it again
+		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms/ -n in -f -d -l -n  && break #sometimes the cache was not successfull so we trie it again
 		check=$(( $check + 1  ))                                         #does'nt work so we should trie writing packages to a file
 		echo "try again: $(( $check - 1)) / 3 tries ..."
 	done
@@ -73,7 +73,7 @@ fi
 
 #zip and package
 mkdir packages
-find /var/cache/zypp/packages/ -type f -name "*.rpm" -exec mv -v {} rpms/ \;
+#find /var/cache/zypp/packages/ -type f -name "*.rpm" -exec mv -v {} rpms/ \;
 tar cvfz rpms.tar.gz rpms/
 
 #cleaning up
