@@ -58,8 +58,10 @@ until [ $check == "4"  ]
 	do	
 		echo "Cache maybe overloaded. Waiting 20 seconds"
 		sleep 20                                                          
-		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms/ -n in -f -d -l -n  && break #sometimes the cache was not successfull so we trie it again
-		check=$(( $check + 1  ))                                         #does'nt work so we should trie writing packages to a file
+		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms-${DATE}/ -n in -f -d -l -n  && break 
+		#sometimes the cache was not successfull so we trie it again
+		#does'nt work so we should trie writing packages to a file
+		check=$(( $check + 1  ))                                         
 		echo "try again: $(( $check - 1)) / 3 tries ..."
 	done
 
@@ -72,14 +74,10 @@ if [ $check == "4"  ]
 fi
 
 #zip and package
-mkdir packages
-#find /var/cache/zypp/packages/ -type f -name "*.rpm" -exec mv -v {} rpms/ \;
-tar cvfz rpms.tar.gz rpms/
+tar cvfz rpms-${DATE}.tar.gz rpms-${DATE}/
 
 #cleaning up
-rm -r rpms/
-rm -r packages
-#rm rpms.tar
+rm -r rpms-${DATE}
 
 if [ -f $CURRENT_DIR/.package_state.sh.swp ]
 	then
@@ -129,8 +127,14 @@ if [ $STATUS -eq 1 ]
 		find $TARGET -type f -iname '*.rpm' -exec mv -v {} rpms_${DATE} \;
 		zypper ar rpms_${DATE} restore
 		zypper ref
-		zypper -n in -f -l --from restore $REST_PKG
+		zypper -n in -n --from restore -f -l $REST_PKG
+		
+		#cleaning up
+		zypper rr restore
+		rm -rf rpms_${DATE}
 fi
+
+
 
 }
 
@@ -139,6 +143,7 @@ option_h()
 echo "$0 -h -u -s"
 echo "-s: save a packages sate"
 echo "-u first do the update action than save the state of packages"
+echo "-r <rpms.tar.gz> retore from a package archive"
 echo "Other options are not supporteed yet. we are working on it."	
 }
 
