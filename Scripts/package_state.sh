@@ -31,11 +31,7 @@ CURRENT_PACK=$(rpm -qa --qf "\"%{name}-%{version}-%{release}\" \n" |grep -E -v "
 #creating the rpms directory which holds afeterwards all
 #information of a package state and a descr and lists_all file
 #set -x
-<<<<<<< HEAD
-mkdir rpms-${DATE}
-=======
 mkdir rpms-${DATE_STRING}
->>>>>>> master
 read -e  -n 256 -p "give a Short Description of the package state:" DESCR
 if [ ! -z "$DESCR" ]
 	then
@@ -48,11 +44,7 @@ i=0
 for p in $CURRENT_PACK 
 	do 
 		packages[$i]=$p
-<<<<<<< HEAD
-		echo ${packages[$i]} >> rpms-${DATE}/lists_all 
-=======
 		echo ${packages[$i]} >> rpms-${DATE_STRING}/lists_all 
->>>>>>> master
 		i=$(($i+1))
 	done
 #set +x
@@ -66,11 +58,7 @@ until [ $check == "4"  ]
 	do	
 		echo "Cache maybe overloaded. Waiting 20 seconds"
 		sleep 20                                                          
-<<<<<<< HEAD
-		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms-${DATE}/ -n in -f -d -l -n  && break 
-=======
 		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms-${DATE_STRING}/ -n in -f -d -l -n  && break 
->>>>>>> master
 		#sometimes the cache was not successfull so we trie it again
 		#does'nt work so we should trie writing packages to a file
 		check=$(( $check + 1  ))                                         
@@ -86,17 +74,10 @@ if [ $check == "4"  ]
 fi
 
 #zip and package
-<<<<<<< HEAD
-tar cvfz rpms-${DATE}.tar.gz rpms-${DATE}/
-
-#cleaning up
-rm -r rpms-${DATE}
-=======
 tar cvfz rpms.tar.gz rpms-${DATE_STRING}/
 
 #cleaning up
 rm -r rpms-${DATE_STRING}/
->>>>>>> master
 
 if [ -f $CURRENT_DIR/.package_state.sh.swp ]
 	then
@@ -108,7 +89,8 @@ fi
 restore_state()
 {
 #first check wheter we have an tar.gz file
-tar -tvfz $ARCHIVE rpms/descr && tar -tvfz $ARCHIVE rpms/lists_all && STATUS=0 || STATUS=1
+#we need the --wildcards option because we know that each package should match this
+tar -tvz --wildcards -f $ARCHIVE rpms-*/descr && tar -tvz --wildcards -f $ARCHIVE rpms/lists_all && STATUS=0 || STATUS=1
 
 if [ $STATUS -eq 1 ]
 	then
@@ -152,9 +134,6 @@ if [ $STATUS -eq 1 ]
 		zypper rr restore
 		rm -rf rpms_${DATE}
 fi
-
-
-
 }
 
 option_h()
