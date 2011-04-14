@@ -117,7 +117,7 @@ if [ $STATUS -eq 1 ]
 		read -e -n 1 -p "Would you like to restore the installation with these packages" $ANSWER
 		${ANSWER:="n"}
 		#we retrieve the list of packages
-		REST_PKG=$(cat $TARGET/lists_all)
+		REST_PKG=$(cat $TARGET/lists_all|sed 's/"//g')
 		
 		##this is the basic restore process
 		mkdir rpms_${DATE}
