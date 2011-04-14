@@ -100,10 +100,10 @@ if [ $STATUS -eq 1 ]
 			echo "extracting Packages"
 			#we need to examine the real name of the target archive
 			TARGET=${ARCHIVE%.tar.gz}
-			#create TARGET directory	
-			
+			#create TARGET directory			
 			tar xvfz $ARCHIVE 
 			DESCR=$(cat $TARGET/descr)
+			clear
 			"echo Package Description: $DESCR"
 			read -e -n 1 -p "Would you like to list the packages first" $ANSWER
 			${ANSWER:="n"}
