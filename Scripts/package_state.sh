@@ -185,18 +185,12 @@ shift `expr $OPTIND - 1`
 		
 		
 
-#Fixme: sometimes the script hangs up unfinished. it seems that the problem has soemthing todo how bash cashes big variabe ebntires
-        # howto get arround that problem that tar does not pack in packages as we want it rather pack in var/cache... which might be a problem when restoring
-
+#Fixme: sometimes the script hangs up unfinished. it seems that the problem has soemthing todo how bash cashes big variabe entries
 #options for later implementation
 #-n just do backup of rpms in /var/cache 
 	#do not download them 
+	#prevent empty archive by do a check whether there are any rpms in /var/cache
 #-d show diff of two archives or of newstate and oldstate
-#-r should restore a state of packages
-#Todo: rather use wget than zypper for downloading packages to save runtime
-#Todo: Save the packages list
-#-b select a backup base directory
-#improve speed by using tar on the fly 
-# mkdir /rpm 
-#mv description rpm/
 #verify whether we have enough space when unpacking the rpms.tar.gz
+#userproof the script
+#clean up the code
