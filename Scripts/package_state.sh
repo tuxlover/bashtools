@@ -102,9 +102,8 @@ if [ $STATUS -eq 1 ]
 			TARGET=${ARCHIVE%.tar.gz}
 			#create TARGET directory			
 			tar xvfz $ARCHIVE 
-			DESCR=$(cat $TARGET/descr)
 			clear
-			"echo Package Description: $DESCR"
+			"echo Package Description: $(cat $TARGET/descr)"
 			read -e -n 1 -p "Would you like to list the packages first" $ANSWER
 			${ANSWER:="n"}
 			
@@ -120,15 +119,15 @@ if [ $STATUS -eq 1 ]
 		REST_PKG=$(cat $TARGET/lists_all|sed 's/"//g')
 		
 		##this is the basic restore process
-		mkdir rpms_${DATE}
-		find $TARGET -type f -iname '*.rpm' -exec mv -v {} rpms_${DATE} \;
-		zypper ar rpms_${DATE} restore
+		mkdir rpms
+		find $TARGET -type f -iname '*.rpm' -exec mv -v {} rpms/ \;
+		zypper ar rpms restore
 		zypper ref
-		zypper -n in -n --from restore -f -l $REST_PKG
+		zypper -n in -n -f -l -r restore $REST_PKG
 		
 		#cleaning up
 		zypper rr restore
-		rm -rf rpms_${DATE}
+		rm -rf rpms
 fi
 }
 
