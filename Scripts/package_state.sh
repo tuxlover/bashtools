@@ -90,7 +90,7 @@ restore_state()
 {
 #first check wheter we have an tar.gz file
 #we need the --wildcards option because we know that each package should match this
-tar -tvz --wildcards -f $ARCHIVE rpms-*/descr && tar -tvz --wildcards -f $ARCHIVE rpms/lists_all && STATUS=0 || STATUS=1
+tar -tvz --wildcards -f $ARCHIVE rpms-*/descr && tar -tvz --wildcards -f $ARCHIVE rpms-*/lists_all && STATUS=0 || STATUS=1
 
 if [ $STATUS -eq 1 ]
 	then
