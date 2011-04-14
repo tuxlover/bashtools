@@ -191,6 +191,7 @@ shift `expr $OPTIND - 1`
 	#do not download them 
 	#prevent empty archive by do a check whether there are any rpms in /var/cache
 #-d show diff of two archives or of newstate and oldstate
+#-f resore only a single package <tar.gz> <package> with all its dependencies
 #verify whether we have enough space when unpacking the rpms.tar.gz
 #userproof the script
 #clean up the code
