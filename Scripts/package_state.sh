@@ -103,7 +103,8 @@ if [ $STATUS -eq 1 ]
 			#create TARGET directory			
 			tar xvfz $ARCHIVE 
 			clear
-			"echo Package Description: $(cat $TARGET/descr)"
+			echo "Package Description:"
+			echo "$(cat $TARGET/descr)"
 			read -e -n 1 -p "Would you like to list the packages first" $ANSWER
 			${ANSWER:="n"}
 			
@@ -128,6 +129,7 @@ if [ $STATUS -eq 1 ]
 		#cleaning up
 		zypper rr restore
 		rm -rf rpms
+		rm -rf $TARGET
 fi
 }
 
