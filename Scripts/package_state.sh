@@ -74,7 +74,7 @@ if [ $check == "4"  ]
 fi
 
 #zip and package
-tar cvfz rpms.tar.gz rpms-${DATE_STRING}/
+tar cvfz rpms-${DATE_STRING}.tar.gz rpms-${DATE_STRING}/
 
 #cleaning up
 rm -r rpms-${DATE_STRING}/
