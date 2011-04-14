@@ -86,11 +86,58 @@ fi
 
 }
 
+restore_state()
+{
+#first check wheter we have an tar.gz file
+#we need the --wildcards option because we know that each package should match this
+tar -tvz --wildcards -f $ARCHIVE rpms-*/descr && tar -tvz --wildcards -f $ARCHIVE rpms-*/lists_all && STATUS=0 || STATUS=1
+
+if [ $STATUS -eq 1 ]
+	then
+			echo "descr or lists_all was not found in the archive"
+			echo "Are you sure this is an valid backup archive of rpms."
+	else
+			echo "extracting Packages"
+			#we need to examine the real name of the target archive
+			TARGET=${ARCHIVE%.tar.gz}
+			#create TARGET directory			
+			tar xvfz $ARCHIVE 
+			DESCR=$(cat $TARGET/descr)
+			clear
+			"echo Package Description: $DESCR"
+			read -e -n 1 -p "Would you like to list the packages first" $ANSWER
+			${ANSWER:="n"}
+			
+			if [ $ANSWER != "n" ]
+				then
+					clear
+					cat $TARGET/lists_all
+			fi
+		#here we begin the restore action
+		read -e -n 1 -p "Would you like to restore the installation with these packages" $ANSWER
+		${ANSWER:="n"}
+		#we retrieve the list of packages
+		REST_PKG=$(cat $TARGET/lists_all|sed 's/"//g')
+		
+		##this is the basic restore process
+		mkdir rpms_${DATE}
+		find $TARGET -type f -iname '*.rpm' -exec mv -v {} rpms_${DATE} \;
+		zypper ar rpms_${DATE} restore
+		zypper ref
+		zypper -n in -n --from restore -f -l $REST_PKG
+		
+		#cleaning up
+		zypper rr restore
+		rm -rf rpms_${DATE}
+fi
+}
+
 option_h()
 {
 echo "$0 -h -u -s"
 echo "-s: save a packages sate"
 echo "-u first do the update action than save the state of packages"
+echo "-r <rpms.tar.gz> retore from a package archive"
 echo "Other options are not supporteed yet. we are working on it."	
 }
 
@@ -110,12 +157,22 @@ if [ $UID != "0" ]
 fi
 
 #set +x
-while getopts hsu opt
+while getopts hsur opt
 	do
 		case "$opt" in
 			s) zypper cc && save_state
 			;;
 			u) zypper ref && zypper -n up && save_state
+			;;
+			r) if [ -z $1 ]
+					then
+							echo "provide a valid tar.gz file"
+							we_fail
+					else
+						#giving the name is a good idea for tracedown 
+						ARCHIVE=$2
+						restore_state
+				fi		
 			;;
 			h) option_h
 			;;
@@ -141,3 +198,4 @@ shift `expr $OPTIND - 1`
 #improve speed by using tar on the fly 
 # mkdir /rpm 
 #mv description rpm/
+#verify whether we have enough space when unpacking the rpms.tar.gz
