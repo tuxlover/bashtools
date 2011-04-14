@@ -174,7 +174,7 @@ while getopts hsur opt
 							we_fail
 					else
 						#giving the name is a good idea for tracedown 
-						ARCHIVE=$1
+						ARCHIVE=$2
 						restore_state
 				fi		
 			;;
