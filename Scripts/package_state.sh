@@ -54,11 +54,19 @@ for p in $CURRENT_PACK
 #-f does forece the installation remember we only download them
 #-l autoagrees to licenses
 check=0
+#check if we use repos local
+if [ ${REPOS_LOCAL} != "yes" ]
+	then
+##do the action
+#create an alternative zypp.conf
+cat > zypp.conf << __EOF__
+[main]
+download.max_silent_tries = 0
+__EOF__
+
 until [ $check == "4"  ]
 	do	
-		echo "Cache maybe overloaded. Waiting 20 seconds"
-		sleep 20                                                          
-		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms-${DATE_STRING}/ -n in -f -d -l -n  && break 
+		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms-${DATE_STRING}/ -c zypp.conf -n in -f -d -l -n  && break 
 		#sometimes the cache was not successfull so we trie it again
 		#does'nt work so we should trie writing packages to a file
 		check=$(( $check + 1  ))                                         
@@ -72,7 +80,26 @@ if [ $check == "4"  ]
 		echo "dont wory try again"
 		exit 1
 fi
+	else
+##do the action local
+until [ $check == "4"  ]
+	do	
+		printf "${packages[*]}"|xargs  zypper --pkg-cache-dir rpms-${DATE_STRING}/ --no-remote  -n in -f -d -l -n  && break 
+		#sometimes the cache was not successfull so we trie it again
+		#does'nt work so we should trie writing packages to a file
+		check=$(( $check + 1  ))                                         
+		echo "try again: $(( $check - 1)) / 3 tries ..."
+	done
 
+if [ $check == "4"  ]
+	then
+		echo "giving up"
+		echo "This shit happens. we dont know why."
+		echo "dont wory try again"
+		exit 1
+fi
+		
+fi		
 #zip and package
 tar cvfz rpms-${DATE_STRING}.tar.gz rpms-${DATE_STRING}/
 
@@ -82,6 +109,11 @@ rm -r rpms-${DATE_STRING}/
 if [ -f $CURRENT_DIR/.package_state.sh.swp ]
 	then
 		rm .package_state.sh.swp
+fi
+
+if [ -f $CURRENT_DIR/zypp.conf ]
+	then
+		rm zypp.conf
 fi
 
 }
@@ -135,8 +167,9 @@ fi
 
 option_h()
 {
-echo "$0 -h -u -s"
+echo "$0 -h -u -s-l|-r"
 echo "-s: save a packages sate"
+echo "-l: save from a local repository"
 echo "-u first do the update action than save the state of packages"
 echo "-r <rpms.tar.gz> retore from a package archive"
 echo "Other options are not supporteed yet. we are working on it."	
@@ -158,10 +191,11 @@ if [ $UID != "0" ]
 fi
 
 #set +x
-while getopts hsur opt
+while getopts hsurl opt
 	do
 		case "$opt" in
-			s) zypper cc && save_state
+			s) 	export REPOS_LOCAL="no"
+				zypper cc && save_state
 			;;
 			u) zypper ref && zypper -n up && save_state
 			;;
@@ -175,6 +209,8 @@ while getopts hsur opt
 						restore_state
 				fi		
 			;;
+			l) export REPOS_LOCAL="yes"
+			;;	
 			h) option_h
 			;;
 			\?) option_h
@@ -195,3 +231,4 @@ shift `expr $OPTIND - 1`
 #verify whether we have enough space when unpacking the rpms.tar.gz
 #userproof the script
 #clean up the code
+#verify packages after download
