@@ -158,7 +158,7 @@ if [ $STATUS -eq 1 ]
 		zypper ar rpms restore
 		zypper ref
 		#-D is for testing remove this later
-		zypper -n in -D -n -f -l -r restore $REST_PKG
+		zypper -n in -n -f -l -r restore $REST_PKG
 		
 		#cleaning up
 		zypper rr restore
