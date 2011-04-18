@@ -143,7 +143,8 @@ if [ $STATUS -eq 1 ]
 			if [ $ANSWER != "n" ]
 				then
 					clear
-					cat $TARGET/lists_all
+					cat $TARGET/lists_all|more
+
 			fi
 		#here we begin the restore action
 		read -e -n 1 -p "Would you like to restore the installation with these packages" $ANSWER
@@ -156,7 +157,8 @@ if [ $STATUS -eq 1 ]
 		find $TARGET -type f -iname '*.rpm' -exec mv -v {} rpms/ \;
 		zypper ar rpms restore
 		zypper ref
-		zypper -n in -n -f -l -r restore $REST_PKG
+		#-D is for testing remove this later
+		zypper -n in -D -n -f -l -r restore $REST_PKG
 		
 		#cleaning up
 		zypper rr restore
