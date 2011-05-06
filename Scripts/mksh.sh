@@ -54,11 +54,11 @@ check_group() #checks whether $GROUP_SHARED exists
 {
 EXISTS=$(grep $GROUP_SHARED /etc/group || echo "0")
 
-echo "testing whether the group $GROUP_SHARED exists"
+echo "testing whether the group $GROUP_SHARED exists..."
 
 if [ $EXISTS != "0" ]
 then
-	echo -e '\E[32m'"ok";tput sgr0
+	drop_ok
 	main
 else
 	echo  -e '\E[33m'"group does not exists. Should i create the group $GROUP_SHARED for you"; tput sgr0
@@ -73,7 +73,7 @@ else
 		n) exit_script
 			;;
 		*) clear
-		   echo "enter (y)es or (no)"
+			echo "enter (y)es or (n)o"
 			;;
 		esac
 	main
@@ -82,9 +82,24 @@ fi
 
 main ()
 {
+#helping variable to get the /home string extracted from the beginning
+FileIsHome=${FILES:0:6} || FileIsHome="no"
+#helping variable to get the /media string extracted from the beginning
+FilsIsMedia=${FILES:0:7} || FileIsMedia="no"
+
+echo "checking whether we are allowed to make changes..."
+if [[ $FileIsHome == "/home/" || $FileIsMedia == "/media/" ]]
+	then
+		drop_ok
+	else
+		echo -e '\t \t \t \t \E[31mSpecified Path must start ether with /media/ or with /home/';tput sgr0
+		drop_failure
+		exit_script
+fi	
+
 chown -R root:$GROUP_SHARED	"$FILES"
 chmod -R 750 "$FILES"
-echo -e '\E[32m'"done";tput sgr0
+drop_ok
 }	
 
 drop_failure ()
@@ -108,4 +123,4 @@ check_root
 exit 0
 
 
-#mksh should only work for /home and /media
+#add option to only create a certain group
