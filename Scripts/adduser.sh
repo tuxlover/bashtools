@@ -54,7 +54,7 @@ ${NEW_GROUP:="0"} 2> /dev/null
 TAKEN_GROUPS=$(awk -F: '{print $1}' /etc/group )
 
 #this bollean variable holds whether we need a new group
-ADD_NEW_GROUP="n"
+ADD_NEW_GROUP="y"
 
 while [ "$NEW_GROUP" == "0" ]
 	do
@@ -68,17 +68,13 @@ while [ "$NEW_GROUP" == "0" ]
 		fi
 
 		#we find groupnames allready taken
-		#broken logical error
 		for g_taken in ${TAKEN_GROUPS[@]}
 			do
 		
-				if [[ $g_taken != $NEW_GROUP || $ADD_NEW_GROUP == "y" ]]
+				if [ $g_taken == $NEW_GROUP ]
 					then
-						ADD_NEW_GROUP="y"
-						echo "groupadd $NEW_GROUP"
-						echo "new group $NEW_GROUP added to /etc/group file"
-					else
 						ADD_NEW_GROUP="n"
+						break
 				fi
 			done
 
