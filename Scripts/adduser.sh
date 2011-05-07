@@ -13,13 +13,32 @@ user_name()
 {
 ${NEW_USER:="0"} 2> /dev/null
 
+#get usernames which are allready taken
+TAKEN_USERS=$(awk -F: '{print $1}' /etc/passwd)
+
 while [ "$NEW_USER" == "0" ]
 	do
 		
-		read -n 8 -p "Enter Name for new User ..." NEW_USER
-		clear
 		#should not be longer than 8 characters in heterogen environments
-		#Todo: root is not alowed
+		read -e -n 8 -p "Enter Name for new User ..." NEW_USER
+		clear
+		if [ $NEW_USER == "root" ]
+			then
+				echo "root cannot be used"
+				NEW_USER="0"
+		fi
+		
+		#We find usernames allready in use
+		for u_taken in ${TAKEN_USERS[@]}
+			do
+				if [ $u_taken == $NEW_USER  ]
+					then
+						echo "This username is allready taken."
+						echo "choose a different name"
+						NEW_USER="0"
+						break
+				fi
+			done
 		#Todo: special characters should be not allowed in username
 		${NEW_USER:="0"} 2> /dev/null
 	done
@@ -31,13 +50,46 @@ group_name()
 {
 ${NEW_GROUP:="0"} 2> /dev/null
 
+#get groupnames allready taken
+TAKEN_GROUPS=$(awk -F: '{print $1}' /etc/group )
+
+#this bollean variable holds whether we need a new group
+ADD_NEW_GROUP="n"
+
 while [ "$NEW_GROUP" == "0" ]
 	do
-		read -p "Enter Name of the group for $NEW_USER ..." NEW_GROUP
+		read -e -n 8 -p "Enter Name of the group for $NEW_USER ..." NEW_GROUP
 		clear
+		#root is not allowed
+		if [ $NEW_GROUP == "root" ]
+			then
+				echo "root cannot be used."
+				NEW_USER="0"
+		fi
+
+		#we find groupnames allready taken
+		#broken logical error
+		for g_taken in ${TAKEN_GROUPS[@]}
+			do
+		
+				if [[ $g_taken != $NEW_GROUP || $ADD_NEW_GROUP == "y" ]]
+					then
+						ADD_NEW_GROUP="y"
+						echo "groupadd $NEW_GROUP"
+						echo "new group $NEW_GROUP added to /etc/group file"
+					else
+						ADD_NEW_GROUP="n"
+				fi
+			done
+
+		if [ $ADD_NEW_GROUP == "y" ]
+			then
+				echo "groupadd $NEW_GROUP"
+				echo "new group $NEW_GROUP added to /etc/group file"
+		fi
+
 		${NEW_GROUP:="0"} 2> /dev/null
 		#Todo: check if group does not exist, create it
-		#Todo: root is not allowd
 		#Todo: special characters should be not allowed in groupname
 	done
 
