@@ -102,7 +102,7 @@ while [ "$HOME_DIR" == "0" ]
 		clear
 		
 		#Variable to check if we are really creating home directory in /home/
-		IS_IN_HOME=$(echo $HOME_DIR|grep '^\/home\/.*' || echo "no") 2> /dev/null
+		IS_IN_HOME=$(echo $HOME_DIR|grep '^\/home\/[[:alnum:]].*$' || echo "no") 2> /dev/null
 		
 		#since we have a sepperated /home partition we do not
 		#allow /home directories to be stored elsewhere
@@ -119,9 +119,23 @@ while [ "$HOME_DIR" == "0" ]
 #shell for new user
 user_shell()
 {
-echo "Give The Loginshell for $NEW_USER .. "
+echo "Give The Loginshell for $NEW_USER ..."
 echo "These are the allowed shells."
-cat /etc/shells
+#valid shells from /etc/shells
+VALID_SHELLS=$(cat /etc/shells)
+counter=0
+#check for valid shells and print them
+for shell in ${VALID_SHELLS[@]}
+	do
+
+		if [ -f $shell ] 
+			then
+
+				counter=$((counter+=1))
+				echo "( $counter ) $shell"
+		fi	
+
+	done
 #Tdodo: Only valid shells for login are allowd
 }
 
