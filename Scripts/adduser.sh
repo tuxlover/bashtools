@@ -204,3 +204,19 @@ echo $HOME_DIR
 echo $EXPIRE_DATE
 
 #bug:shell selection does not work yet
+
+##Todo:
+# User Selection (done)
+# Group Selection (done)
+# Home Dirctory Selection (done)
+# Shell Selection (work in progress)
+# Expiration Date (work in progress)
+# Passwort Selection (need ideas)
+# erweitere Konfiguration /etc/shadow (not implemented)
+# users Comment (not implemented)
+
+# should be ask for advanced , detailed or basic setup
+# basic setup should ask for users name and his passwort only
+# it then sets up the user by suse standard mask
+# detailed setup should ask for users name password group and shell home (not implemented)
+# advanced setup should aks all possible questions
