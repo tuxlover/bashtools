@@ -85,7 +85,6 @@ while [ "$NEW_GROUP" == "0" ]
 		fi
 
 		${NEW_GROUP:="0"} 2> /dev/null
-		#Todo: check if group does not exist, create it
 		#Todo: special characters should be not allowed in groupname
 	done
 
@@ -99,11 +98,19 @@ ${HOME_DIR:="0"} 2> /dev/null
 
 while [ "$HOME_DIR" == "0" ]
 	do
-		read -n 255 -p "Enter home directory for user $NEW_USER ..." HOME_DIR
+		read -e -n 255 -p "Enter home directory for user $NEW_USER ..." HOME_DIR
 		clear
-		#should not be longer than 255 characters on ext3 systems
-		#Todo: since we have a sepperated /home partition we do not
+		
+		#Variable to check if we are really creating home directory in /home/
+		IS_IN_HOME=$(echo $HOME_DIR|grep '^\/home\/.*' || echo "no") 2> /dev/null
+		
+		#since we have a sepperated /home partition we do not
 		#allow /home directories to be stored elsewhere
+		if [ $IS_IN_HOME == "no" ]
+			then
+				echo "You must choose a valid directory under the /home tree."
+				HOME_DIR="0"
+		fi
 		${HOME_DIR:="0"} 2> /dev/null
 	done
 
@@ -182,4 +189,4 @@ echo "$NEW_GROUP"
 echo $HOME_DIR
 echo $EXPIRE_DATE
 
-#BUGS: when pressing the backspace or other keys than characters weird chacters like ? and apear
+#bug:shell selection does not work yet
