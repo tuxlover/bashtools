@@ -5,6 +5,23 @@ LOGFILE="$HOME/.restore_$USR.log"
 USR=$2
 BACK=$1
 
+if [ -d /proc/acpi/battery  ]
+	then
+		#we need to enable pipefail here because we test the exitstatus of grep 
+		set -o pipefail
+		HAS_POWER=$(grep -r charging /proc/acpi/battery/ | tail -1|cut -d: -f3 || echo "no")
+		set +o pipefail
+
+		if [ $HAS_POWER == 'discharging' ]
+			then
+				echo "It seems your computer uses battry as power source."
+				echo "The Restore might fail to due empty battery"
+				echo "connect your Computer to a power socket and rerun the script again"
+				exit 1
+		fi			
+
+fi
+
 
 if [ -f $LOGFILE ]
 	then
