@@ -9,24 +9,34 @@
 # the used space
 # the file with the biggest size in directory
 # hidden files
-# die datei die zuletzt berührt wurde
-# die datei die zuletzt berbeitet wurde
-# falls datei ausführbare rechte hat, die datei die zuletzt 
-#-u USER alle datein die dem benutzer USER gehören
-#-g GROUP der Gruppe gehören
-# die relative größe zur datei gesmatgröße
-# die anzahl der dateien
+# file last touched
+# file last opened
+# file last executed
+#-u USER belong to user, if user is not used show all files not belonging to user
+#-g GROUP, if group option is not used show all files not belonging to group of user
+# relative size to the mounted filesystem
+# number of files
+#dateien die ungewöhnliche Namen haben. wie /beispiel oder ..beispiel oder ~beispiel
+
+#####outputformat#####
+---dirinfo for dircetory: pwd---
+directory mounted on:
+used space:
+number of regular files:
+number of direcorier:
+number of broken links:
+broken link: a
+broken link: b
+...
+biggest file: with % size to space mountpoint
+last touched file:
+last opened file:
+last executed file:
+file bla is not owned by the user but by user instead
+file blubb is not owend by group but by group group instead
+file ~pub is a uncommon name
+...
+---end dirinfo---
 
 
-if [ -z $LOGFILE ]
-then
-LOGFILE="/var/log/cleancheck.log"
-touch /var/log/cleancheck.log
-else
-unset LOGDIR
-LOGDIR=$(echo ${LOGFILE%/*} )
-	if [ ! -d $LOGDIR ]
-	then
-	mkdir -p $LOGDIR
-	fi
-fi
+
