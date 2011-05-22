@@ -1,0 +1,17 @@
+#tail -1 is neccessary as there might be more than one battery
+# we need to enable pipefail here because we must test wheter the grep command has returned a value
+#the value no should be returned if there is no battery (no laptop devices) 
+
+set -o pipefail
+HAS_POWER=$(grep -r charging /proc/acpi/battery/ | tail -1|cut -d: -f3 || echo "no")
+set +o pipefail
+
+if [ $HAS_POWER == 'discharging' ]
+	then
+		echo "The Computer is not connected to a local powersupply."
+		echo "The Backup might fail to due empty battery"
+		echo "connect your Computer to a power socket and rerun the script again"
+		exit 1
+	else
+		echo "ok"
+fi
