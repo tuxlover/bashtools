@@ -1,41 +1,7 @@
 #!/bin/bash
-#This Script is just a idea so far.
+#This Script provides a simple way to maintian a todo list.
 
-#I think whats really needed is a script that makes it easy to create (todo -c) 
-#and manage a project todo list.
-
-#By managing i mean adding new Entries -a
-#removing closed entries -r
-#mark entries as done -x
-##show list -s
-#show open task -o
-#entries are listed by issue numbering
-
-#an example ho it could work
-
-#todo -c
-#created todolist for user mark
-#todolist for user mark allready exists. leaving it untouched
-#todo -s 
-#there is no entry in your todolist yet
-#todo -a "write a entry"
-#todo -s
-#DATE ISSUE1 write an entry [o]
-#todo -a "write an other entry"
-#todo -x 1
-#marked ISSUE 1 as done
-#todo -o
-#DATE ISSUE2 write an other entry
-#todo -s
-#DATE ISSUE1 write an entry [x]
-#DATE ISSUE2 write an other entry [o]
-#todo -s U 
-#DATE ISSUE write an other entry
-#tddo -r 
-#Removed ISSUE1 from your todolist
-
-
-#more suggestions are welcome
+BAK=$HOME/.todo.lst.bak
 TODO_LIST_FILE=$HOME/.todo.lst
 
 
@@ -92,10 +58,21 @@ mark_entry()
 #TODO:
 #check for OPTARG to be an array
 #check for OPTARG to be an valid entry
+#check whether entry is marked corectly
 #mark more than one 
 sed -i ${OPTARG},${OPTARG}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE
 head -n $OPTARG  $TODO_LIST_FILE |tail -1
 
+}
+
+unmark_entry()
+{
+#TODO: 
+#check for OPTARG to be an array
+#check for OPTARG to be an valid entry
+#check whether entry is marked corectly
+sed -i ${OPTARG},${OPTARG}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE
+head -n $OPTARG  $TODO_LIST_FILE |tail -1
 }
 
 remove_marked()
@@ -103,7 +80,6 @@ remove_marked()
 #TODO:
 #how to do that with sed
 #test for undone entires and for entires at all
-BAK=$HOME/.todo.lst.bak
 
 cat $TODO_LIST_FILE |grep '[[:blank:]]\-\->[[:blank:]]\[o\]$' >> $BAK 
 rm $TODO_LIST_FILE
@@ -125,7 +101,7 @@ echo "-h: show this help"
 }
 
 #begin options
-while getopts "cdhorsa:x:" opt
+while getopts "cdhorsa:u:x:" opt
 	do
 		case $opt in 
 			a) add_entry
@@ -141,6 +117,8 @@ while getopts "cdhorsa:x:" opt
 			r) remove_marked
 				;;
 			s) show_list
+				;;
+			u) unmark_entry
 				;;
 			x) mark_entry
 
