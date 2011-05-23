@@ -60,7 +60,7 @@ mark_entry()
 #check for OPTARG to be an valid entry
 #check whether entry is marked corectly
 #mark more than one 
-sed -i ${OPTARG},${OPTARG}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE
+sed -i ${OPTARG},${OPTARG}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
 head -n $OPTARG  $TODO_LIST_FILE |tail -1
 
 }
@@ -71,7 +71,7 @@ unmark_entry()
 #check for OPTARG to be an array
 #check for OPTARG to be an valid entry
 #check whether entry is marked corectly
-sed -i ${OPTARG},${OPTARG}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE
+sed -i ${OPTARG},${OPTARG}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE 
 head -n $OPTARG  $TODO_LIST_FILE |tail -1
 }
 
@@ -96,6 +96,7 @@ echo "-s: show all the entries in the todo list."
 echo "-o: show all open entries in the todo list [o]"
 echo "-d: show all entries marked as done  [x]"
 echo "-r remove entries from the todo list which are marked as done [x]"
+echo "-u unmark an entry as done. Example: $0 -u 3 will mark the entry number again as undone"
 echo "-x: mark an entry as done. Example: $0 -x 3 will mark the entry number 3 as done."
 echo "-h: show this help"
 }
