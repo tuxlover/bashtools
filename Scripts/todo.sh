@@ -78,13 +78,8 @@ head -n $OPTARG  $TODO_LIST_FILE |tail -1
 remove_marked()
 {
 #TODO:
-#how to do that with sed
 #test for undone entires and for entires at all
-
-cat $TODO_LIST_FILE |grep '[[:blank:]]\-\->[[:blank:]]\[o\]$' >> $BAK 
-rm $TODO_LIST_FILE
-cat $BAK >> $TODO_LIST_FILE
-rm $BAK
+sed -i '/.* --> \[x\]/d' $TODO_LIST_FILE
 }
 
 help_me()
