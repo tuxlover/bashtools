@@ -27,7 +27,9 @@ set +o pipefail
 
 show_open()
 {
+set -o pipefail
 nl $TODO_LIST_FILE|grep '[[:blank:]]\-\->[[:blank:]]\[o\]$' 2> /dev/null || echo "no entries marked as open" 
+set +o pipefail
 }
 
 show_list()
