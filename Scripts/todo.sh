@@ -20,19 +20,25 @@ echo "$NEW_ENTRY --> [o]" >> $TODO_LIST_FILE
 
 show_done()
 {
-nl $TODO_LIST_FILE|grep '[[:blank:]]\-\->[[:blank:]]\[x\]$'
+set -o pipefail
+nl $TODO_LIST_FILE|grep '[[:blank:]]\-\->[[:blank:]]\[x\]$' 2> /dev/null || echo "no entries marked as done"
+set +o pipefail 
 }
 
 show_open()
 {
-nl $TODO_LIST_FILE|grep '[[:blank:]]\-\->[[:blank:]]\[o\]$'
+nl $TODO_LIST_FILE|grep '[[:blank:]]\-\->[[:blank:]]\[o\]$' 2> /dev/null || echo "no entries marked as open" 
 }
 
 show_list()
 {
-#TODO: test for empty list	
-nl $TODO_LIST_FILE
+if  [ ! -s $TODO_LIST_FILE ]
+	then
+		echo "There is currently not entry in your todo list."
+	else
 
+nl $TODO_LIST_FILE
+fi
 }
 
 mark_entry()
@@ -59,8 +65,16 @@ head -n $OPTARG  $TODO_LIST_FILE |tail -1
 
 remove_marked()
 {
-#TODO:
-#test for undone entires and for entires at all
+#tests whether we have an entry marked as done
+if [ ! -s $TODO_LIST_FILE ]
+	then
+		echo "no entry in your todo list"
+		exit 1
+	else
+	 	test grep '[[:blank:]]\-\->[[:blank:]]\[x\]$' 2> /dev/null || echo "no entry marked as done"
+		exit 1
+fi
+
 sed -i '/.* --> \[x\]/d' $TODO_LIST_FILE
 }
 
