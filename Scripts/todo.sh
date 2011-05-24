@@ -73,8 +73,13 @@ if [ ! -s $TODO_LIST_FILE ]
 		echo "no entry in your todo list"
 		exit 1
 	else
-	 	test grep '[[:blank:]]\-\->[[:blank:]]\[x\]$' 2> /dev/null || echo "no entry marked as done"
-		exit 1
+		HAS_DONE=$(grep '[[:blank:]]\-\->[[:blank:]]\[x\]$'  $TODO_LIST_FILE || echo "no")
+		
+		if [ "$HAS_DONE" == "no" ] 
+			then	
+				echo "no entries marked as done"
+				exit 1
+		fi
 fi
 
 sed -i '/.* --> \[x\]/d' $TODO_LIST_FILE
