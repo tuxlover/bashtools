@@ -46,15 +46,13 @@ fi
 mark_entry()
 {
 #TODO:
-#check for OPTARG to be an array
-#check for OPTARG to be an valid entry
 #check whether entry is marked corectly
-#mark more than one 
 
 sed -i ${OPTARG},${OPTARG}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
 head -n $OPTARG  $TODO_LIST_FILE |tail -1
 
 #first test whether there are any more arguments
+#and loop over the rest of the given arguments
 if [ ! -z "$args"  ]
 	then
 		for i in ${args[@]}
@@ -68,11 +66,21 @@ fi
 unmark_entry()
 {
 #TODO: 
-#check for OPTARG to be an array
-#check for OPTARG to be an valid entry
 #check whether entry is marked corectly
 sed -i ${OPTARG},${OPTARG}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE 
 head -n $OPTARG  $TODO_LIST_FILE |tail -1
+
+#first test whether there are any more arguments
+#and loop over the rest of the given arguments
+if [ ! -z "$args"  ]
+	then
+		for i in ${args[@]}
+			do
+				sed -i ${i},${i}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE 
+				head -n $i $TODO_LIST_FILE|tail -1
+			done
+fi
+
 }
 
 remove_marked()
@@ -124,10 +132,20 @@ while getopts "dhorsa:u:x:" opt
 				;;
 			s) show_list
 				;;
-			u) unmark_entry
-				;;
-			x) 	
+			u) 	#use this construct if you want parsing more then one argument to this option
+				#we need to break here so later on the OPTIND variable gets not decreased
+				#this would cause an error
 				shift $((OPTIND -1 ))
+				#read in this arguments during function call
+				args=$(echo $*)
+				unmark_entry
+				break
+				;;
+			x) 	#use this construct if you want parsing more than one argument to this option
+				#we need to break here so later on the OPTIND variable gets not decreased
+				#this would cause an error
+				shift $((OPTIND -1 ))
+				#read in this arguments during the function call
 				args=$(echo $*)
 				mark_entry
 				break
@@ -137,6 +155,6 @@ shift $(($OPTIND - 1))
 
 
 #TODO: disable the noclobber option if this was enabled
-#	calling two or more options at once does not make any sense	
+#calling two or more options at once does not make any sense	
 
 
