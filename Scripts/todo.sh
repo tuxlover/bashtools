@@ -78,7 +78,7 @@ echo "-h: show this help"
 }
 
 #begin options
-while getopts "chorsa:u:x:" opt
+while getopts "dhorsa:u:x:" opt
 	do
 		case $opt in 
 			a) add_entry
