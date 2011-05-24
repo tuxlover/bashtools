@@ -50,9 +50,19 @@ mark_entry()
 #check for OPTARG to be an valid entry
 #check whether entry is marked corectly
 #mark more than one 
+
 sed -i ${OPTARG},${OPTARG}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
 head -n $OPTARG  $TODO_LIST_FILE |tail -1
 
+#first test whether there are any more arguments
+if [ ! -z "$args"  ]
+	then
+		for i in ${args[@]}
+			do
+				sed -i ${i},${i}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
+				head -n $i $TODO_LIST_FILE|tail -1
+			done
+fi
 }
 
 unmark_entry()
@@ -116,10 +126,17 @@ while getopts "dhorsa:u:x:" opt
 				;;
 			u) unmark_entry
 				;;
-			x) mark_entry
-
+			x) 	
+				shift $((OPTIND -1 ))
+				args=$(echo $*)
+				mark_entry
+				break
 		esac
 	done
-shift `expr $OPTIND - 1`	
+shift $(($OPTIND - 1))	
+
 
 #TODO: disable the noclobber option if this was enabled
+#	calling two or more options at once does not make any sense	
+
+
