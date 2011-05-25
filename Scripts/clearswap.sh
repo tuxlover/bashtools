@@ -149,12 +149,8 @@ main ()
 #extracts the information, of how many swapspace is actualy used from the
 #free -m command
 #See Variable manipulation in Advanced Bash scripting guide to undertand
-A=$(free -m | tail -1)
-B=$(echo ${A#* })
-C=$(echo ${B#* })
-declare -i D=$(echo ${C#* }) 2> /dev/null
 #See Variable manipulation in Advanced Bash scripting guide to undertand
-
+declare -i D=$(free -m|tail -1 |awk '{print $2}' )
 echo "Now performing the action"
 sleep 3
 clear
@@ -181,10 +177,7 @@ drop_ok
 
 #see above
 #See Variable manipulation in Advanced Bash scripting guide to undertand
-A=$(free -m | tail -1)
-B=$(echo ${A#* })
-C=$(echo ${B#* })
-declare -i E=$(echo ${C#* }) 2> /dev/null
+E=$(free -m | tail -1 | awk '{print $2}' ) 2> /dev/null
 #See Variable manipulation in Advanced Bash scripting guide to undertand
 
 FREED=$( expr $E - $D ) #simple substruction to get freed space
