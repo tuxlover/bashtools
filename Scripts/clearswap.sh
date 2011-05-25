@@ -10,7 +10,8 @@
 
 
 ##VARS
-SWAPFILE=/tmp/swapfile #Change this variable if you want to use an other directory to create temporary swapfile
+SWAPSPACE=$1
+SWAPFILE="$SWAPSPACE/swapfile" #Change this variable if you want to use an other directory to create temporary swapfile
 USER=$(whoami)
 VALID_USER=root #Change this if you want cron do this job. normaly users cannot run severeal commands used in this script. Therefor this is for stalling the script before these commands are called.
 ANSWER="n" #Set this to y if you need to run this script as a cron job
@@ -40,7 +41,7 @@ unset YOUR_SPACE
 #this little trick will get free space from df and makes it an integer value
 
 #See Variable manipulation in Advanced Bash scripting guide to undertand
-A=$(df -h /tmp|tail -1)
+A=$(df -h $SWAPSPACE | tail -1)
 B=$(echo ${A#*G})
 C=$(echo ${B#* })
 declare -i YOUR_SPACE=$(echo ${C%%G*})
@@ -92,7 +93,7 @@ ${SWAP_PART2:=$SWAP_PART} #if after 300 sec= 5 min no action has taken the scrip
 
 #chekcs whether the user has correct /dev files
 #actualy this is only to prevent the user doing anything stupid
-if [[  ${SWAP_PART2/#\/dev\/hda*} &&  ${SWAP_PART2/#\/dev\/sda*}  && ${SWAP_PART2/#\/dev\/disk*} ]]
+if [[  ${SWAP_PART2/#\/dev\/hda*} &&  ${SWAP_PART2/#\/dev\/sda*}  && ${SWAP_PART2/#\/dev\/system*} ]]
 then 
 clear
 echo "$SWAP_PART2 is not a valid device"
@@ -175,7 +176,7 @@ echo "turning off $SWAPFILE. This may take a while ..."
 swapoff $SWAPFILE || drop_failure
 drop_ok
 echo "Removing $SWAPFILE ..."
-rm $SWAPFILE || drop_failure
+rm -r $SWAPSPACE || drop_failure
 drop_ok
 
 #see above
