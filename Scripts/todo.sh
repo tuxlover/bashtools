@@ -36,7 +36,7 @@ show_list()
 {
 if  [ ! -s $TODO_LIST_FILE ]
 	then
-		echo "There is currently not entry in your todo list."
+		echo "There is currently no entry in your todo list."
 	else
 
 nl $TODO_LIST_FILE
