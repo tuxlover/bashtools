@@ -39,7 +39,8 @@ if  [ ! -s $TODO_LIST_FILE ]
 		echo "There is currently not entry in your todo list."
 	else
 
-nl $TODO_LIST_FILE
+show_open
+show_done
 fi
 }
 
@@ -156,5 +157,7 @@ shift $(($OPTIND - 1))
 
 #TODO: disable the noclobber option if this was enabled
 #calling two or more options at once does not make any sense	
-
-
+#mark done entries in green and undone in black
+#undone entries should be in a different list
+#give tasks a priority and sort them regarding to their priority
+#get done entries to the bottom of the list
