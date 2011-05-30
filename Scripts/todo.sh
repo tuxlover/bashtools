@@ -6,14 +6,13 @@ TODO_LIST_FILE=$HOME/.todo.lst
 
 add_entry()
 {
-#TODO: test for "" at beginning and end of the note
 if [ ! -f $TODO_LIST_FILE ]
 	then
 		echo "$TODO_LIST_FILE was not created yet."
 		touch $TODO_LIST_FILE
 		echo "created new todo list file in $TODO_LIST_FILE"
 fi
-NEW_ENTRY=$(echo ${OPTARG[@]})
+NEW_ENTRY=$(echo "$OPTARG $args")
 echo "$NEW_ENTRY --> [o]" >> $TODO_LIST_FILE
 }
 
@@ -121,7 +120,15 @@ echo "-h: show this help"
 while getopts "dhorsa:u:x:" opt
 	do
 		case $opt in 
-			a) add_entry
+			a) 	#use this construct if you want parsing more then one argument to this option
+			        #is needed to avoid using "" 
+				#we need to breake her so later on the OPTIND variable gets not decreased
+				#this would cause an error	
+				shift $((OPTIND -1 ))
+				#read in this arguments during function call
+				args=$(echo $*)
+				add_entry
+				break
 				;;
 			d) show_done
 				;;
@@ -133,20 +140,14 @@ while getopts "dhorsa:u:x:" opt
 				;;
 			s) show_list
 				;;
-			u) 	#use this construct if you want parsing more then one argument to this option
-				#we need to break here so later on the OPTIND variable gets not decreased
-				#this would cause an error
+			u)		#like the add option
 				shift $((OPTIND -1 ))
-				#read in this arguments during function call
 				args=$(echo $*)
 				unmark_entry
 				break
 				;;
-			x) 	#use this construct if you want parsing more than one argument to this option
-				#we need to break here so later on the OPTIND variable gets not decreased
-				#this would cause an error
+			x)	#like the add option
 				shift $((OPTIND -1 ))
-				#read in this arguments during the function call
 				args=$(echo $*)
 				mark_entry
 				break
