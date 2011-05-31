@@ -39,7 +39,7 @@ while [ "$NEW_USER" == "0" ]
 						break
 				fi
 			done
-		#Todo: special characters should be not allowed in username
+		#Todo: special characters should not be allowed in username
 		${NEW_USER:="0"} 2> /dev/null
 	done
 
