@@ -5,7 +5,7 @@
 
 #it asks for each value and checks given parameters
 
-#!!DO NOT USE THIS SCRIPT IN A PRODUCTIVE ENVIRENMENT!!
+#!!DO NOT USE THIS SCRIPT IN A PRODUCTIVE ENVIRONMENT!!
 #
 
 #name for new user
