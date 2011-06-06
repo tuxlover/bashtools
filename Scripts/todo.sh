@@ -19,16 +19,20 @@ echo "$NEW_ENTRY --> [o]" >> $TODO_LIST_FILE
 
 show_done()
 {
+echo -e "\E[32m Done Tasks:"
 set -o pipefail
 nl $TODO_LIST_FILE|grep '[[:blank:]]\-\->[[:blank:]]\[x\]$' 2> /dev/null || echo "no entries marked as done"
 set +o pipefail 
+tput sgr0
 }
 
 show_open()
 {
+echo -e "\033[1m Open Tasks:"
 set -o pipefail
 nl $TODO_LIST_FILE|grep '[[:blank:]]\-\->[[:blank:]]\[o\]$' 2> /dev/null || echo "no entries marked as open" 
 set +o pipefail
+tput sgr0
 }
 
 show_list()
