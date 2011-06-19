@@ -66,6 +66,7 @@ shift $(($OPTIND -1 ))
 #-a add
 #-r remove
 #-c commit
+#-e edit a local file
 #-i init
 #Todo:
 #test whether git is installed
