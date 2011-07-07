@@ -174,6 +174,7 @@ shift $(($OPTIND - 1))
 #calling two or more options at once does not make any sense	
 #mark done entries in green and undone in black
 #give tasks a priority and sort them regarding to their priority
-#get done entries to the bottom of the list
+#get done entries to the bottom of the list and undone back up to the head 
 #option:
 #-p purge the todo file
+#-pp purge and remove empty todo file
