@@ -63,6 +63,16 @@ if [ ! -z "$args"  ]
 			do
 				sed -i ${i},${i}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
 				head -n $i $TODO_LIST_FILE|tail -1
+				
+				#now get done entries to the bottom
+				#this approach deins not work. why?
+				#A: this need to be done in an other loop
+				#A: this need to be done in an other loop
+				#to_bottom=$(head -n $i $TODO_LIST_FILE|tail -1)
+				#sed -i ${i},${i}d $TODO_LIST_FILE
+				#echo $to_bottom >> $TODO_LIST_FILE
+						
+
 			done
 fi
 }
@@ -163,6 +173,7 @@ shift $(($OPTIND - 1))
 #TODO: disable the noclobber option if this was enabled
 #calling two or more options at once does not make any sense	
 #mark done entries in green and undone in black
-#undone entries should be in a different list
 #give tasks a priority and sort them regarding to their priority
 #get done entries to the bottom of the list
+#option:
+#-p purge the todo file
