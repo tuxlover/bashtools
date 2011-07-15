@@ -178,3 +178,4 @@ shift $(($OPTIND - 1))
 #option:
 #-p purge the todo file
 #-pp purge and remove empty todo file
+#-m for modifying entries
