@@ -179,3 +179,4 @@ shift $(($OPTIND - 1))
 #-p purge the todo file
 #-pp purge and remove empty todo file
 #-m for modifying entries
+#-s can only use to show just lines matching a pattern
