@@ -1,25 +1,26 @@
 #!/bin/bash
+#This Startscript enhances the security by disabling icmp redirection and enabling kernel specific security options
+### BEGIN INIT INFO
+# Provides: 		iprotect
+# Required-Start: 	$auditstart $network 
+# Required-Stop: 	$auditstart $newtork
+# Should-Start:		$fakemac
+# Should-Stop:		$fakemac
+# Default-Start:	3 5
+# Default-Stop:		0 6
+# Short-Description:	Script to enhance Security by modifying specific /proc files
+# Description:		writing specific values into the procfilesystem
+### END INIT INFO
 
-#disable and enable icmp redirection
-#enable kernel specific security options
 
 STATUS=$1
 #echo 0
-FILES_D=(/proc/sys/net/ipv4/conf/all/accept_redirects /proc/sys/net/ipv4/conf/all/send_redirects /proc/sys/net/ipv6/conf/all/accept_redirects  /proc/sys/net/ipv6/conf/default/accept_redirects /proc/sys/net/ipv4/conf/default/accept_redirects /proc/sys/net/ipv4/tcp_timestamps)
+FILES_D=(net.ipv4.conf.all.accept_redirects net.ipv4.conf.all.send_redirects net.ipv6.conf.all.accept_redirects  net.ipv6.conf.default.accept_redirects net.ipv4.conf.default.accept_redirects net.ipv4.tcp_timestamps)
 
 #echo 1
-FILES_E=(/proc/sys/kernel/core_uses_pid)
+FILES_E=(kernel.core_uses_pid)
 
-
-#test whether we have a non empty variable
-if [ -z $STATUS	]
-	then	
-		echo "Usage: $0 on off status"
-		exit 1
-fi
-
-
-status()
+state()
 {
 
 
@@ -27,7 +28,7 @@ echo "Security mode is"
 
 for f in ${FILES_D[@]}
 	do
-		if [ $(cat $f) == "0" ]
+		if [ $(sysctl -n $f) == "0" ]
 			then
 				echo "$f" && echo -e "\E[32m  activated"; tput sgr0
 			else
@@ -37,7 +38,7 @@ for f in ${FILES_D[@]}
 
 for f in ${FILES_E[@]}
 	do
-		if [ $(cat $f) == "1" ]
+		if [ $(sysctl -n $f) == "1" ]
 			then
 				echo "$f" && echo -e "\E[32m  activated"; tput sgr0			
 			else
@@ -52,13 +53,13 @@ on()
 	
 for f in ${FILES_D[@]}
 	do
-				echo "0" > $f
+				sysctl -w $f=0
 				echo "$f" && echo -e "\E[32m  activated"; tput sgr0
 	done	
 
 for f in ${FILES_E[@]}
 	do
-				echo "1" > $f
+				sysctl -w $f=1
 				echo "$f" && echo -e "\E[32m  activated"; tput sgr0
 	done	
 
@@ -70,13 +71,13 @@ off()
 	
 for f in ${FILES_D[@]}
 	do
-				echo "1" > $f
+				sysctl -w $f=1
 				echo "$f" && echo -e "\E[31m  deactivated"; tput sgr0
 	done		
 	
 for f in ${FILES_E[@]}
 	do
-				echo "0" > $f
+				sysctl -w $f=0
 				echo "$f" && echo -e "\E[31m  deactivated"; tput sgr0
 	done	
 
@@ -84,23 +85,17 @@ for f in ${FILES_E[@]}
 }
 
 
-#check whether we are root
-#only if one of the words on or off is used
-if [[ $STATUS == "on" || $STATUS == "off" ]]
-	then
-		if [ $UID -ne 0 ]
-			then
-				echo "not root"
-				exit 1
-		fi	
-fi
 
-case $STATUS in
-	on) on
+case $1 in
+	"start") on
 	;;
-	off) off
+	"stop") off
 	;;
-	status) status
+	"restart") 
+		off 
+		slepp 1 && echo "1" && sleep 1 && echo "2" && sleep 1 && echo "3"; on
 	;;
-	*) echo "I dont understand $1. Usage: $0 on off status" && exit 1
+	"status") state
+	;;
+	*) echo "I dont understand $1. Usage: $0  [start] [stop] [restart] [status]" && exit 1
 esac
