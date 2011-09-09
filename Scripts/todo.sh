@@ -49,17 +49,17 @@ fi
 
 modify_entry()
 {
-#first read in the entry by using sed and get it into a variable
-ENTRY=$(sed -n ${OPTARG},${OPTARG} $TODO_LIST_FILE)
 
-#second extract the line where the original entry is found
-#this should be the same as the argument given by the user
+	
 LINE_ENTRY=$OPTARG
+#first read in the entry by using sed and get it into a variable
+#Todo: remove the marks from end of the entries
+ENTRY=$(sed -n ${OPTARG},${OPTARG}p $TODO_LIST_FILE)
 
-cat > $ENTRY <<  __EOF__
-$ENTRY
-__EOF__
-#this shit doesnt work^^
+#use the entry itself with -i and write back to the entry
+read -e -i $ENTRY ENTRY
+
+
 
 
 
