@@ -47,6 +47,25 @@ show_done
 fi
 }
 
+modify_entry()
+{
+#first read in the entry by using sed and get it into a variable
+ENTRY=$(sed -n ${OPTARG},${OPTARG} $TODO_LIST_FILE)
+
+#second extract the line where the original entry is found
+#this should be the same as the argument given by the user
+LINE_ENTRY=$OPTARG
+
+cat > $ENTRY <<  __EOF__
+$ENTRY
+__EOF__
+#this shit doesnt work^^
+
+
+
+}
+
+
 mark_entry()
 {
 #TODO:
@@ -65,8 +84,7 @@ if [ ! -z "$args"  ]
 				head -n $i $TODO_LIST_FILE|tail -1
 				
 				#now get done entries to the bottom
-				#this approach deins not work. why?
-				#A: this need to be done in an other loop
+				#this approach does not work. why?
 				#A: this need to be done in an other loop
 				#to_bottom=$(head -n $i $TODO_LIST_FILE|tail -1)
 				#sed -i ${i},${i}d $TODO_LIST_FILE
