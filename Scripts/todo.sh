@@ -47,6 +47,21 @@ show_done
 fi
 }
 
+modify_entry()
+{
+	
+#first read in the entry by using sed and get it into a variable
+#Since the last two records of field are the markers, shorten the NF variable will cut off the markers
+ENTRY="$(sed -n ${OPTARG},${OPTARG}p $TODO_LIST_FILE|awk '{NF=NF-2;print $0}')"
+ORIG_ENTRY=$ENTRY
+
+#use the entry itself with -i and write back to the entry
+read -e -i "${ENTRY[*]}" ENTRY
+
+sed -i ${OPTARG},${OPTARG}s_"${ORIG_ENTRY}"_"${ENTRY}"_ $TODO_LIST_FILE
+}
+
+
 mark_entry()
 {
 #TODO:
@@ -63,6 +78,15 @@ if [ ! -z "$args"  ]
 			do
 				sed -i ${i},${i}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
 				head -n $i $TODO_LIST_FILE|tail -1
+				
+				#now get done entries to the bottom
+				#this approach does not work. why?
+				#A: this need to be done in an other loop
+				#to_bottom=$(head -n $i $TODO_LIST_FILE|tail -1)
+				#sed -i ${i},${i}d $TODO_LIST_FILE
+				#echo $to_bottom >> $TODO_LIST_FILE
+						
+
 			done
 fi
 }
@@ -114,6 +138,7 @@ echo "-a: add a new entry to the todo list. Example: todo -a \"write an entry\""
 echo "-s: show all the entries in the todo list." 
 echo "-o: show all open entries in the todo list [o]"
 echo "-d: show all entries marked as done  [x]"
+echo "-m: modify an entry"
 echo "-r remove entries from the todo list which are marked as done [x]"
 echo "-u unmark an entry as done. Example: todo -u 3 will mark the entry number again as undone"
 echo "-x: mark an entry as done. Example: todo -x 3 will mark the entry number 3 as done."
@@ -121,7 +146,7 @@ echo "-h: show this help"
 }
 
 #begin options
-while getopts "dhorsa:u:x:" opt
+while getopts "dhorsa:m:u:x:" opt
 	do
 		case $opt in 
 			a) 	#use this construct if you want parsing more then one argument to this option
@@ -139,6 +164,8 @@ while getopts "dhorsa:u:x:" opt
 			h) help_me
 				;;
 			o) show_open
+				;;
+			m) modify_entry
 				;;
 			r) remove_marked
 				;;
@@ -163,6 +190,9 @@ shift $(($OPTIND - 1))
 #TODO: disable the noclobber option if this was enabled
 #calling two or more options at once does not make any sense	
 #mark done entries in green and undone in black
-#undone entries should be in a different list
 #give tasks a priority and sort them regarding to their priority
-#get done entries to the bottom of the list
+#get done entries to the bottom of the list and undone back up to the head 
+#option:
+#-p purge the todo file
+#-pp purge and remove empty todo file
+#-s can only use to show just lines matching a pattern
