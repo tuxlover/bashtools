@@ -184,6 +184,7 @@ while getopts "dhorsa:m:u:x:" opt
 				break
 		esac
 	done
+#shifting positions parameter
 shift $(($OPTIND - 1))	
 
 
