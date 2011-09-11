@@ -142,51 +142,72 @@ echo "-m: modify an entry"
 echo "-r remove entries from the todo list which are marked as done [x]"
 echo "-u unmark an entry as done. Example: todo -u 3 will mark the entry number again as undone"
 echo "-x: mark an entry as done. Example: todo -x 3 will mark the entry number 3 as done."
+echo "-p: purge the todo list, remove all entries from the todo list"
+echo "-pp: purge and remove the .todo.lst file"
 echo "-h: show this help"
 }
 
 #begin options
-while getopts "dhorsa:m:u:x:" opt
-	do
-		case $opt in 
-			a) 	#use this construct if you want parsing more then one argument to this option
-			        #is needed to avoid using "" 
-				#we need to breake her so later on the OPTIND variable gets not decreased
-				#this would cause an error	
-				shift $((OPTIND -1 ))
-				#read in this arguments during function call
-				args=$(echo $*)
-				add_entry
-				break
-				;;
-			d) show_done
-				;;
-			h) help_me
-				;;
-			o) show_open
-				;;
-			m) modify_entry
-				;;
-			r) remove_marked
-				;;
-			s) show_list
-				;;
-			u)		#like the add option
-				shift $((OPTIND -1 ))
-				args=$(echo $*)
-				unmark_entry
-				break
-				;;
-			x)	#like the add option
-				shift $((OPTIND -1 ))
-				args=$(echo $*)
-				mark_entry
-				break
-		esac
-	done
-#shifting positions parameter
-shift $(($OPTIND - 1))	
+if [ $1 == "-p"  ] 2> /dev/null
+	then
+		if [ -f $TODO_LIST_FILE  ]
+			then
+				:> $TODO_LIST_FILE
+				exit 0
+		fi
+elif [ $1 == "-pp"   ] 2> /dev/null
+	then
+		if [ -f $TODO_LIST_FILE  ]
+			then
+				rm $TODO_LIST_FILE
+				exit 0
+		fi
+else
 
+
+	while getopts "dhorsa:m:u:x:" opt
+		do
+			case $opt in 
+				a) 	#use this construct if you want parsing more then one argument to this option
+			        	#is needed to avoid using "" 
+					#we need to breake her so later on the OPTIND variable gets not decreased
+					#this would cause an error	
+					shift $((OPTIND -1 ))
+					#read in this arguments during function call
+					args=$(echo $*)
+					add_entry
+					break
+					;;
+				d) show_done
+					;;
+				h) help_me
+					;;
+				o) show_open
+					;;
+				m) modify_entry
+					;;
+				r) remove_marked
+					;;
+				s) show_list
+					;;
+				u)	#like the add option
+					shift $((OPTIND -1 ))
+					args=$(echo $*)
+					unmark_entry
+					break
+					;;
+				x)	#like the add option
+					shift $((OPTIND -1 ))
+					args=$(echo $*)
+					mark_entry
+					break
+			esac
+		done
+	shift $(($OPTIND - 1))	
+
+fi
+
+exit 0
 
 #TODO: disable the noclobber option if this was enabled
 #calling two or more options at once does not make any sense	
@@ -194,6 +215,4 @@ shift $(($OPTIND - 1))
 #give tasks a priority and sort them regarding to their priority
 #get done entries to the bottom of the list and undone back up to the head 
 #option:
-#-p purge the todo file
-#-pp purge and remove empty todo file
 #-s can only use to show just lines matching a pattern
