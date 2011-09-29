@@ -3,14 +3,12 @@
 #etckeeper-ng
 
 #change the value BACKUPDIR if $HOME does not fit your needs
-BACKUPDIR=$HOME
+BACKUPDIR=/root/.etcbackup/
 
 #This Programm should be able to backup and restore a complete etc-tree
 #It uses git and rsync to archive this
 #After backup has completed a complete restore should easy be possible 
 
-#First check if needed programms are present
-#git #awk #stat #grep #find
 
 #help function starts here
 get_help()
@@ -24,6 +22,71 @@ echo "-r [Branch] restore /etc from Branch if no Branch is specified use the las
 echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
 }
 
+
+#check whether we have all needed tools installed and got acces to them
+check_tools()
+{
+#checking git
+git --version &> /dev/null && HAS_GIT="yes"
+if [ $HAS_GIT == "yes" ]
+	then
+		echo -e '\E[32m found git'
+		tput sgr0
+	else
+		echo -e '\E[31m git not found'
+		tput sgr0
+		exit 1
+fi	
+
+#checking awk
+awk --version &> /dev/null && HAS_AWK="yes"
+if [ $HAS_AWK == "yes" ]
+	then
+		echo -e '\E[32m found awk'
+		tput sgr0
+	else
+		echo -e '\E[31m awk not found'
+		tput sgr0
+		exit 1
+fi
+
+#checking grep
+grep --version &> /dev/null && HAS_GREP="yes"
+if [ $HAS_GREP == "yes" ]
+	then
+		echo -e '\E[32m found grep'
+		tput sgr0
+	else
+		echo -e '\E[31m grep not found'
+		tput sgr0
+		exit 1
+fi
+
+#checking find
+find --version &> /dev/null && HAS_FIND="yes"
+if [ $HAS_FIND == "yes" ]
+	then
+		echo -e '\E[32m found findutils'
+		tput sgr0
+	else
+		echo -e '\E[31m findutils not installed'
+		tput sgr0
+		exit 1
+fi
+
+#checking stat
+stat --version &> /dev/null && HAS_STAT="yes"
+if [ $HAS_STAT == "yes" ]
+	then
+		echo -e '\E[32m found coreutils'
+		tput sgr0
+	else
+		echo -e '\E[31m coreutils not installed'
+		tput sgr0
+		exit 1
+fi
+
+}
 
 #check whether we are root
 check_root()
@@ -40,6 +103,7 @@ fi
 initial_git()
 {
 check_root
+check_tools
 
 #check if an older backup already exists
 if [ -s $BACKUPDIR/content.bak  ]
@@ -55,7 +119,10 @@ if [ -s $BACKUPDIR/content.bak  ]
 				rm -rf $BACKUPDIR/
 		fi
 fi
-			
+
+#configure the gloabel git  if allready set do nothing
+git config --global user.name "$USER" 2> /dev/null || :
+git config --global user.email "$USER@$HOSTNAME" 2> /dev/null || :
 
 if [ ! -d $BACKUPDIR ]
 	then	
@@ -67,7 +134,7 @@ if [ ! -d $BACKUPDIR ]
 fi
 
 mkdir $BACKUPDIR/etc_bak
-rsync -r -t -p -o -g -v --progress --delete -c -l -s /etc/* $BACKUPDIR/etc_bak
+rsync -rtpogv --progress --delete -clis /etc/* $BACKUPDIR/etc_bak
 
 #doing the git action
 cd $BACKUPDIR
@@ -79,6 +146,7 @@ git add etc_bak/ && git add content.bak && git commit -m "$(date +%F-%H-%M)"
 backup_git()
 {
 check_root
+check_tools
 
 DATE=$(date +%F-%H-%M)
 #check if the initial backup exists
@@ -107,9 +175,9 @@ git checkout $DATE
 #clean up the old content.bak
 cat /dev/null > $BACKUPDIR/content.bak
 find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak
-rsync -r -t -p -o -g -v --progress --delete -c -l -s /etc $BACKUPDIR/etc_bak
+rsync -rtpogv --progress --delete -clis /etc $BACKUPDIR/etc_bak
 
-git add etc_bak/ && git add content.bak && git commit -m "$(date +%F-%H-%M)"
+git add  $BACKUPDIR && git commit -m "$DATE"
 
 #and return back to master branch to make sure we succeed with no errors
 git checkout master || return 1
@@ -174,14 +242,27 @@ shift `expr $OPTIND - 1`
 
 
 #Todo:
+#Never copy /erc/passwd /etc/shadow and other sensetive files into backup dir
 #Show different states
+#compress the backup
+
+#the -r option works like this 
+#checkout the state #N
+#rync back to /etc
+#restore changes
+#check whether the ownercchip has really change and only change ownrtship if nessacessary
+
 #Checkout different states
 #use options to specifiy what todo
 #Supported options: -i initial, reinitial
 #                   -b backup the current state (only when initial backup exists)
-#                   -r recover a state (only when such state exist)
+#                   -r recover a state (only when such state exist) (not implemented)
 #		    -l list all known states
+#		    -n only add a new file (not implemented)
+#		    -f only add changes of specfic file in /etc (not implemented)
+#		    -c check the state of current /etc (not implemented)
 #check if git status return 0 instead of using file tests
 #check if we have all tools installed we need
-#    git config --global user.name "Your Name"
-#    git config --global user.email you@example.com
+#save changes for chattr as well
+#compress changes
+#make comments to changes
