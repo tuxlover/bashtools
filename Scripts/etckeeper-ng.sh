@@ -28,11 +28,8 @@ check_tools()
 {
 #checking git
 git --version &> /dev/null && HAS_GIT="yes"
-if [ $HAS_GIT == "yes" ]
+if [ $HAS_GIT != "yes" ]
 	then
-		echo -e '\E[32m found git'
-		tput sgr0
-	else
 		echo -e '\E[31m git not found'
 		tput sgr0
 		exit 1
@@ -40,11 +37,8 @@ fi
 
 #checking awk
 awk --version &> /dev/null && HAS_AWK="yes"
-if [ $HAS_AWK == "yes" ]
+if [ $HAS_AWK != "yes" ]
 	then
-		echo -e '\E[32m found awk'
-		tput sgr0
-	else
 		echo -e '\E[31m awk not found'
 		tput sgr0
 		exit 1
@@ -52,11 +46,8 @@ fi
 
 #checking grep
 grep --version &> /dev/null && HAS_GREP="yes"
-if [ $HAS_GREP == "yes" ]
+if [ $HAS_GREP != "yes" ]
 	then
-		echo -e '\E[32m found grep'
-		tput sgr0
-	else
 		echo -e '\E[31m grep not found'
 		tput sgr0
 		exit 1
@@ -64,11 +55,8 @@ fi
 
 #checking find
 find --version &> /dev/null && HAS_FIND="yes"
-if [ $HAS_FIND == "yes" ]
+if [ $HAS_FIND != "yes" ]
 	then
-		echo -e '\E[32m found findutils'
-		tput sgr0
-	else
 		echo -e '\E[31m findutils not installed'
 		tput sgr0
 		exit 1
@@ -76,11 +64,8 @@ fi
 
 #checking stat
 stat --version &> /dev/null && HAS_STAT="yes"
-if [ $HAS_STAT == "yes" ]
+if [ $HAS_STAT != "yes" ]
 	then
-		echo -e '\E[32m found coreutils'
-		tput sgr0
-	else
 		echo -e '\E[31m coreutils not installed'
 		tput sgr0
 		exit 1
@@ -205,6 +190,7 @@ while [ $count -gt 0  ]
 list_git()
 {
 check_root
+check_tools
 
 cd $BACKUPDIR 2> /dev/null || return 1
 git branch
