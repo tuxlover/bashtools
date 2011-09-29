@@ -9,6 +9,7 @@ BACKUPDIR=/root/.etcbackup/
 #It uses git and rsync to archive this
 #After backup has completed a complete restore should easy be possible 
 
+#WARNING: work in progress. for details read the todo section on the bottom of the script
 
 #help function starts here
 get_help()
@@ -121,10 +122,16 @@ fi
 mkdir $BACKUPDIR/etc_bak
 rsync -rtpogv --progress --delete -clis /etc/* $BACKUPDIR/etc_bak
 
+while [ -z "$COMMENT" ]
+	do
+		echo "please comment your commit and press Enter when finished:"
+		read -e COMMENT 
+	done
+
 #doing the git action
 cd $BACKUPDIR
 git init
-git add etc_bak/ && git add content.bak && git commit -m "$DATE"
+git add etc_bak/ && git add content.bak && git commit -m "$USER $DATE ${COMMENT[*]}"
 }
 
 #to a branched backup
@@ -149,7 +156,7 @@ if [ ! -s $BACKUPDIR/content.bak ]
 				initial_git && exit 0 || exit  && exit 0 || exit 11
 		fi				
 fi
-#first make sue we are on master
+#first make sure we are on master
 cd $BACKUPDIR
 git checkout master
 
@@ -160,9 +167,16 @@ git checkout $DATE
 #clean up the old content.bak
 cat /dev/null > $BACKUPDIR/content.bak
 find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak
+
 rsync -rtpogv --progress --delete -clis /etc $BACKUPDIR/etc_bak
 
-git add  $BACKUPDIR && git commit -m "$DATE"
+while [ -z "$COMMENT" ]
+	do
+		echo "please comment your commit and press Enter when finished:"
+		read -e COMMENT 
+	done
+	
+git add  $BACKUPDIR && git commit -m "$USER $DATE ${COMMENT[*]}"
 
 #and return back to master branch to make sure we succeed with no errors
 git checkout master || return 1
@@ -228,7 +242,7 @@ shift `expr $OPTIND - 1`
 
 
 #Todo:
-#Never copy /erc/passwd /etc/shadow and other sensetive files into backup dir
+#Never copy /etc/passwd /etc/shadow and other sensetive files into backup dir
 #Show different states
 #compress the backup
 
@@ -240,10 +254,11 @@ shift `expr $OPTIND - 1`
 
 #Checkout different states
 #use options to specifiy what todo
-#Supported options: -i initial, reinitial
-#                   -b backup the current state (only when initial backup exists)
+#Supported options: -i initial, reinitialn (stable)
+#					-d remove a branch (not implemented)
+#                   -b backup the current state (only when initial backup exists) (stable)
 #                   -r recover a state (only when such state exist) (not implemented)
-#		    -l list all known states
+#		    -l list all known states (work in progroess)
 #		    -n only add a new file (not implemented)
 #		    -f only add changes of specfic file in /etc (not implemented)
 #		    -c check the state of current /etc (not implemented)
@@ -252,3 +267,4 @@ shift `expr $OPTIND - 1`
 #save changes for chattr as well
 #compress changes
 #make comments to changes
+#have a more detailed listing shows who was this, when was this, what has changed
