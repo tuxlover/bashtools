@@ -124,7 +124,7 @@ rsync -rtpogv --progress --delete -clis /etc/* $BACKUPDIR/etc_bak
 #doing the git action
 cd $BACKUPDIR
 git init
-git add etc_bak/ && git add content.bak && git commit -m "$(date +%F-%H-%M)"
+git add etc_bak/ && git add content.bak && git commit -m "$DATE"
 }
 
 #to a branched backup
