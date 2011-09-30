@@ -110,3 +110,7 @@ echo -e '\t \t \t \t \E[31mfailure'; tput sgr0
 root_check
 
 exit 0
+
+
+#TODO:
+#restart the syslog daemon
