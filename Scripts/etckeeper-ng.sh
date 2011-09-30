@@ -271,3 +271,10 @@ shift `expr $OPTIND - 1`
 #compress changes
 #make comments to changes
 #have a more detailed listing shows who was this, when was this, what has changed
+#test for rsync
+
+##implementing hint:
+#git status -s >> git_tracked_changes
+#a=$(wc -l git_tracked_changes|awk '{print $1}')
+#until [ "$a" == 0 ];do if [ $(tail -n $a git_commit|head -1|awk '{print $1}') == "D" ];then  echo "deleted: $(tail -n $a git_commit|head -1|awk '{print $2}')";fi; a=$((a-1)) ;done
+
