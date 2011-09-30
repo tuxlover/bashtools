@@ -255,13 +255,16 @@ shift `expr $OPTIND - 1`
 #Checkout different states
 #use options to specifiy what todo
 #Supported options: -i initial, reinitialn (stable)
-#					-d remove a branch (not implemented)
+#		    -d remove a branch (not implemented)
 #                   -b backup the current state (only when initial backup exists) (stable)
 #                   -r recover a state (only when such state exist) (not implemented)
 #		    -l list all known states (work in progroess)
 #		    -n only add a new file (not implemented)
 #		    -f only add changes of specfic file in /etc (not implemented)
 #		    -c check the state of current /etc (not implemented)
+#			#first rsync
+			#then git status
+			#restore original in backupdir or make a new commit based on users choise
 #check if git status return 0 instead of using file tests
 #check if we have all tools installed we need
 #save changes for chattr as well
