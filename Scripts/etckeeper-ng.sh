@@ -120,7 +120,7 @@ if [ ! -d $BACKUPDIR ]
 fi
 
 mkdir $BACKUPDIR/etc_bak
-rsync -rtpogv --progress --delete -clis /etc/* $BACKUPDIR/etc_bak
+rsync -rtpogv --progress --delete -clis /etc/ $BACKUPDIR/etc_bak/
 
 while [ -z "$COMMENT" ]
 	do
@@ -160,7 +160,7 @@ fi
 cd $BACKUPDIR
 git checkout master
 
-rsync -rtpogv --progress --delete -clis /etc $BACKUPDIR/etc_bak
+rsync -rtpogv --progress --delete -clis /etc/ $BACKUPDIR/etc_bak/
 
 #clean up the old content.bak
 cat /dev/null > $BACKUPDIR/content.bak
