@@ -160,15 +160,49 @@ fi
 cd $BACKUPDIR
 git checkout master
 
-#then create a new branch
-git branch $DATE
-git checkout $DATE
+rsync -rtpogv --progress --delete -clis /etc $BACKUPDIR/etc_bak
 
 #clean up the old content.bak
 cat /dev/null > $BACKUPDIR/content.bak
 find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak
 
-rsync -rtpogv --progress --delete -clis /etc $BACKUPDIR/etc_bak
+#then track changed files
+#create a helper file which will be deleted afterwards
+git_status_file="/tmp/git_status_file"
+git status -s > $git_status_file
+lof=$(wc -l $git_status_file|awk '{print $1}')
+until  [ "$lof" == 0  ]
+	do	
+		if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
+			then
+				mod_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "modified file: $mod_file"
+				git add $mod_file
+		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
+			then
+				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "deleted file: $del_file"
+				git rm $del_file
+		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
+			then
+				a_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "file was allready added: $a_file"
+		elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
+			then
+				ren_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "renamed file: $ren_file"
+				git add $ren_file
+			else
+				new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "new file: $new_file"
+				git add $new_file
+		fi
+		lof=$((lof-=1))
+	done
+#remove untracked file git_status_file
+rm $git_status_file
+
+
 
 while [ -z "$COMMENT" ]
 	do
@@ -176,11 +210,10 @@ while [ -z "$COMMENT" ]
 		read -e COMMENT 
 	done
 	
-git add  $BACKUPDIR && git commit -m "$USER $DATE ${COMMENT[*]}"
+git commit -m "$USER $DATE ${COMMENT[*]}"
 
 #and return back to master branch to make sure we succeed with no errors
-git checkout master || return 1
-git merge $DATE || return 1			
+git checkout master || return 1			
 }
 
 restore_perms()
@@ -272,9 +305,3 @@ shift `expr $OPTIND - 1`
 #make comments to changes
 #have a more detailed listing shows who was this, when was this, what has changed
 #test for rsync
-
-##implementing hint:
-#git status -s >> git_tracked_changes
-#a=$(wc -l git_tracked_changes|awk '{print $1}')
-#until [ "$a" == 0 ];do if [ $(tail -n $a git_commit|head -1|awk '{print $1}') == "D" ];then  echo "deleted: $(tail -n $a git_commit|head -1|awk '{print $2}')";fi; a=$((a-1)) ;done
-
