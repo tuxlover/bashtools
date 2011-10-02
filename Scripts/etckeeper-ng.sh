@@ -31,16 +31,25 @@ check_tools()
 git --version &> /dev/null && HAS_GIT="yes"
 if [ $HAS_GIT != "yes" ]
 	then
-		echo -e '\E[31m git not found'
+		echo -e '\E[31m git not installed'
 		tput sgr0
 		exit 1
-fi	
+fi
+
+#checking rsync
+rsync --version &> /dev/nul && HAS_RSYNC="yes"
+if [ $HAS_RSYNC != "yes" ]
+		then
+			echo -e '\[31m rsync not installed'
+			tput sgr0
+			exit 1
+fi
 
 #checking awk
 awk --version &> /dev/null && HAS_AWK="yes"
 if [ $HAS_AWK != "yes" ]
 	then
-		echo -e '\E[31m awk not found'
+		echo -e '\E[31m awk not installed'
 		tput sgr0
 		exit 1
 fi
@@ -49,7 +58,7 @@ fi
 grep --version &> /dev/null && HAS_GREP="yes"
 if [ $HAS_GREP != "yes" ]
 	then
-		echo -e '\E[31m grep not found'
+		echo -e '\E[31m grep not installed'
 		tput sgr0
 		exit 1
 fi
@@ -120,7 +129,7 @@ if [ ! -d $BACKUPDIR ]
 fi
 
 mkdir $BACKUPDIR/etc_bak
-rsync -rtpogv --progress --delete -clis /etc/ $BACKUPDIR/etc_bak/
+rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
 
 while [ -z "$COMMENT" ]
 	do
@@ -162,7 +171,7 @@ git checkout master
 
 check_perms
 
-rsync -rtpogv --progress --delete -clis /etc/ $BACKUPDIR/etc_bak/
+rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
 
 #clean up the old content.bak
 cat /dev/null > $BACKUPDIR/content.bak
@@ -220,6 +229,8 @@ git checkout master || return 1
 
 check_perms()
 {
+echo "checking Permissions ..."	
+	
 count=$(wc -l content.bak | awk '{print $1}')
 
 until [ $count == 0  ]
@@ -230,42 +241,51 @@ until [ $count == 0  ]
 		OWNU=$(echo $FILE|awk '{print $3}')
 		OWNG=$(echo $FILE|awk '{print $4}')
 		
-		echo $NAME
+	#if a file is not present, skip test
+		if [ ! -e "$NAME" ]
+			then
+				count=$((count-=1))
+				continue
+		fi
+	
 	#cheking whether the Permissions have changed
-		if [ "$(stat -c %a $NAME)" == "$PERMS"  ]
+		if [ "$(stat -c %a $NAME)" != "$PERMS"  ]
 			then	
-				echo -e '\E[32m permissions ok'
+				echo -e '\E[31m permissions'; echo "of file $NAME has changed to $(stat -c %a $NAME)"
 				tput sgr0
-			else
-				echo '\E[31m permissions changed'
-				tput sgr0
-				return changed
+				echo "Restore permission for $NAME to $PERMS" 
+				read -e -n 1 -p	"y(restore)/n(check in these changes)" ANSWER1
+				{$ANSWER1:="n"} 2> /dev/null
+				
+				if [ $ANSWER1 == "y" ]
+					then
+						chmod $PERMS $NAME
+						echo "permissions for file $NAME restored"
+						continue
+				fi
 		fi
 		
-	#checking whether the Owner has changed 
-		if [ "$(stat -c %U $NAME)" == "$OWNU" ]
-			then
-				echo -e '\E[32m owner ok'
+	#checking whether the Owner or the Group has changed 
+		if [[ "$(stat -c %U $NAME)" != "$OWNU" || "$(stat -c %G $NAME)" != "$OWNG" ]]
+			then				
+				echo -e '\E[31m owner or group'; echo  "of $NAME has changed to $(stat -c "%U:%G" $NAME)"
 				tput sgr0
-			else
-				echo '\E[31m owner changed'
-				tput sgr0
-				return changed
+				echo "Restore the owner and the Group of the File $NAME to $OWNU:$OWNG " 
+				read -e -n 1 -p	"y(restore)/n (check in these changes)" ANSWER2
+				{$ANSWER2:="n"}	2> /dev/null
+				
+				if [ $ANSWER2 == "y" ]
+					then
+					chown $OWNU:$OWNG $NAME
+					echo "Owner and Group for $FILE restored"
+					continue
+				fi
 		fi
-
-	#checking whether the Group has changed
-		if [ "$(stat -c %G $NAME)" == "$OWNG" ]
-			then
-				echo -e '\E[32m group ok'
-				tput sgr0
-			else
-				echo '\E[31m group changed'
-				tput sgr0
-				return changed
-		fi			
 
 		count=$((count-=1))
 		unset FILE
+		unset ANSWER1
+		unset ANSWER2
 	done
 }
 
@@ -330,6 +350,7 @@ shift `expr $OPTIND - 1`
 #		    -n only add a new file (not implemented)
 #		    -f only add changes of specfic file in /etc (not implemented)
 #		    -c check the state of current /etc (not implemented)
+#			-C check the state and restore old permissions without asking
 #			#first rsync
 			#then git status
 			#restore original in backupdir or make a new commit based on users choise
@@ -340,6 +361,6 @@ shift `expr $OPTIND - 1`
 #make comments to changes
 #have a more detailed listing shows who was this, when was this, what has changed
 #test for rsync
-#if status of a file ownership is not ok stop and aks user of restoring the original permissions
-#in the backup function create new file only when new fies were added or permissions have changed
+#in the backup function create new content file only when new files were added or permissions have changed
 #in the check_perms function there might also be the case when a certain file is missing 
+#makes it possible to check and restore the old permission without asking
