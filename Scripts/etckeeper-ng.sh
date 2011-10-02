@@ -160,6 +160,8 @@ fi
 cd $BACKUPDIR
 git checkout master
 
+check_perms
+
 rsync -rtpogv --progress --delete -clis /etc/ $BACKUPDIR/etc_bak/
 
 #clean up the old content.bak
@@ -216,11 +218,11 @@ git commit -m "$USER $DATE ${COMMENT[*]}"
 git checkout master || return 1			
 }
 
-restore_perms()
+check_perms()
 {
 count=$(wc -l content.bak | awk '{print $1}')
 
-while [ $count -gt 0  ]
+until [ $count == 0  ]
 	do
 		FILE=$(tail -n ${count} content.bak|head -1)
 		NAME=$(echo $FILE|awk '{print $1}')
@@ -228,8 +230,41 @@ while [ $count -gt 0  ]
 		OWNU=$(echo $FILE|awk '{print $3}')
 		OWNG=$(echo $FILE|awk '{print $4}')
 		
-		echo "chmod $PERMS $NAME && chown $OWNU:$OWNG $NAME"
-		count=$(($count-1))
+		echo $NAME
+	#cheking whether the Permissions have changed
+		if [ "$(stat -c %a $NAME)" == "$PERMS"  ]
+			then	
+				echo -e '\E[32m permissions ok'
+				tput sgr0
+			else
+				echo '\E[31m permissions changed'
+				tput sgr0
+				return changed
+		fi
+		
+	#checking whether the Owner has changed 
+		if [ "$(stat -c %U $NAME)" == "$OWNU" ]
+			then
+				echo -e '\E[32m owner ok'
+				tput sgr0
+			else
+				echo '\E[31m owner changed'
+				tput sgr0
+				return changed
+		fi
+
+	#checking whether the Group has changed
+		if [ "$(stat -c %G $NAME)" == "$OWNG" ]
+			then
+				echo -e '\E[32m group ok'
+				tput sgr0
+			else
+				echo '\E[31m group changed'
+				tput sgr0
+				return changed
+		fi			
+
+		count=$((count-=1))
 		unset FILE
 	done
 }
@@ -287,7 +322,7 @@ shift `expr $OPTIND - 1`
 
 #Checkout different states
 #use options to specifiy what todo
-#Supported options: -i initial, reinitialn (stable)
+#Supported options: -i initial, reinitial (stable)
 #		    -d remove a branch (not implemented)
 #                   -b backup the current state (only when initial backup exists) (stable)
 #                   -r recover a state (only when such state exist) (not implemented)
@@ -305,3 +340,6 @@ shift `expr $OPTIND - 1`
 #make comments to changes
 #have a more detailed listing shows who was this, when was this, what has changed
 #test for rsync
+#if status of a file ownership is not ok stop and aks user of restoring the original permissions
+#in the backup function create new file only when new fies were added or permissions have changed
+#in the check_perms function there might also be the case when a certain file is missing 
