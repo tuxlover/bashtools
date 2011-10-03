@@ -4,6 +4,7 @@
 
 #change the value BACKUPDIR if $HOME does not fit your needs
 BACKUPDIR="/root/.etcbackup/"
+COMPAREDIR="/root/.etccomp"
 EXCLUDEFILE="/root/.etcbackup/excludes"
 
 #This Programm should be able to backup and restore a complete etc-tree
@@ -19,9 +20,11 @@ echo "$0 [ -i ] [ -b ] [ -l ] [ -r Branch ] [ -h ]"
 echo "etckeeper-ng can do a snapshot based backup of the /etc folder using git version control"
 echo "-i: do the initial backup. there must be an initial backup to do new branched backups"
 echo "-b: do a new branch backup. if no initiallized backup exists you will be asked"
+echo "-c: check the /etc direcotry for changes"
+echo "-C: check and restore permissions without asking"
 echo "-e example: exclude /etc/exaple from versioning"
 echo "-l: lists all existing branches"
-echo "-r [Branch] restore /etc from Branch if no Branch is specified use the last existing master branch (not implemented yet)"
+echo "-r HEAD|<Commit> restore /etc from HEAD or a specific commit"
 echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
 }
 
@@ -126,6 +129,8 @@ initial_git()
 check_root
 check_tools
 
+DATE=$(date +%F-%H-%M)
+
 #check if an older backup already exists
 if [ -s $BACKUPDIR/content.bak  ]
 	then
@@ -154,7 +159,7 @@ if [ ! -d $BACKUPDIR ]
 		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak		
 fi
 
-mkdir $BACKUPDIR/etc_bak
+mkdir $BACKUPDIR/etc
 #check wheter we have an excludefile
 if [ ! -e $EXCLUDEFILE ]
 	then
@@ -162,10 +167,10 @@ if [ ! -e $EXCLUDEFILE ]
 		echo "WARNING: Use -e to wirte a list of filese that will be excluded"
 		echo "WARNING: it is highly recommended that you first define what should be exluded"
 		sleep 10
-		rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
+		rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc
 	else
 		
-		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE --delete-excluded /etc/ $BACKUPDIR/etc_bak/
+		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE --delete-excluded /etc/ $BACKUPDIR/etc
 fi
 
 while [ -z "$COMMENT" ]
@@ -179,9 +184,9 @@ cd $BACKUPDIR
 git init
 if [ ! -e $EXCLUDEFILE ]
 then
-	git add etc_bak/ && git add content.bak && git commit -m "$USER $DATE ${COMMENT[*]}"
+	git add etc/ && git add content.bak && git commit -m "$USER $DATE ${COMMENT[*]}"
 else
-	git add etc_bak/ && git add content.bak && git add $EXCLUDEFILE && git commit -m "$USER $DATE ${COMMENT[*]}"
+	git add etc/ && git add content.bak && git add $EXCLUDEFILE && git commit -m "$USER $DATE ${COMMENT[*]}"
 fi
 }
 
@@ -218,9 +223,9 @@ return_check=$?
 #check if exluce file exists
 if [ ! -e $EXCLUDEFILE ]
 	then
-		rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
+		rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc/
 	else
-		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE --delete-excluded /etc/ $BACKUPDIR/etc_bak/
+		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE --delete-excluded /etc/ $BACKUPDIR/etc/
 fi
 
 
@@ -240,9 +245,13 @@ until  [ "$lof" == 0  ]
 			then
 				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "deleted file: $del_file"
-				grep $del_file $EXCLUDEFILE 2> /dev/null && echo "was excluded by exlcude rule and will be removed from backup" || : 
-				git rm $del_file
-				git_return=1
+				
+				if [ grep $del_file $EXCLUDEFILE &> /dev/null ]
+					then
+						echo "$del_file was excluded by exlcude rule and will be removed from backup"
+				fi
+					git rm $del_file
+					git_return=1
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
 			then
 				a_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
@@ -284,16 +293,140 @@ git commit -m "$USER $DATE ${COMMENT[*]}"
 git checkout master || return 1			
 }
 
+#restore from a certain commit
+restore_git()
+{
+check_perms_S
+
+if [ "$OPTARG" == "HEAD" ]
+		then
+			cd $BACKUPDIR
+			git checkout master
+			git reset --hard
+			git_status_file="/tmp/git_status_file"
+			git status -s > $git_status_file
+			lof=$(wc -l $git_status_file|awk '{print $1}')
+			until  [ "$lof" == 0  ]
+				do	
+					if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
+						then
+							:
+					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
+						then
+							:
+					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
+						then
+							:
+					elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
+						then
+							:
+					else
+						new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+						rm $new_file
+					fi
+					lof=$((lof-=1))
+				done
+else
+		cd $BACKUPDIR
+		git checkout master
+		git reset --hard "$OPTARG" || echo "This commit does not exist. Use -l to show commits."
+		git_status_file="/tmp/git_status_file"
+		git status -s > $git_status_file
+		of=$(wc -l $git_status_file|awk '{print $1}')
+		until  [ "$lof" == 0  ]
+			do	
+				if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
+					then
+						:
+				elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
+					then
+						:
+				elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
+					then
+						:
+				elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
+					then
+						:
+				else
+					new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+					rm $new_file
+				fi
+				lof=$((lof-=1))
+			done
+fi
+rsync -rtpog -clis $BACKUPDIR/etc/ /etc/
+COMMENT=(backup after restore)
+backup_git
+}
+
+compare()
+{
+#check if the initial backup exists
+if [ ! -s $BACKUPDIR/content.bak ]
+	then
+		echo "No initial backup found"
+		read -p "Would you like to do an initial backup now?(y)" ANSWER
+		${ANSWER:="no"} 2> /dev/null
+		
+		if [ "$ANSWER" != "y"  ]
+			then
+				echo "use -i option to do an initial backup"
+				exit 1
+			else
+				initial_git && exit 0 || exit  && exit 0 || exit 11
+		fi
+	else
+		mkdir $COMPAREDIR
+		rsync -rtpog --delete -clis $BACKUPDIR $COMPAREDIR	
+		rsync -rtpog --delete -clis /etc/ $COMPAREDIR/etc/
+fi
+	
+check_perms
+cd $COMPAREDIR
+git checkout master
+
+
+git_status_file="/tmp/git_status_file"
+git status -s > $git_status_file
+lof=$(wc -l $git_status_file|awk '{print $1}')
+until  [ "$lof" == 0  ]
+	do	
+		if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
+			then
+				mod_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "modified file: $mod_file"
+		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
+			then
+				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "deleted file: $del_file"
+		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
+			then
+				a_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "file was allready added: $a_file"
+		elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
+			then
+				ren_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "renamed file: $ren_file"			
+		else
+				new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+				echo "new file: $new_file"
+		fi
+		lof=$((lof-=1))
+	done
+
+rm -rf $COMPAREDIR 
+}
+
 check_perms()
 {
 return_check=0
 echo "checking Permissions ..."	
 	
-count=$(wc -l content.bak | awk '{print $1}')
+count=$(wc -l $BACKUPDIR/content.bak | awk '{print $1}')
 
 until [ $count == 0  ]
 	do
-		FILE=$(tail -n ${count} content.bak|head -1)
+		FILE=$(tail -n ${count} $BACKUPDIR/content.bak|head -1)
 		NAME=$(echo $FILE|awk '{print $1}')
 		PERMS=$(echo $FILE|awk '{print $2}')
 		OWNU=$(echo $FILE|awk '{print $3}')
@@ -353,11 +486,11 @@ check_perms_S()
 return_check=0
 echo "checking Permissions ..."	
 	
-count=$(wc -l content.bak | awk '{print $1}')
+count=$(wc -l $BACKUPDIR/content.bak | awk '{print $1}')
 
 until [ $count == 0  ]
 	do
-		FILE=$(tail -n ${count} content.bak|head -1)
+		FILE=$(tail -n ${count} $BACKUPDIR/content.bak|head -1)
 		NAME=$(echo $FILE|awk '{print $1}')
 		PERMS=$(echo $FILE|awk '{print $2}')
 		OWNU=$(echo $FILE|awk '{print $3}')
@@ -409,7 +542,7 @@ PAGER=cat git log
 }
 
 #options starts here
-while getopts iblhe: opt
+while getopts ibclhe:r: opt
 	do
 		case "$opt" in
 			i) initial_git
@@ -421,44 +554,20 @@ while getopts iblhe: opt
 			;;
 			b) backup_git
 			;;
+			c) compare
+			;;
+			C) check_perms_S
+			;;
 			l) list_git || echo "no initial backup and no git repo found"
 			;;
 			h) get_help
+			;;
+			r) restore_git
 			;;
 			\?) get_help
 		esac
 	done
 shift `expr $OPTIND - 1`
 
-
+exit 0
 #Todo:
-#Never copy /etc/passwd /etc/shadow and other sensetive files into backup dir
-#Show different states
-#compress the backup
-
-#the -r option works like this 
-#git branch backup to first make a backup b ranch
-#git reset --hard
-#rync back to /etc
-#restore changed permission
-
-#Checkout different states
-#use options to specifiy what todo
-#Supported options: -i initial, reinitial (stable)
-#		    -d remove a branch (not implemented)
-#                   -b backup the current state (only when initial backup exists) (stable)
-#                   -r recover a state (only when such state exist) (not implemented)
-#		    -l list all known states (work in progroess)
-#		    -n only add a new file (not implemented)
-#		    -f only add changes of specfic file in /etc (not implemented)
-#		    -c check the state of current /etc (not implemented)
-#			-C check the state and restore old permissions without asking
-#			#first rsync
-			#then git status
-			#restore original in backupdir or make a new commit based on users choise
-#save changes for chattr as well
-#compress changes
-#make comments to changes
-#have a more detailed listing shows who was this, when was this, what has changed
-#test for rsync
-#makes it possible to check and restore the old permission without asking
