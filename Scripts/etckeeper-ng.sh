@@ -146,6 +146,7 @@ git add etc_bak/ && git add content.bak && git commit -m "$USER $DATE ${COMMENT[
 #to a branched backup
 backup_git()
 {
+git_return=0
 check_root
 check_tools
 
@@ -170,12 +171,11 @@ cd $BACKUPDIR
 git checkout master
 
 check_perms
+return_check=$?
 
 rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
 
-#clean up the old content.bak
-cat /dev/null > $BACKUPDIR/content.bak
-find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak
+
 
 #then track changed files
 #create a helper file which will be deleted afterwards
@@ -194,6 +194,7 @@ until  [ "$lof" == 0  ]
 				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "deleted file: $del_file"
 				git rm $del_file
+				git_return=1
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
 			then
 				a_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
@@ -207,14 +208,22 @@ until  [ "$lof" == 0  ]
 				new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "new file: $new_file"
 				git add $new_file
+				git_return=1
 		fi
 		lof=$((lof-=1))
 	done
 #remove untracked file git_status_file
 rm $git_status_file
 
-
-
+#create new content file only when new files were added or permissions have changed
+if [[ $git_return -eq 1 || $return_check -eq 1 ]]
+	then
+		#clean up the old content.bak
+		cat /dev/null > $BACKUPDIR/content.bak
+		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak
+		git add $BACKUPDIR/content.bak
+fi
+		
 while [ -z "$COMMENT" ]
 	do
 		echo "please comment your commit and press Enter when finished:"
@@ -229,6 +238,7 @@ git checkout master || return 1
 
 check_perms()
 {
+return_check=0
 echo "checking Permissions ..."	
 	
 count=$(wc -l content.bak | awk '{print $1}')
@@ -261,8 +271,8 @@ until [ $count == 0  ]
 					then
 						chmod $PERMS $NAME
 						echo "permissions for file $NAME restored"
-						continue
 				fi
+				return_check=1
 		fi
 		
 	#checking whether the Owner or the Group has changed 
@@ -278,8 +288,8 @@ until [ $count == 0  ]
 					then
 					chown $OWNU:$OWNG $NAME
 					echo "Owner and Group for $FILE restored"
-					continue
 				fi
+				return_check=1
 		fi
 
 		count=$((count-=1))
@@ -287,7 +297,58 @@ until [ $count == 0  ]
 		unset ANSWER1
 		unset ANSWER2
 	done
+	return $return_check
 }
+
+check_perms_S()
+{
+return_check=0
+echo "checking Permissions ..."	
+	
+count=$(wc -l content.bak | awk '{print $1}')
+
+until [ $count == 0  ]
+	do
+		FILE=$(tail -n ${count} content.bak|head -1)
+		NAME=$(echo $FILE|awk '{print $1}')
+		PERMS=$(echo $FILE|awk '{print $2}')
+		OWNU=$(echo $FILE|awk '{print $3}')
+		OWNG=$(echo $FILE|awk '{print $4}')
+		
+	#if a file is not present, skip test
+		if [ ! -e "$NAME" ]
+			then
+				count=$((count-=1))
+				continue
+		fi
+	
+	#cheking whether the Permissions have changed
+		if [ "$(stat -c %a $NAME)" != "$PERMS"  ]
+			then	
+				echo -e '\E[31m permissions'; echo "of file $NAME has changed to $(stat -c %a $NAME)"
+				tput sgr0
+				chmod $PERMS $NAME
+				echo "permissions for file $NAME restored"
+				return_check=1
+		fi
+		
+	#checking whether the Owner or the Group has changed 
+		if [[ "$(stat -c %U $NAME)" != "$OWNU" || "$(stat -c %G $NAME)" != "$OWNG" ]]
+			then				
+				echo -e '\E[31m owner or group'; echo  "of $NAME has changed to $(stat -c "%U:%G" $NAME)"
+				tput sgr0
+				chown $OWNU:$OWNG $NAME
+				echo "Owner and Group for $FILE restored"
+				return_check=1
+		fi
+
+		count=$((count-=1))
+		unset FILE
+
+	done
+	return $return_check
+}
+
 
 list_git()
 {
@@ -295,7 +356,7 @@ check_root
 check_tools
 
 cd $BACKUPDIR 2> /dev/null || return 1
-git branch
+PAGER=cat git log
 
 
 }
@@ -354,13 +415,9 @@ shift `expr $OPTIND - 1`
 #			#first rsync
 			#then git status
 			#restore original in backupdir or make a new commit based on users choise
-#check if git status return 0 instead of using file tests
-#check if we have all tools installed we need
 #save changes for chattr as well
 #compress changes
 #make comments to changes
 #have a more detailed listing shows who was this, when was this, what has changed
 #test for rsync
-#in the backup function create new content file only when new files were added or permissions have changed
-#in the check_perms function there might also be the case when a certain file is missing 
 #makes it possible to check and restore the old permission without asking
