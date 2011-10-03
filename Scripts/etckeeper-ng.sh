@@ -3,7 +3,8 @@
 #etckeeper-ng
 
 #change the value BACKUPDIR if $HOME does not fit your needs
-BACKUPDIR=/root/.etcbackup/
+BACKUPDIR="/root/.etcbackup/"
+EXCLUDEFILE="/root/.etcbackup/excludes"
 
 #This Programm should be able to backup and restore a complete etc-tree
 #It uses git and rsync to archive this
@@ -16,9 +17,10 @@ get_help()
 {
 echo "$0 [ -i ] [ -b ] [ -l ] [ -r Branch ] [ -h ]"
 echo "etckeeper-ng can do a snapshot based backup of the /etc folder using git version control"
-echo "-i do the initial backup. there must be an initial backup to do new branched backups"
-echo "-b do a new branch backup. if no initiallized backup exists you will be asked"
-echo "-l lists all existing branches"
+echo "-i: do the initial backup. there must be an initial backup to do new branched backups"
+echo "-b: do a new branch backup. if no initiallized backup exists you will be asked"
+echo "-e example: exclude /etc/exaple from versioning"
+echo "-l: lists all existing branches"
 echo "-r [Branch] restore /etc from Branch if no Branch is specified use the last existing master branch (not implemented yet)"
 echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
 }
@@ -94,6 +96,30 @@ if [ $UID -ne 0 ]
 fi
 }
 
+#function to write exclude patterns to a file
+exclude()
+{
+check_root
+check_tools
+EXCLUDES=$(echo "$OPTARG $args")
+
+if [ ! -d $BACKUPDIR ]
+	then
+		mkdir $BACKUPDIR
+fi
+
+for e in ${EXCLUDES}	
+	do
+		if [ ! -e /etc/$e ]
+			then
+				echo "file $e does not exist"
+				continue
+		fi
+		echo "/$e" >> $EXCLUDEFILE
+	done
+	
+}
+
 #do the initial backup
 initial_git()
 {
@@ -129,7 +155,18 @@ if [ ! -d $BACKUPDIR ]
 fi
 
 mkdir $BACKUPDIR/etc_bak
-rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
+#check wheter we have an excludefile
+if [ ! -e $EXCLUDEFILE ]
+	then
+		echo "WARNING: there was no exlcudefile setup, so i exclude nothing"
+		echo "WARNING: Use -e to wirte a list of filese that will be excluded"
+		echo "WARNING: it is highly recommended that you first define what should be exluded"
+		sleep 10
+		rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
+	else
+		
+		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE --delete-excluded /etc/ $BACKUPDIR/etc_bak/
+fi
 
 while [ -z "$COMMENT" ]
 	do
@@ -140,7 +177,12 @@ while [ -z "$COMMENT" ]
 #doing the git action
 cd $BACKUPDIR
 git init
-git add etc_bak/ && git add content.bak && git commit -m "$USER $DATE ${COMMENT[*]}"
+if [ ! -e $EXCLUDEFILE ]
+then
+	git add etc_bak/ && git add content.bak && git commit -m "$USER $DATE ${COMMENT[*]}"
+else
+	git add etc_bak/ && git add content.bak && git add $EXCLUDEFILE && git commit -m "$USER $DATE ${COMMENT[*]}"
+fi
 }
 
 #to a branched backup
@@ -173,8 +215,13 @@ git checkout master
 check_perms
 return_check=$?
 
-rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
-
+#check if exluce file exists
+if [ ! -e $EXCLUDEFILE ]
+	then
+		rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc_bak/
+	else
+		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE --delete-excluded /etc/ $BACKUPDIR/etc_bak/
+fi
 
 
 #then track changed files
@@ -193,6 +240,7 @@ until  [ "$lof" == 0  ]
 			then
 				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "deleted file: $del_file"
+				grep $del_file $EXCLUDEFILE 2> /dev/null && echo "was excluded by exlcude rule and will be removed from backup" || : 
 				git rm $del_file
 				git_return=1
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
@@ -356,27 +404,20 @@ check_root
 check_tools
 
 cd $BACKUPDIR 2> /dev/null || return 1
+git branch -a
 PAGER=cat git log
-
-
-}
-
-#mesage funcions
-drop_failure ()
-{
-echo -e '\t \t \t \t \E[31mfailure'; tput sgr0
-}
-
-drop_ok ()
-{
-echo -e '\t \t \t \t \E[32mok'; tput sgr0
 }
 
 #options starts here
-while getopts iblh opt
+while getopts iblhe: opt
 	do
 		case "$opt" in
 			i) initial_git
+			;;
+			e) shift $((OPTIND -1))
+				args=$(echo $*)
+				exclude
+				break
 			;;
 			b) backup_git
 			;;
@@ -396,10 +437,10 @@ shift `expr $OPTIND - 1`
 #compress the backup
 
 #the -r option works like this 
-#checkout the state #N
+#git branch backup to first make a backup b ranch
+#git reset --hard
 #rync back to /etc
-#restore changes
-#check whether the ownercchip has really change and only change ownrtship if nessacessary
+#restore changed permission
 
 #Checkout different states
 #use options to specifiy what todo
