@@ -49,7 +49,7 @@ emesg		filter and find specific words in	idea
 erpm		summarizes information for a rpm	stable
 		repositorie
 
-etckeeper-ng	the idea of etckeeper reborn		in development
+etckeeper-ng	the idea of etckeeper reborn		stable
 
 fakemac		fake your macadress on startup		stable	
 		rc-script
