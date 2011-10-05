@@ -4,6 +4,7 @@
 
 #check whether we are root
 JOBFILE="/root/.autoshutdown"
+JOBNUMFILE="/root/.autoshutdown_num"
 CRONTABFILE='/etc/cron.d/autoshutdown'
 WARN=10
 REASON="The system will go down."
@@ -46,35 +47,86 @@ fi
 set_shutdown()
 {
 TIME="$OPTARG"
+#for corntab setup we need the absolut path to at
+AT_BIN=$(which at)
+
 #set up the hour when to setup the at job in the cron job
 NOW_HOUR=$(date +%H)
 SETUP_MINUTE=$(($(date +%M) +1 ))
 if [ $SETUP_MINUTE -eq 59 ]
 	then
 		SETUP_MINUTE=0
-		if  [ $NOW_HOUR -eq 23  ]
+		
+		if  [ $NOW_HOUR -eq 23 ]
 			then
 				NOW_HOUR=0
 			else
-		fi		NOW_HOUR=$(($NOW_HOUR +1))
+				NOW_HOUR=$(( NOW_HOUR +1 ))
+		fi
 fi
 
 #setup at file
-echo "echo "$REASON"|wall" >> $JOBFILE
+echo "\"echo "$REASON"\"|wall" >> $JOBFILE
 echo "shutdown -h $WARN" >> $JOBFILE
+
+#setup autoshutdown
+JOBNUMBER=$(atq|tail -1|cut -f1) 
+echo "$JOBNUMBER" > $JOBNUMFILE
 
 #causes cron to read in the jobifile one minute the number was given
 #every day
-echo "$SETUP_MINUTE $NOW_HOUR * * * at -f $JOBFILE $TIME" > $CRONTABFILE
+echo "$SETUP_MINUTE $NOW_HOUR * * * $AT_BIN -f $JOBFILE $TIME %" > $CRONTABFILE
 }
 
-clear_shutdown
+clear_shutdown()
 {
-#first clear the cancel the at job
+#first cancel the at job
 
+if  [ ! -e $JOBNUMFILE ]
+	then
+		echo "no shutdown job specified yet"
+		exit 1
+fi
+JOBNUMBER=$(cat $JOBNUMFILE)
+atrm $JOBNUMBER
 
+#then remove the cron.d file
+rm $CRONTABFILE
+rm $JOBFILE
+rm $JOBNUMFILE
 }
 
+list_shutdown()
+{
+if [ ! -e $JOBNUMFILE ]
+	then
+		echo "no shutdown job specified yet"
+		exit 1
+fi
+JOBNUMBER=$(cat $JOBNUMFILE)
+atq $JOBNUMBER
+}
+
+
+set_freq()
+{
+
+echo "not implemented yet"
+echo "it doesnt matter if you say $OPTARG to this option"
+}
+
+
+set_warn()
+{
+echo "not implemented yet"
+echo "it doesnt matter if you say $OPTARG to this option"
+}
+
+set_warn_time()
+{
+echo "not implemented yet"
+echo "it doesn matter if you say $OPTARG to this option"
+}
 
 
 
