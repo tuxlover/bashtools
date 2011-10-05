@@ -42,7 +42,7 @@ if [ $HAS_GIT != "yes" ]
 fi
 
 #checking rsync
-rsync --version &> /dev/nul && HAS_RSYNC="yes"
+rsync --version &> /dev/nul && HAS_RSYNC="yes" || HAS_RSYNC="no"
 if [ $HAS_RSYNC != "yes" ]
 		then
 			echo -e '\[31m rsync not installed'
@@ -51,7 +51,7 @@ if [ $HAS_RSYNC != "yes" ]
 fi
 
 #checking awk
-awk --version &> /dev/null && HAS_AWK="yes"
+awk --version &> /dev/null && HAS_AWK="yes" || HAS_AWK="no"
 if [ $HAS_AWK != "yes" ]
 	then
 		echo -e '\E[31m awk not installed'
@@ -60,7 +60,7 @@ if [ $HAS_AWK != "yes" ]
 fi
 
 #checking grep
-grep --version &> /dev/null && HAS_GREP="yes"
+grep --version &> /dev/null && HAS_GREP="yes" || HAS_GREP="no"
 if [ $HAS_GREP != "yes" ]
 	then
 		echo -e '\E[31m grep not installed'
@@ -69,7 +69,7 @@ if [ $HAS_GREP != "yes" ]
 fi
 
 #checking find
-find --version &> /dev/null && HAS_FIND="yes"
+find --version &> /dev/null && HAS_FIND="yes" || HAS_FIND="no"
 if [ $HAS_FIND != "yes" ]
 	then
 		echo -e '\E[31m findutils not installed'
@@ -78,7 +78,7 @@ if [ $HAS_FIND != "yes" ]
 fi
 
 #checking stat
-stat --version &> /dev/null && HAS_STAT="yes"
+stat --version &> /dev/null && HAS_STAT="yes" || HAS_STAT="no"
 if [ $HAS_STAT != "yes" ]
 	then
 		echo -e '\E[31m coreutils not installed'
@@ -93,8 +93,7 @@ check_root()
 {
 if [ $UID -ne 0 ]
 	then 
-		drop_failure
-		echo "not root"
+		echo -e '\E[31m not root'
 		exit 1
 fi
 }
@@ -571,3 +570,4 @@ shift `expr $OPTIND - 1`
 
 exit 0
 #Todo:
+#use return values and do checks before reading options
