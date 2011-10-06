@@ -65,6 +65,7 @@ if [ $SETUP_MINUTE -eq 59 ]
 fi
 
 #setup at file
+#remove -k to make this real
 echo "/sbin/shutdown -k $WARN \"${REASON[*]}\"" >> $JOBFILE
 
 if [ ! -e $JOBNUMFILE ]
@@ -86,6 +87,8 @@ if [ ! -e $CRONTAB ]
 		echo "SHELL=/bin/bash" >> $CRONTABFILE
 		echo "$SETUP_MINUTE $NOW_HOUR * * * root $AT_BIN -f $JOBFILE $TIME; $AT_BIN -l| /usr/bin/tail -1|/usr/bin/cut -f1 > $JOBNUMFILE %" >> $CRONTABFILE
 fi
+#this is just to test whether zenity works
+zenity --display="$DISPLAY" --info --text="Autoshutdown has been set to $TIME" || :
 }
 
 clear_shutdown()
