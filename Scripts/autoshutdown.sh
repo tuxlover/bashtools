@@ -7,14 +7,14 @@ JOBFILE="/root/.autoshutdown"
 JOBNUMFILE="/root/.autoshutdown_num"
 CRONTABFILE='/etc/cron.d/autoshutdown'
 WARN=10
-REASON="The system will go down."
+REASON=(The system will go down.)
 
 check_root()
 {
 if [ $UID -ne 0  ]
 	then
 		echo -e '\E[31m not root'
-		return 1
+		exit 1
 	else
 		return 0
 fi
@@ -23,30 +23,29 @@ fi
 #check whether we have zenity installed
 check_tools()
 {
-zenity --version &> /dev/null && HAS_ZENITY="yes" || HAS_ZENITY="no"
-if [ $HAS_ZENITY != "yes" ]
-	then
-		echo -e '\E[31m zenity not installed'
-		return 1
-	else
-		return 0
-fi
-
-
-#check whether we have at installed
-at -V &> /dev/null && HAS_AT="yes" || HAS_AT="no"
+#check whether we have at running
+service atd status|grep running &> /dev/null && HAS_AT="yes" || HAS_AT="no"
 if [ $HAS_AT != "yes" ]
 	then
-		echo -e '\E[31m at not installed'
-		return 1
-	else
-		return 0
+		echo -e '\E[31m at daemon is not running'
+		exit 1
 fi
+
+#check whether we have cron running
+service cron status|grep running &> /dev/null && HAS_CRON="yes" || HAS_CRON="no"
+if [ $HAS_CRON != "yes" ]
+	then
+		echo -e '\E[31m cron daemon is not running'
+		exit 1
+fi
+
+return 0
 }
 
 set_shutdown()
 {
 TIME="$OPTARG"
+check_time_format
 #for corntab setup we need the absolut path to at
 AT_BIN=$(which at)
 
@@ -66,34 +65,54 @@ if [ $SETUP_MINUTE -eq 59 ]
 fi
 
 #setup at file
-echo "\"echo "$REASON"\"|wall" >> $JOBFILE
-echo "shutdown -h $WARN" >> $JOBFILE
+echo "/sbin/shutdown -k $WARN \"${REASON[*]}\"" >> $JOBFILE
 
-#setup autoshutdown
-JOBNUMBER=$(atq|tail -1|cut -f1) 
-echo "$JOBNUMBER" > $JOBNUMFILE
-
-#causes cron to read in the jobifile one minute the number was given
+if [ ! -e $JOBNUMFILE ]
+	then
+		:> $JOBNUMFILE
+		echo "$JOBNUMBER" > $JOBNUMFILE
+	else
+		echo "$JOBNUMBER" > $JOBNUMFILE
+fi
+		
+#causes cron to read in the jobifile one minute after the actual time
 #every day
-echo "$SETUP_MINUTE $NOW_HOUR * * * $AT_BIN -f $JOBFILE $TIME %" > $CRONTABFILE
+if [ ! -e $CRONTAB ]
+	then
+		echo "SHELL=/bin/bash" >> $CRONTABFILE
+		echo "$SETUP_MINUTE $NOW_HOUR * * * root $AT_BIN -f $JOBFILE $TIME; $AT_BIN -l| /usr/bin/tail -1|/usr/bin/cut -f1 > $JOBNUMFILE %" >> $CRONTABFILE
+	else
+		:> $CRONTABFILE
+		echo "SHELL=/bin/bash" >> $CRONTABFILE
+		echo "$SETUP_MINUTE $NOW_HOUR * * * root $AT_BIN -f $JOBFILE $TIME; $AT_BIN -l| /usr/bin/tail -1|/usr/bin/cut -f1 > $JOBNUMFILE %" >> $CRONTABFILE
+fi
 }
 
 clear_shutdown()
 {
 #first cancel the at job
 
-if  [ ! -e $JOBNUMFILE ]
+if  [ ! -e $JOBFILE ]
 	then
 		echo "no shutdown job specified yet"
 		exit 1
 fi
-JOBNUMBER=$(cat $JOBNUMFILE)
-atrm $JOBNUMBER
 
-#then remove the cron.d file
-rm $CRONTABFILE
-rm $JOBFILE
-rm $JOBNUMFILE
+if [ ! -e $JOBNUMFILE ]
+	then
+		rm $CRONTABFILE
+		rm $JOBFILE
+
+	else
+	
+		JOBNUMBER=$(cat $JOBNUMFILE)
+		atrm $JOBNUMBER
+
+		#then remove the cron.d file
+		rm $CRONTABFILE
+		rm $JOBFILE
+		rm $JOBNUMFILE
+fi
 }
 
 list_shutdown()
@@ -103,8 +122,8 @@ if [ ! -e $JOBNUMFILE ]
 		echo "no shutdown job specified yet"
 		exit 1
 fi
-JOBNUMBER=$(cat $JOBNUMFILE)
-atq $JOBNUMBER
+#get the hour dircetly from crontabfile to avoid waiting for crontab setting up the at job
+tail -1 /etc/cron.d/autoshutdown |cut -d" " -f10|cut -d\; -f1
 }
 
 
@@ -129,10 +148,62 @@ echo "it doesn matter if you say $OPTARG to this option"
 }
 
 
+check_time_format()
+{
+if [ -z $TIME ]
+		then
+			echo "wrong timeformat. The timeformat has to be HH:MM"
+			exit 1
+fi	
 
+if [ ${#TIME} -ne 5 ]
+	then
+		echo "wrong timeformat. The timeformat has to be HH:MM"
+		exit 1
+fi
+
+#since we use the : as delimiter in awk we dont need to test for :
+#since this will return an error
+TIME_M=$(echo $TIME|awk -F: '{print $2}')
+TIME_H=$(echo $TIME|awk -F: '{print $1}')
+
+
+
+#check minutes
+if [ -z $TIME_M ]
+	then
+		echo "wrong timeformat. The timeformat has to be HH:MM"
+		exit 1
+fi
+
+if [[ 0 -le $TIME_M && $TIME_M -le 59  ]] 2> /dev/null
+	then
+		:
+	else
+		echo "wrong timeformat. The timeformat has to be HH:MM"
+		exit 1
+fi
+
+#check hours
+if [ -z $TIME_H ]
+	then
+		echo "wrong timeformat. The timeformat has to be HH:MM"
+		exit 1
+fi
+
+if [[ 0 -le $TIME_H && $TIME_H -le 23 ]]
+	then
+		:
+	else 
+		echo "wrong timeformat The timeformat has to be HH:MM"
+		exit 1
+fi
+return 0
+}
 
 ##begin checks before reading options
-check_root && check_tools || exit 1
+check_root
+check_tools
 
 #begin options
 while getopts cls:f:w:m: opt
@@ -149,7 +220,7 @@ while getopts cls:f:w:m: opt
 			w) set_warn
 			;;
 			m) set_warn_time
-			
+				
 		esac
 	done
 shift $(($OPTIND - 1 ))
@@ -167,16 +238,16 @@ exit 0
 #Hint:
 	#zenity --info --text="I will ask again in $TIME_STEP minutes."
 #timer|zenity --progress --percentage=100 --auto-close --text="Computer is going to shutdown in counter Seconds"  --display $DISPLAY && shut_me_down || ask_again
-
-#timer()
-#{
-#while [ $counter -ne 0 ]
-#	do
-#		sleep 1
-#		echo $counter
-#		counter=$(($counter-1))
-# 	done
-#}
 #in function set_shutdown check wheter we have a correct time format
 #n function clear_shutdown find the correct at job
-#check whehter the atd and crond are runnign rather for checking for the existince
+#check for zenity when implemented
+#play a sound before shutdown
+#implement a help function
+#check for awk
+#-w option works as follows
+##check whether we have allready a job set if not ask user to use the -s option to setup a job
+##check at job is alreasy set if not ...
+##atrm $JOBNUMFILE
+##rewrite the JOBFILE with the new $REASON
+##at -f $JOBFILE && set new JOBNUMFILE
+
