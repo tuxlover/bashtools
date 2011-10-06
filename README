@@ -11,119 +11,120 @@ or request for features. But i am not prommisse to implement those features.
 Don't blame me if something went wrong and broke your system. I give absolutely no warenty
 to this Collection of "Software". !!!
 
-#Script		Whats it doing				Status
-adduser		The SuSE Way of debians adduser		in development
+#Script				Whats it doing					Status
+stable/aide.sh			Script for daily cron				stable
 
-aide.sh		Script for daily cron			stable
+stable/backup_userhome		wrapper script for backuping $HOME		stable
 
-autoshutdown	Script for managing time when a 	works but highly unstable
-		computer should shutdown
+stable/bin2dec			transform binary to decimal			stable
 
-broken_links	find and report broken links		stable
+stable/broken_links		find and report broken links			stable
 
-checkperm	find files in home directory 		in development
-		are writeable to others	
+stable/clearlogs		remove old logfiles				stable 
 
-cleancheck	find and report security issues		stable but nearly dead
+satble/dec2bin			transform decimal numbers to binary		stable
 
-clearlogs	remove old logfiles			stable 
+stable/fakemac			fake your macadress on startup 			stable	
+				rc-script; needs macchanger
 
-clearswap	clean swapspace from poisened files	unstable (works for me)
+stable/gnome-do-start		start gnome-do after login			stable
 
-create_repofino	create informations about 		stable 
-		installed packages	
-			+ works slow but is more reliable than yast or zypper
+stable/iprotect			enable kernel based security 			stable
+				rc-script
 
-dec2bin		transform decimal numbers to binary	stable
+stable/mksh			keeps your files safe from being 		stable
+				deletet	
 
-bin2dec		transform binary to decimal		stable
+stable/pinger			pings a host and informs when host 		stable
+				is reachable, than stops pinging
 
-dirinfo		find and report state of the 		idea
-		current dir
+stable/rescale			makes you images smaller			stable
 
-doubfind	find files with the same content	idea
+stable/restore_userhome 	wrapper Script for restoring $HOME		stable
 
-emesg		filter and find specific words in	idea
-		your logfiles
+stable/rpm_check		querries uninstalled rpms for			stable
+				description and othe information
+				and writes it to a file
 
-erpm		summarizes information for a rpm	stable
-		repositorie
+stable/schwanvergleich		a german joke, how good is your pc		stable
 
-etckeeper-ng	the idea of etckeeper reborn		stable
+stable/todo			manage a todo list				stable
 
-fakemac		fake your macadress on startup		stable	
-		rc-script
-		needs macchanger
+stable/unpackrpm		unpack an rpm like a zip file			stable
+
+stable/userinfo			tracking information of how many		stable	
+				diskspace a user is taken from disk
+
+devel/adduser			The SuSE Way of debians adduser			in development
+
+devel/autoshutdown		Script for managing time when a 		works but unfinished
+				computer should shutdown
+
+devel/checkperm			find files in home directory 			in development
+				are writeable to others	
+
+devel/killit			list and kill programs				in development
+
+devel/clearswap			clean swapspace from poisened files		unstable (works for me)
+
+devel/clearsys			cleanup the system from unneccessary files	may be unstable
+
+devel/finddoc			find documentation on your local 		useless, unstable
+				system	
+
+devel/lockkit			lock the terminal				useless, unstable
+
+devel/mmg			safes and restore your gnome session		unstable
+
+devel/package_state		safes the state and all rpms currently		in development (works for me)
+				installed using zypper
+
+devel/rootcheck			checks the diff of last time 			in development
+				installed rpms
+
+devel/wipefree(2) 		wipe free diskspace with garbage		in development
+
+testing/cleancheck		find and report security issues			stable but nearly dead
+
+testing/clearhomes		find and remove temporary files 		stable but needs testing
+				from home directories
+
+testing/erpm			summarizes information for a rpm		stable but needs testing
+				repositorie
+
+testing/create_repofino		create informations about 			stable but needs testing
+				installed packages	
+				+ works slow but is more reliable than yast 
+				  or zypper
+
+testing/etckeeper-ng		the idea of etckeeper reborn			stable but needs testing
+
+testing/logusers		log users and their activity			unknown needs testing	
+
+testing/scandisk		script to use with udev scan files		might work needs testing
+				before allowing access to a media
+
+testing/swapmore		extend swap swap temporarly			needs testing (works for me)
+
+idea/dirinfo			find and report state of the current dir 	idea
+
+idea/doubfind			find files with the same content		idea
+
+idea/emesg			filter and find specific words in		idea
+				your logfiles
+
+idea/git-ignore			simply add files to be ignored from		idea
+				git tracking 
 		
-finddoc		find documentation on your local 	useless, unstable
-		system	
+idea/irpm			iintellegent handle rpm	based on		idea	
+				the states of the rpm to be installed
+				and the one allready installed
 
-git-ignore	simply add files to be ignored from	idea
-		git tracking 
+idea/lconfig			wrapper script to manage local			idea
+				git repositories more easier	
 
-gnome-do-start	start gnome-do after login		stable
+idea/sh2bin			remove the .sh form script			idea
 
-iprotect	enable kernel based security 		stable
-		rc-script
+idea/sysprof			system profiler					idea
 
-irpm		intellegent handle rpm	based on	idea	
-		the staes of the rpm to be installed
-		and the one allready installed
-
-killit		list and kill programs			in development
-
-lconfig		wrapper script to manage local		in development
-		git repositories more easier	
-
-lockkit		lock the terminal			useless, unstable
-
-mksh		keeps your files safe from being 	stable
-		deletet	
-
-mmg		safes and restore your gnome session	unstable
-
-package_state	safes the state and all rpms currently	in development (works for me)
-		installed using zypper
-
-pinger		pings a host and informs when host 	stable
-		is reachable, than stops pinging
-
-man2		man -H$BROWSER				stable
-
-rescale		makes you images smaller		stable
-
-backup_userhome	wrapper script for backuping $HOME	stable
-
-restore_userhome wrapper Script for restoring $HOME	stable
-
-rootcheck	checks the diff of last time 		in development
-		installed rpms
-
-rpm_check	querries uninstalled rpms for		stable
-		description and othe information
-		and writes it to a file
-
-scandisk	script to use with udev			stable
-		san files before allowing access
-		to a media
-
-schwanvergleich	a german joke, how good is your pc	stable
-
-sh2bin		remove the .sh form script		idea
-
-swapmore	extend swap				in development (works for me)
-
-sysprof		system profiler				idea
-
-unpackrpm	unpack an rpm like a zip file		stable
-
-update_sync	wrapper script to rsync			idea
-
-updoodle	managing the doodle index database	idea
-
-userinfo	tracking information of how many	stable	
-		diskspace a user is taken from disk
-
-wipefree(2) 	wipe free diskspace with garbage	stable (in development)
-
-zipmore		reading files like zmore		works but zmore is better ;)
+idea/updoodle			managing the doodle index database		idea
