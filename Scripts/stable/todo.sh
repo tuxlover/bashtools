@@ -66,29 +66,21 @@ mark_entry()
 {
 #TODO:
 #check whether entry is marked corectly
+args_x=$(echo "$OPTARG ${args[*]}")	
 
-sed -i ${OPTARG},${OPTARG}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
-head -n $OPTARG  $TODO_LIST_FILE |tail -1
 
 #first test whether there are any more arguments
 #and loop over the rest of the given arguments
-if [ ! -z "$args"  ]
-	then
-		for i in ${args[@]}
-			do
-				sed -i ${i},${i}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
-				head -n $i $TODO_LIST_FILE|tail -1
-				
-				#now get done entries to the bottom
-				#this approach does not work. why?
-				#A: this need to be done in an other loop
-				#to_bottom=$(head -n $i $TODO_LIST_FILE|tail -1)
-				#sed -i ${i},${i}d $TODO_LIST_FILE
-				#echo $to_bottom >> $TODO_LIST_FILE
+for i in ${args_x[@]}
+	do
+		sed -i ${i},${i}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
+		head -n $i $TODO_LIST_FILE|tail -1
+		ENTRY="$(sed -n ${i},${i}p $TODO_LIST_FILE)"
+		sed -i ${i},${i}d $TODO_LIST_FILE
+		echo "${ENTRY[*]}" >> $TODO_LIST_FILE
 						
 
-			done
-fi
+	done
 }
 
 unmark_entry()
@@ -216,3 +208,4 @@ exit 0
 #get done entries to the bottom of the list and undone back up to the head 
 #option:
 #-s can only use to show just lines matching a pattern
+#check whether an entry exists. first check for noninteger values in users input than check wheterh such line exists
