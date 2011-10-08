@@ -254,3 +254,4 @@ exit 0
 ##rewrite the JOBFILE with the new $REASON
 ##at -f $JOBFILE && set new JOBNUMFILE
 #same for the $WARN time varibale and the -m option^^
+#execute a bashscript from atfile which has is able to execute zenity
