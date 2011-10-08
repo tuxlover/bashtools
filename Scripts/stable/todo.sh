@@ -4,6 +4,24 @@
 BAK=$HOME/.todo.lst.bak
 TODO_LIST_FILE=$HOME/.todo.lst
 
+
+backup_list()
+{
+cp -u $TODO_LIST_FILE $BAK	
+}
+
+restore_list()
+{
+if [ ! -e $BAK ]
+	then
+		echo "I am sorry. There is no backupfile"
+		echo "next time create one by using -B before messing something up."
+	else
+		cp -u $BAK $TODO_LIST_FILE
+fi
+}
+
+
 add_entry()
 {
 if [ ! -f $TODO_LIST_FILE ]
@@ -137,6 +155,8 @@ echo "-x: mark an entry as done. Example: todo -x 3 will mark the entry number 3
 echo "-p: purge the todo list, remove all entries from the todo list"
 echo "-pp: purge and remove the .todo.lst file"
 echo "-h: show this help"
+echo "-B: make a backupcopy of your current todo list"
+echo "-R restore the copy from your backupcopy if you have one"
 }
 
 #begin options
@@ -157,7 +177,7 @@ elif [ $1 == "-pp"   ] 2> /dev/null
 else
 
 
-	while getopts "dhorsa:m:u:x:" opt
+	while getopts "dhorsBRa:m:u:x:" opt
 		do
 			case $opt in 
 				a) 	#use this construct if you want parsing more then one argument to this option
@@ -193,6 +213,10 @@ else
 					args=$(echo $*)
 					mark_entry
 					break
+					;;
+				B) backup_list
+					;;
+				R) restore_list
 			esac
 		done
 	shift $(($OPTIND - 1))	
@@ -203,9 +227,17 @@ exit 0
 
 #TODO: disable the noclobber option if this was enabled
 #calling two or more options at once does not make any sense	
-#mark done entries in green and undone in black
 #give tasks a priority and sort them regarding to their priority
 #get done entries to the bottom of the list and undone back up to the head 
 #option:
 #-s can only use to show just lines matching a pattern
 #check whether an entry exists. first check for noninteger values in users input than check wheterh such line exists
+###Feature Request by SadoneY:
+#highlight the importence of entries by using different collors:
+#done entires are colored and shown in green normal and flagged with -x
+#open normal entires with no priority are uncolered and bold [o]
+#open important entries are colored yellow and bold and flagged with -i [i]
+#open very important entries are colored red and bold and flagged with -I [I]
+#unmark entries like allways with -u
+#Show important with -e only importent and -E only important and very important
+#than sort them in this apperance I i o x or show them in reverse order -S
