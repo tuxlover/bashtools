@@ -107,7 +107,8 @@ echo -e '\t \t \t \t \E[31mfailure'; tput sgr0
 
 ###functions end here
 
-root_check && killall -1 rsyslogd
+root_check 
+killall -1 rsyslogd
 
 exit 0
 
