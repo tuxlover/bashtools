@@ -14,8 +14,8 @@ restore_list()
 {
 if [ ! -e $BAK ]
 	then
-		echo "I am sorry. There is no backupfile"
-		echo "next time create one by using -B before messing something up."
+		echo "I am sorry. There is no backupfile."
+		echo "Next time create one by using -B before messing something up."
 	else
 		cp -u $BAK $TODO_LIST_FILE
 fi
@@ -66,8 +66,7 @@ fi
 }
 
 modify_entry()
-{
-	
+{	
 #first read in the entry by using sed and get it into a variable
 #Since the last two records of field are the markers, shorten the NF variable will cut off the markers
 ENTRY="$(sed -n ${OPTARG},${OPTARG}p $TODO_LIST_FILE|awk '{NF=NF-2;print $0}')"
@@ -84,20 +83,18 @@ mark_entry()
 {
 #TODO:
 #check whether entry is marked corectly
+
+#we are setting a new variable
 args_x=$(echo "$OPTARG ${args[*]}")	
 
-
-#first test whether there are any more arguments
-#and loop over the rest of the given arguments
+#loop over the entries
 for i in ${args_x[@]}
 	do
 		sed -i ${i},${i}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
 		head -n $i $TODO_LIST_FILE|tail -1
 		ENTRY="$(sed -n ${i},${i}p $TODO_LIST_FILE)"
 		sed -i ${i},${i}d $TODO_LIST_FILE
-		echo "${ENTRY[*]}" >> $TODO_LIST_FILE
-						
-
+		echo "${ENTRY[*]}" >> $TODO_LIST_FILE					
 	done
 }
 
@@ -105,20 +102,16 @@ unmark_entry()
 {
 #TODO: 
 #check whether entry is marked corectly
-sed -i ${OPTARG},${OPTARG}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE 
-head -n $OPTARG  $TODO_LIST_FILE |tail -1
 
-#first test whether there are any more arguments
-#and loop over the rest of the given arguments
-if [ ! -z "$args"  ]
-	then
-		for i in ${args[@]}
-			do
-				sed -i ${i},${i}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE 
-				head -n $i $TODO_LIST_FILE|tail -1
-			done
-fi
+#we are setting a new varibale
+args_u=$(echo "$OPTARG ${args[*]}")
 
+#loop over the entriess
+for i in ${args_u[@]}
+	do
+		sed -i ${i},${i}s_'\[x\]'_'\[o\]'_ $TODO_LIST_FILE 
+		head -n $i $TODO_LIST_FILE|tail -1
+	done
 }
 
 remove_marked()
@@ -217,6 +210,8 @@ else
 				B) backup_list
 					;;
 				R) restore_list
+					;;
+				*) help_me
 			esac
 		done
 	shift $(($OPTIND - 1))	
@@ -235,7 +230,7 @@ exit 0
 ###Feature Request by SadoneY:
 #highlight the importence of entries by using different collors:
 #done entires are colored and shown in green normal and flagged with -x
-#open normal entires with no priority are uncolered and bold [o]
+#open normal entries with no priority are uncolered and bold [o]
 #open important entries are colored yellow and bold and flagged with -i [i]
 #open very important entries are colored red and bold and flagged with -I [I]
 #unmark entries like allways with -u
