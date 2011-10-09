@@ -33,7 +33,7 @@ echo "becasue etc-keeper is still under development. the only way to to restore 
 check_tools()
 {
 #checking git
-git --version &> /dev/null && HAS_GIT="yes"
+git --version &> /dev/null && HAS_GIT="yes" || HAS_GIT="no"
 if [ $HAS_GIT != "yes" ]
 	then
 		echo -e '\E[31m git not installed'
