@@ -107,10 +107,7 @@ echo -e '\t \t \t \t \E[31mfailure'; tput sgr0
 
 ###functions end here
 
-root_check
+root_check && killall -1 rsyslogd
 
 exit 0
 
-
-#TODO:
-#restart the syslog daemon
