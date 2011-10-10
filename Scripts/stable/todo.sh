@@ -22,6 +22,30 @@ fi
 }
 
 
+test_line()
+{
+for c in ${check_args[@]}
+	do 
+		if [ ! $(echo "$c" | grep -E "^[0-9]+$") ]
+			then
+				echo "NAL: $c is not a line"
+				exit 1
+		fi
+
+
+
+		LINE=$(nl $TODO_LIST_FILE|awk '{print $1}'|grep -E ^${c} 2> /dev/null || echo "NAL")
+		if [ "$LINE" == "NAL"  ]
+			then
+				echo "NAL: $c is not a line"
+				exit 1
+		fi
+	done
+
+	
+
+}
+
 add_entry()
 {
 if [ ! -f $TODO_LIST_FILE ]
@@ -66,7 +90,9 @@ fi
 }
 
 modify_entry()
-{	
+{
+check_args=${OPTARG}
+test_line
 #first read in the entry by using sed and get it into a variable
 #Since the last two records of field are the markers, shorten the NF variable will cut off the markers
 ENTRY="$(sed -n ${OPTARG},${OPTARG}p $TODO_LIST_FILE|awk '{NF=NF-2;print $0}')"
@@ -86,7 +112,8 @@ mark_entry()
 
 #we are setting a new variable
 args_x=$(echo "$OPTARG ${args[*]}")	
-
+check_args=$(echo "${args_x[*]}")
+test_line
 #loop over the entries
 for i in ${args_x[@]}
 	do
@@ -105,6 +132,8 @@ unmark_entry()
 
 #we are setting a new varibale
 args_u=$(echo "$OPTARG ${args[*]}")
+check_args=$(echo "${args_u[*]}")
+test_line
 
 #loop over the entriess
 for i in ${args_u[@]}
