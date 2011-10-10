@@ -1,7 +1,7 @@
 A=10
 until [ $A -eq 0 ] 
 do 
-((A -=1 )) 
+A=$((A -=1 )) 
 sleep 1
 clear
 echo $A 
