@@ -33,7 +33,7 @@ computer_info
 exit 0
 
 
-
+#show all installed modules and there coresponding functions
 #+Operating System
 #+User Name
 #+Date and Time
