@@ -1,0 +1,2 @@
+ nl /home/l1zard/.todo.lst|awk '{print }'|grep -E ^70 || echo does not exist
+
