@@ -377,7 +377,7 @@ if [ ! -s $BACKUPDIR/content.bak ]
 	else
 		mkdir $COMPAREDIR
 		rsync -rtpog --delete -clis $BACKUPDIR $COMPAREDIR	
-		rsync -rtpog --delete -clis /etc/ $COMPAREDIR/etc/
+		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE /etc/ $COMPAREDIR/etc/
 fi
 	
 check_perms
