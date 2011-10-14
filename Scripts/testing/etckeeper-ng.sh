@@ -381,6 +381,7 @@ if [ ! -s $BACKUPDIR/content.bak ]
 fi
 	
 check_perms
+status_check="$?"
 cd $COMPAREDIR
 git checkout master
 
@@ -394,18 +395,22 @@ until  [ "$lof" == 0  ]
 			then
 				mod_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "modified file: $mod_file"
+				status_check="2"
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
 			then
 				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "deleted file: $del_file"
+				status_check="3"
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
 			then
 				a_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "file was allready added: $a_file"
+				status_check="4"
 		elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
 			then
 				ren_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
-				echo "renamed file: $ren_file"			
+				echo "renamed file: $ren_file"
+				status_check=5			
 		else
 				new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "new file: $new_file"
@@ -414,6 +419,7 @@ until  [ "$lof" == 0  ]
 	done
 
 rm -rf $COMPAREDIR 
+rm $git_status_file
 }
 
 check_perms()
