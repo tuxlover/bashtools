@@ -577,3 +577,4 @@ shift `expr $OPTIND - 1`
 exit 0
 #Todo:
 #use return values and do checks before reading options
+#report of changed files in diff report file when found in function compare
