@@ -41,9 +41,6 @@ for c in ${check_args[@]}
 				exit 1
 		fi
 	done
-
-	
-
 }
 
 add_entry()
@@ -248,6 +245,8 @@ else
 fi
 
 exit 0
+
+#BUG: When passed !! as an argument the script will excecute the last command in bash an tail this command
 
 #TODO: disable the noclobber option if this was enabled
 #calling two or more options at once does not make any sense	
