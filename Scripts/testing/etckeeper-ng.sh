@@ -575,7 +575,12 @@ while getopts ibclhe:r: opt
 shift `expr $OPTIND - 1`
 
 exit 0
+
 #Todo:
 #use return values and do checks before reading options
 #report of changed files in diff report file when found in function compare
 #use a config file for configuring how etckeeper behaves
+#dont remove exlcudefile when reinitializing with -i
+#no nedd to check permissions twice in -c and -r
+#The restore option is still broken
+
