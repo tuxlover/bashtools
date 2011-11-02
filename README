@@ -101,7 +101,7 @@ testing/etckeeper-ng		the idea of etckeeper reborn			stable but needs testing
 
 testing/logusers		log users and their activity			unknown needs testing	
 
-testing/scandisk		script to use with udev scan files		might work needs testing
+testing/scandisk		script to use with udev scan files		needs testing (works for me)
 				before allowing access to a media
 
 testing/swapmore		extend swap swap temporarly			needs testing (works for me)
@@ -116,7 +116,7 @@ idea/emesg			filter and find specific words in		idea
 idea/git-ignore			simply add files to be ignored from		idea
 				git tracking 
 		
-idea/irpm			iintellegent handle rpm	based on		idea	
+idea/irpm			intellegent handle rpm	based on		idea	
 				the states of the rpm to be installed
 				and the one allready installed
 
