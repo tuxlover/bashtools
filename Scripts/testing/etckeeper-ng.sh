@@ -583,4 +583,5 @@ exit 0
 #dont remove exlcudefile when reinitializing with -i
 #no nedd to check permissions twice in -c and -r
 #The restore option is still broken
-
+#add a comment funtion if you only need to comment your work for example if you changed files which where exlcluded by excludefile
+#add a option to only add files which has changed instead of backup the whole etc every time
