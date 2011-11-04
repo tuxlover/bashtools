@@ -131,7 +131,7 @@ check_tools
 DATE=$(date +%F-%H-%M)
 
 #check if an older backup already exists
-if [ -s $BACKUPDIR/content.bak  ]
+if [ -s $BACKUPDIR/content.lst  ]
 	then
 		read -p "it seems there already exists an backup. overwrite?(y)" ANSWER
 		${ANSWER:="no"} 2> /dev/null
@@ -152,10 +152,10 @@ git config --global user.email "$USER@$HOSTNAME" 2> /dev/null || :
 if [ ! -d $BACKUPDIR ]
 	then	
 		mkdir -p $BACKUPDIR	
-		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak
+		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.lst
 
 	else
-		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak		
+		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.lst		
 fi
 
 mkdir $BACKUPDIR/etc
@@ -183,9 +183,9 @@ cd $BACKUPDIR
 git init
 if [ ! -e $EXCLUDEFILE ]
 then
-	git add etc/ && git add content.bak && git commit -m "$USER $DATE ${COMMENT[*]}"
+	git add etc/ && git add content.lst && git commit -m "$USER $DATE ${COMMENT[*]}"
 else
-	git add etc/ && git add content.bak && git add $EXCLUDEFILE && git commit -m "$USER $DATE ${COMMENT[*]}"
+	git add etc/ && git add content.lst && git add $EXCLUDEFILE && git commit -m "$USER $DATE ${COMMENT[*]}"
 fi
 }
 
@@ -198,7 +198,7 @@ check_tools
 
 DATE=$(date +%F-%H-%M)
 #check if the initial backup exists
-if [ ! -s $BACKUPDIR/content.bak ]
+if [ ! -s $BACKUPDIR/content.lst ]
 	then
 		echo "No initial backup found"
 		read -p "Would you like to do an initial backup now?(y)" ANSWER
@@ -274,10 +274,10 @@ rm $git_status_file
 #create new content file only when new files were added or permissions have changed
 if [[ $git_return -eq 1 || $return_check -eq 1 ]]
 	then
-		#clean up the old content.bak
-		cat /dev/null > $BACKUPDIR/content.bak
-		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.bak
-		git add $BACKUPDIR/content.bak
+		#clean up the old content.lst
+		cat /dev/null > $BACKUPDIR/content.lst
+		find /etc/ -exec stat -c "%n %a %U %G" {} \; >> $BACKUPDIR/content.lst
+		git add $BACKUPDIR/content.lst
 fi
 		
 while [ -z "$COMMENT" ]
@@ -361,7 +361,7 @@ backup_git
 compare()
 {
 #check if the initial backup exists
-if [ ! -s $BACKUPDIR/content.bak ]
+if [ ! -s $BACKUPDIR/content.lst ]
 	then
 		echo "No initial backup found"
 		read -p "Would you like to do an initial backup now?(y)" ANSWER
@@ -427,11 +427,11 @@ check_perms()
 return_check=0
 echo "checking Permissions ..."	
 	
-count=$(wc -l $BACKUPDIR/content.bak | awk '{print $1}')
+count=$(wc -l $BACKUPDIR/content.lst | awk '{print $1}')
 
 until [ $count == 0  ]
 	do
-		FILE=$(tail -n ${count} $BACKUPDIR/content.bak|head -1)
+		FILE=$(tail -n ${count} $BACKUPDIR/content.lst|head -1)
 		NAME=$(echo $FILE|awk '{print $1}')
 		PERMS=$(echo $FILE|awk '{print $2}')
 		OWNU=$(echo $FILE|awk '{print $3}')
@@ -491,11 +491,11 @@ check_perms_S()
 return_check=0
 echo "checking Permissions ..."	
 	
-count=$(wc -l $BACKUPDIR/content.bak | awk '{print $1}')
+count=$(wc -l $BACKUPDIR/content.lst | awk '{print $1}')
 
 until [ $count == 0  ]
 	do
-		FILE=$(tail -n ${count} $BACKUPDIR/content.bak|head -1)
+		FILE=$(tail -n ${count} $BACKUPDIR/content.lst|head -1)
 		NAME=$(echo $FILE|awk '{print $1}')
 		PERMS=$(echo $FILE|awk '{print $2}')
 		OWNU=$(echo $FILE|awk '{print $3}')
