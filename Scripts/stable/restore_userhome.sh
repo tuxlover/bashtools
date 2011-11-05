@@ -5,6 +5,10 @@ LOGFILE="$HOME/.restore_$USR.log"
 USR=$2
 BACK=$1
 
+#avoiding errors by using standard user and destination
+${USR:=$USER} 2> /dev/null
+${BACK:="/mnt/Backup/"} 2> /dev/null
+
 if [ -d /proc/acpi/battery  ]
 	then
 		#we need to enable pipefail here because we test the exitstatus of grep 
@@ -45,4 +49,4 @@ fi
 
 exit 0
 
-
+#Todo: Test wheher mount point exists and has enough space

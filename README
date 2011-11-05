@@ -82,6 +82,9 @@ devel/package_state		safes the state and all rpms currently		in development (wor
 devel/rootcheck			checks the diff of last time 			in development
 				installed rpms
 
+devel/checkboot			create and verify sha512 or md5sum		partly working but rc script needed
+				over the boot partition
+
 devel/wipefree(2) 		wipe free diskspace with garbage		in development
 
 testing/cleancheck		find and report security issues			stable but nearly dead

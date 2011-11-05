@@ -5,6 +5,10 @@ DEST=$1
 USR=$2
 LOGFILE="$HOME/.backup_$USR.log"
 
+#avoiding errors by using standard user and destination
+${USR:=$USER} 2> /dev/null
+${DEST:="/mnt/Backup/"} 2> /dev/null
+
 if [ -d /proc/acpi/battery  ]
 	then
 		#we need to enable pipefail here because we test the exitstatus of grep 
@@ -44,4 +48,4 @@ fi
 
 exit 0
 
-
+#Check whether the mounted directory is a valid mountpoint and has enough space 
