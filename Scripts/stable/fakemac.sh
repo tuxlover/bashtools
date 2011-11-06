@@ -111,5 +111,5 @@ case "$1" in
 	;;
 	"reload") fake_reload && all_faked || oops
 	;;
-
+	*) echo "I dont understand $1. Usage: $0  [start] [stop] [restart] [reload] [status]" && exit 1
 esac
