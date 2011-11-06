@@ -13,7 +13,7 @@
 
 
 devices=(eth0 eth1 )
-FAKE="/usr/local/bin/macchanger"
+FAKE=$(which macchanger)
 
 fake_start()
 {
