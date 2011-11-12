@@ -585,3 +585,5 @@ exit 0
 #The restore option is still broken
 #add a comment funtion if you only need to comment your work for example if you changed files which where exlcluded by excludefile
 #add a option to only add files which has changed instead of backup the whole etc every time
+#Bug:
+#having german umlaute in datafiles gets data not to be commited
