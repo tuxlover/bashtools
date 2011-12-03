@@ -194,18 +194,54 @@ fi
 
 backup_git_single()
 {
+DATE=$(date +%F-%H-%M)
 git_return=0
 check_root
 check_tools
 # these Option requires an argument so write a check whether $OPTARG is NULL and has a valid value
 # a valid value is a file or a path in one of the configured directories
 
+# actually this should never happen
+if [ -z $OPTARG ]
+	then
+		echo "Option needs an argument"
+		exit 0
+fi
+
+# convert OPTARG to a string value
+$OPTARG="$OPTARG"
+# check if we have a starting substring /etc/ and is at leest a substing of a lenght 6th
+if [[ ${OPTARG:0:5} != "/etc/" && ! -z ${OPTARG:6:1} ]]
+	then
+		echo "-f: needs valid path to a file stored in /etc"
+		exit 0
+	else
+		rsync -rtpog -clis $OPTARG $BACKUPDIR/$OPTARG
+fi
+
+
+# TODO:
+# If file is in ignorefile we dont allow backup until removed from this file
+# check if file exists in content.lst and if not add it
+# hint: awk '{print $1}' content.lst |grep --color '^/etc/resolv.conf$'
+
+while [ -z "$COMMENT" ]
+	        do
+			echo "please comment your commit and press Enter when finished:"
+			read -e COMMENT
+		done
+
+git commit -m "$USER $DATE ${COMMENT[*]}"
+#and return back to master branch to make sure we succeed with no errors
+git checkout master || return 1
+							
+
+
 # OPTARG than must check if this file exists in one of the supported direcotries 
 # those far this is only /etc
 
 # we dont call the check_perms function 
 # we test whether this file has changed and if so check in this change
-
 }
 
 #to a branched backup
