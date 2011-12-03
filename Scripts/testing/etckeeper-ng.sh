@@ -1,11 +1,13 @@
 #!/bin/bash
 
-#etckeeper-ng
+# fskeeper formaly known as etckeeper-ng
 
 #change the value BACKUPDIR if $HOME does not fit your needs
-BACKUPDIR="/root/.etcbackup/"
+BACKUPDIR="/root/.etcbackup"
 COMPAREDIR="/root/.etccomp"
 EXCLUDEFILE="/root/.etcbackup/excludes"
+LOGFILE="/root/fskeeper.log"
+
 
 #This Programm should be able to backup and restore a complete etc-tree
 #It uses git and rsync to archive this
@@ -24,7 +26,7 @@ echo "-c: check the /etc direcotry for changes"
 echo "-C: check and restore permissions without asking"
 echo "-e example: exclude /etc/exaple from versioning"
 echo "-l: lists all existing branches"
-echo "-r HEAD|<Commit> restore /etc from HEAD or a specific commit"
+echo "-r HEAD|<Commit> restore /etc from HEAD or a specific commit (broken)"
 echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
 }
 
@@ -189,10 +191,26 @@ else
 fi
 }
 
+
+backup_git_single()
+{
+git_return=0
+check_root
+check_tools
+# these Option requires an argument so write a check whether $OPTARG is NULL and has a valid value
+# a valid value is a file or a path in one of the configured directories
+
+# OPTARG than must check if this file exists in one of the supported direcotries 
+# those far this is only /etc
+
+# we dont call the check_perms function 
+# we test whether this file has changed and if so check in this change
+
+}
+
 #to a branched backup
 backup_git()
 {
-git_return=0
 check_root
 check_tools
 
@@ -216,8 +234,14 @@ fi
 cd $BACKUPDIR
 git checkout master
 
+git_return=0
 check_perms
 return_check=$?
+set_mod=0
+set_del=0
+set_add=0
+set_ren=0
+set_new=0
 
 #check if exluce file exists
 if [ ! -e $EXCLUDEFILE ]
@@ -240,6 +264,13 @@ until  [ "$lof" == 0  ]
 				mod_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "modified file: $mod_file"
 				git add $mod_file
+					
+					if [ $set_mod  -eq 0 ]
+						then
+							return_check=$((return_check+=2 ))
+							set_mod=1
+					fi			
+
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
 			then
 				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
@@ -250,29 +281,59 @@ until  [ "$lof" == 0  ]
 						echo "$del_file was excluded by exlcude rule and will be removed from backup"
 				fi
 					git rm $del_file
-					git_return=1
+				
+				if [ $set_del -eq 0 ]
+					then
+						return_check=$((return_check+=4 ))
+						set_del=1
+				fi
+
+
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
 			then
 				a_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "file was allready added: $a_file"
+
+				if [ $set_add -eq 0 ]
+					then
+						return_check=$((return_check+=8 ))
+						set_add=1
+				fi
+
+
 		elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
 			then
 				ren_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "renamed file: $ren_file"
 				git add $ren_file
+
+				if [ $set_ren -eq 0 ]
+					then
+						return_check=$((return_check+=16 ))
+						set_ren=1
+				fi
+
 			else
 				new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "new file: $new_file"
 				git add $new_file
-				git_return=1
+				
+				if [ $set_new -eq 0 ]
+					then
+						return_check=$((return_ceck+=32 ))
+						set_new=1
+				fi
+
 		fi
-		lof=$((lof-=1))
+		lof=$((lof-=1 ))
 	done
+
+echo "Check Code is $return_check"
 #remove untracked file git_status_file
 rm $git_status_file
 
 #create new content file only when new files were added or permissions have changed
-if [[ $git_return -eq 1 || $return_check -eq 1 ]]
+if [[ $return_check -eq 1 || $return_check -ge 32 ]]
 	then
 		#clean up the old content.lst
 		cat /dev/null > $BACKUPDIR/content.lst
@@ -293,70 +354,70 @@ git checkout master || return 1
 }
 
 #restore from a certain commit
-restore_git()
-{
-check_perms_S
+#restore_git()
+#{
+#check_perms_S
 
-if [ "$OPTARG" == "HEAD" ]
-		then
-			cd $BACKUPDIR
-			git checkout master
-			git reset --hard
-			git_status_file="/tmp/git_status_file"
-			git status -s > $git_status_file
-			lof=$(wc -l $git_status_file|awk '{print $1}')
-			until  [ "$lof" == 0  ]
-				do	
-					if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
-						then
-							:
-					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
-						then
-							:
-					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
-						then
-							:
-					elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
-						then
-							:
-					else
-						new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
-						rm $new_file
-					fi
-					lof=$((lof-=1))
-				done
-		else
-			cd $BACKUPDIR
-			git checkout master
-			git reset --hard "$OPTARG" || echo "This commit does not exist. Use -l to show commits."
-			git_status_file="/tmp/git_status_file"
-			git status -s > $git_status_file
-			of=$(wc -l $git_status_file|awk '{print $1}')
-			until  [ "$lof" == 0  ]
-				do	
-					if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
-						then
-							:
-					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
-						then
-							:
-					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
-						then
-							:
-					elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
-						then
-							:
-					else
-						new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
-						rm $new_file
-					fi
-					lof=$((lof-=1))
-				done
-fi
-rsync -rtpog -clis $BACKUPDIR/etc/ /etc/
-COMMENT=(backup after restore)
-backup_git
-}
+#if [ "$OPTARG" == "HEAD" ]
+#		then
+#			cd $BACKUPDIR
+#			git checkout master
+#			git reset --hard
+#			git_status_file="/tmp/git_status_file"
+#			git status -s > $git_status_file
+#			lof=$(wc -l $git_status_file|awk '{print $1}')
+#			until  [ "$lof" == 0  ]
+#				do	
+#					if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
+#						then
+#							:
+#					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
+#						then
+#							:
+#					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
+#						then
+#							:
+#					elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
+#						then
+#							:
+#					else
+#						new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+#						rm $new_file
+#					fi
+#					lof=$((lof-=1))
+#				done
+#		else
+#			cd $BACKUPDIR
+#			git checkout master
+#			git reset --hard "$OPTARG" || echo "This commit does not exist. Use -l to show commits."
+#			git_status_file="/tmp/git_status_file"
+#			git status -s > $git_status_file
+#			of=$(wc -l $git_status_file|awk '{print $1}')
+#			until  [ "$lof" == 0  ]
+#				do	
+#					if [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "M" 2> /dev/null ]
+#						then
+#							:
+#					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
+#						then
+#							:
+#					elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
+#						then
+#							:
+#					elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
+#						then
+#							:
+#					else
+#						new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
+#						rm $new_file
+#					fi
+#					lof=$((lof-=1))
+#				done
+#fi
+#rsync -rtpog -clis $BACKUPDIR/etc/ /etc/
+#COMMENT=(backup after restore)
+#backup_git
+#}
 
 compare()
 {
@@ -379,9 +440,16 @@ if [ ! -s $BACKUPDIR/content.lst ]
 		rsync -rtpog --delete -clis $BACKUPDIR $COMPAREDIR	
 		rsync -rtpog --delete -clis --exclude-from=$EXCLUDEFILE /etc/ $COMPAREDIR/etc/
 fi
-	
+
+return_check=0
 check_perms
-status_check="$?"
+return_check=$?
+set_mod=0
+set_del=0
+set_add=0
+set_ren=0
+set_new=0
+
 cd $COMPAREDIR
 git checkout master
 
@@ -395,28 +463,90 @@ until  [ "$lof" == 0  ]
 			then
 				mod_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "modified file: $mod_file"
-				status_check="2"
+				
+				if [ $set_mod -eq 0 ]
+					then
+						return_check=$((return_check+=2))
+						set_mod=1
+				fi
+
+
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "D"  2> /dev/null ]
 			then
 				del_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "deleted file: $del_file"
-				status_check="3"
+				
+				if [ $set_del -eq 0 ]
+					then
+						return_check=$((return_check+=4))
+						set_del=1
+				fi
+
+
 		elif [ $(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "A" 2> /dev/null ]
 			then
 				a_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "file was allready added: $a_file"
-				status_check="4"
+				
+				if [ $set_add -eq 0 ]
+					then
+						return_check=$((return_check+=8))
+						set_add=1
+				fi
+
 		elif [$(tail -n $lof $git_status_file|head -1|awk '{print $1}') == "R" 2> /dev/null ]
 			then
 				ren_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
-				echo "renamed file: $ren_file"
-				status_check=5			
+				echo "renamed file: $ren_file"		
+
+				if [ $set_ren -eq 0 ]
+					then
+						return_check=$((return_check+=16))
+						set_ren=1
+				fi
+
+
 		else
 				new_file=$(tail -n $lof $git_status_file|head -1|awk '{print $2}')
 				echo "new file: $new_file"
+
+				if [ $set_new -eq 0 ]
+					then
+						return_check=$((return_check+=32))
+						set_new=1
+				fi
+
+				# TODO: print new files here and log to $LOGFILE
+			
 		fi
 		lof=$((lof-=1))
 	done
+
+	return_array=(32 16 8 4 2 1 0)
+	has_mod=$return_check
+
+	for i in ${return_array[@]}
+		do
+			if [ $return_check -eq $i ]
+				then
+
+					if [ $i -eq 2  ]
+						then
+							PAGER=cat git diff $COMPAREDIR >> $LOGFILE
+					fi
+					break
+								
+			elif [ $return_check -gt $i ]	
+				then
+					has_mod=$((has_mod - $i))
+				
+					if [ $i -eq 2  ]
+						then
+							PAGER=cat git diff $COMPAREDIR >> $LOGFILE
+					fi
+			fi
+		done
+						
 
 rm -rf $COMPAREDIR 
 rm $git_status_file
@@ -547,7 +677,7 @@ PAGER=cat git log
 }
 
 #options starts here
-while getopts ibclhe:r: opt
+while getopts ibcClhe: opt
 	do
 		case "$opt" in
 			i) initial_git
@@ -567,8 +697,6 @@ while getopts ibclhe:r: opt
 			;;
 			h) get_help
 			;;
-			r) restore_git
-			;;
 			\?) get_help
 		esac
 	done
@@ -576,14 +704,18 @@ shift `expr $OPTIND - 1`
 
 exit 0
 
-#Todo:
-#use return values and do checks before reading options
-#report of changed files in diff report file when found in function compare
-#use a config file for configuring how etckeeper behaves
-#dont remove exlcudefile when reinitializing with -i
-#no nedd to check permissions twice in -c and -r
-#The restore option is still broken
-#add a comment funtion if you only need to comment your work for example if you changed files which where exlcluded by excludefile
-#add a option to only add files which has changed instead of backup the whole etc every time
-#Bug:
-#having german umlaute in datafiles gets data not to be commited
+# Todo:
+# use return values and do checks before reading options
+# report of changed files in diff report file when found in function compare
+# use a config file for configuring how etckeeper behaves
+# dont remove exlcudefile when reinitializing with -i
+# The restore option is still broken
+# add a comment funtion if you only need to comment your work for example if you changed files which where exlcluded by excludefile
+# add an option to only add files which has changed instead of backup the whole etc every time
+# make fskeeper use an external config file which gets sourced 
+# make fskkeper use more than the /etc directory
+# make the config file options work
+
+# Bug:
+# having german umlaute in datafiles gets data not to be commited
+# no nedd to check permissions twice in -c and -r
