@@ -3,10 +3,10 @@
 # fskeeper formaly known as etckeeper-ng
 
 #change the value BACKUPDIR if $HOME does not fit your needs
-BACKUPDIR="/root/.etcbackup"
-COMPAREDIR="/root/.etccomp"
+BACKUPDIR="/root/.etcbackup/"
+COMPAREDIR="/root/.etccomp/"
 EXCLUDEFILE="/root/.etcbackup/excludes"
-LOGFILE="/root/fskeeper.log"
+LOGFILE="/root/keeper.log"
 
 
 #This Programm should be able to backup and restore a complete etc-tree
@@ -421,6 +421,12 @@ git checkout master || return 1
 
 compare()
 {
+#delete old logfile if exising
+if [ -f $LOGFILE ]
+	then
+		rm $LOGFILE
+fi
+
 #check if the initial backup exists
 if [ ! -s $BACKUPDIR/content.lst ]
 	then
