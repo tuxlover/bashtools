@@ -209,7 +209,7 @@ if [ -z $OPTARG ]
 fi
 
 # convert OPTARG to a string value
-$OPTARG="$OPTARG"
+OPTARG="$OPTARG"
 # check if we have a starting substring /etc/ and is at leest a substing of a lenght 6th
 if [[ ${OPTARG:0:5} != "/etc/" && ! -z ${OPTARG:6:1} ]]
 	then
@@ -217,13 +217,23 @@ if [[ ${OPTARG:0:5} != "/etc/" && ! -z ${OPTARG:6:1} ]]
 		exit 0
 	else
 		rsync -rtpog -clis $OPTARG $BACKUPDIR/$OPTARG
+
+		# check if file exists in content.lst and if not add it
+		awk '{print $1}' $BACKUPDIR/content.lst| grep "^$OPTARG$" &> /dev/null && inlist="yes" || inlist="no"
+		
+		if [ $inlist == "no" ]
+			then
+				 stat -c "%n %a %U %G" $OPTARG >> $BACKUPDIR/content.lst
+				 git add $BACKUPDIR/content.lst
+
+		fi
 fi
 
 
 # TODO:
 # If file is in ignorefile we dont allow backup until removed from this file
-# check if file exists in content.lst and if not add it
-# hint: awk '{print $1}' content.lst |grep --color '^/etc/resolv.conf$'
+cd $BACKUPDIR
+git add $BACKUPDIR/$OPTARG
 
 while [ -z "$COMMENT" ]
 	        do
@@ -719,7 +729,7 @@ PAGER=cat git log
 }
 
 #options starts here
-while getopts ibcClhe: opt
+while getopts ibcClhe:f: opt
 	do
 		case "$opt" in
 			i) initial_git
@@ -728,6 +738,8 @@ while getopts ibcClhe: opt
 				args=$(echo $*)
 				exclude
 				break
+			;;
+			f) backup_git_single 
 			;;
 			b) backup_git
 			;;
