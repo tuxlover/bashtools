@@ -784,11 +784,11 @@ exit 0
 # dont remove exlcudefile when reinitializing with -i
 # The restore option is still broken
 # add a comment funtion if you only need to comment your work for example if you changed files which where exlcluded by excludefile
-# add an option to only add files which has changed instead of backup the whole etc every time
 # make fskeeper use an external config file which gets sourced 
 # make fskkeper use more than the /etc directory
 # make the config file options work
+# option -s to list excludes, -d to delete excludes and -E to edit excludes 
+
 
 # Bug:
 # having german umlaute in datafiles gets data not to be commited
-# no nedd to check permissions twice in -c and -r
