@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# fskeeper formaly known as etckeeper-ng
+# etckeeper-ng
+# will be renamed to fskeeper 
 
 #change the value BACKUPDIR if $HOME does not fit your needs
 BACKUPDIR="/root/.etcbackup/"
@@ -9,13 +10,13 @@ EXCLUDEFILE="/root/.etcbackup/excludes"
 LOGFILE="/root/keeper.log"
 
 
-#This Programm should be able to backup and restore a complete etc-tree
-#It uses git and rsync to archive this
-#After backup has completed a complete restore should easy be possible 
+# This Programm should be able to backup and restore a complete etc-tree
+# It uses git and rsync to archive this
+# After backup has completed a complete restore should easy be possible 
 
-#WARNING: work in progress. for details read the todo section on the bottom of the script
+# WARNING: work in progress. for details read the todo section on the bottom of this script
 
-#help function starts here
+# help function starts here
 get_help()
 {
 echo "$0 [ -i ] [ -b ] [ -l ] [ -r Branch ] [ -h ]"
@@ -25,16 +26,17 @@ echo "-b: do a new branch backup. if no initiallized backup exists you will be a
 echo "-c: check the /etc direcotry for changes"
 echo "-C: check and restore permissions without asking"
 echo "-e example: exclude /etc/exaple from versioning"
+echo "-f /etc/myfile: add /etc/myfile file explicity to backup"
 echo "-l: lists all existing branches"
 echo "-r HEAD|<Commit> restore /etc from HEAD or a specific commit (broken)"
 echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
 }
 
 
-#check whether we have all needed tools installed and got acces to them
+# check whether we have all needed tools installed and got acces to them
 check_tools()
 {
-#checking git
+# checking git
 git --version &> /dev/null && HAS_GIT="yes" || HAS_GIT="no"
 if [ $HAS_GIT != "yes" ]
 	then
@@ -43,7 +45,7 @@ if [ $HAS_GIT != "yes" ]
 		exit 1
 fi
 
-#checking rsync
+# checking rsync
 rsync --version &> /dev/nul && HAS_RSYNC="yes" || HAS_RSYNC="no"
 if [ $HAS_RSYNC != "yes" ]
 		then
@@ -52,7 +54,7 @@ if [ $HAS_RSYNC != "yes" ]
 			exit 1
 fi
 
-#checking awk
+# checking awk
 awk --version &> /dev/null && HAS_AWK="yes" || HAS_AWK="no"
 if [ $HAS_AWK != "yes" ]
 	then
@@ -61,7 +63,7 @@ if [ $HAS_AWK != "yes" ]
 		exit 1
 fi
 
-#checking grep
+# checking grep
 grep --version &> /dev/null && HAS_GREP="yes" || HAS_GREP="no"
 if [ $HAS_GREP != "yes" ]
 	then
@@ -70,7 +72,7 @@ if [ $HAS_GREP != "yes" ]
 		exit 1
 fi
 
-#checking find
+# checking find
 find --version &> /dev/null && HAS_FIND="yes" || HAS_FIND="no"
 if [ $HAS_FIND != "yes" ]
 	then
@@ -79,7 +81,7 @@ if [ $HAS_FIND != "yes" ]
 		exit 1
 fi
 
-#checking stat
+# checking stat
 stat --version &> /dev/null && HAS_STAT="yes" || HAS_STAT="no"
 if [ $HAS_STAT != "yes" ]
 	then
@@ -90,7 +92,7 @@ fi
 
 }
 
-#check whether we are root
+# check whether we are root
 check_root()
 {
 if [ $UID -ne 0 ]
@@ -100,7 +102,7 @@ if [ $UID -ne 0 ]
 fi
 }
 
-#function to write exclude patterns to a file
+# function to write exclude patterns to a file
 exclude()
 {
 check_root
@@ -161,7 +163,7 @@ if [ ! -d $BACKUPDIR ]
 fi
 
 mkdir $BACKUPDIR/etc
-#check wheter we have an excludefile
+# check wheter we have an excludefile
 if [ ! -e $EXCLUDEFILE ]
 	then
 		echo "WARNING: there was no exlcudefile setup, so i exclude nothing"
@@ -180,7 +182,7 @@ while [ -z "$COMMENT" ]
 		read -e COMMENT 
 	done
 
-#doing the git action
+# doing the git action
 cd $BACKUPDIR
 git init
 if [ ! -e $EXCLUDEFILE ]
@@ -198,7 +200,7 @@ DATE=$(date +%F-%H-%M)
 git_return=0
 check_root
 check_tools
-# these Option requires an argument so write a check whether $OPTARG is NULL and has a valid value
+# this option requires an argument so write a check whether $OPTARG is NULL and has a valid value
 # a valid value is a file or a path in one of the configured directories
 
 # actually this should never happen
@@ -216,6 +218,25 @@ if [[ ${OPTARG:0:5} != "/etc/" && ! -z ${OPTARG:6:1} ]]
 		echo "-f: needs valid path to a file stored in /etc"
 		exit 0
 	else
+		# use read loop to check each line in $EXCLUDEFILE against $OPTARG
+		# Stop if such patterns matches
+		lines=$(wc -l $EXCLUDEFILE|awk '{print $1}')
+	       	until [ "$lines" == 0 ]	
+			do
+				LINE=$(head -n $lines $EXCLUDEFILE |tail -1)
+				HAS_PATTERN=$(echo "$OPTARG"|grep $LINE || echo "no")
+				if [ $HAS_PATTERN != "no" ]
+					then
+						echo "This File has been exluded by exclude pattern:"
+						echo "$HAS_PATTERN"
+						echo "check $EXCLUDEFILE to correct this."
+						echo "will exit now"
+						exit 1
+
+				fi
+			lines=$((lines-=1))
+			done 
+
 		rsync -rtpog -clis $OPTARG $BACKUPDIR/$OPTARG
 
 		# check if file exists in content.lst and if not add it
@@ -230,8 +251,6 @@ if [[ ${OPTARG:0:5} != "/etc/" && ! -z ${OPTARG:6:1} ]]
 fi
 
 
-# TODO:
-# If file is in ignorefile we dont allow backup until removed from this file
 cd $BACKUPDIR
 git add $BACKUPDIR/$OPTARG
 
@@ -242,7 +261,7 @@ while [ -z "$COMMENT" ]
 		done
 
 git commit -m "$USER $DATE ${COMMENT[*]}"
-#and return back to master branch to make sure we succeed with no errors
+# and return back to master branch to make sure we succeed with no errors
 git checkout master || return 1
 							
 
@@ -254,7 +273,7 @@ git checkout master || return 1
 # we test whether this file has changed and if so check in this change
 }
 
-#to a branched backup
+# to a branched backup
 backup_git()
 {
 check_root
@@ -276,7 +295,7 @@ if [ ! -s $BACKUPDIR/content.lst ]
 				initial_git && exit 0 || exit  && exit 0 || exit 11
 		fi				
 fi
-#first make sure we are on master
+# first make sure we are on master
 cd $BACKUPDIR
 git checkout master
 
@@ -289,7 +308,7 @@ set_add=0
 set_ren=0
 set_new=0
 
-#check if exluce file exists
+# check if exluce file exists
 if [ ! -e $EXCLUDEFILE ]
 	then
 		rsync -rtpog --delete -clis /etc/ $BACKUPDIR/etc/
@@ -298,8 +317,8 @@ if [ ! -e $EXCLUDEFILE ]
 fi
 
 
-#then track changed files
-#create a helper file which will be deleted afterwards
+# then track changed files
+# create a helper file which will be deleted afterwards
 git_status_file="/tmp/git_status_file"
 git status -s > $git_status_file
 lof=$(wc -l $git_status_file|awk '{print $1}')
