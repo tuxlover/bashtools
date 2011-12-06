@@ -26,7 +26,7 @@ echo "-b: do a new branch backup. if no initiallized backup exists you will be a
 echo "-c: check the /etc direcotry for changes"
 echo "-C: check and restore permissions without asking"
 echo "-e example: exclude /etc/exaple from versioning"
-echo "-f /etc/myfile: add /etc/myfile file explicity to backup"
+echo "-f /etc/myfile: add /etc/myfile singel file to backup"
 echo "-l: lists all existing branches"
 echo "-r HEAD|<Commit> restore /etc from HEAD or a specific commit (broken)"
 echo "becasue etc-keeper is still under development. the only way to to restore is using git and rsync by hand"
