@@ -788,7 +788,10 @@ exit 0
 # make fskkeper use more than the /etc directory
 # make the config file options work
 # option -s to list excludes, -d to delete excludes and -E to edit excludes 
-
+# Write checksums for excluded files
+# -c if no changes were made tell the user
+# colorize the output
+# -f option can take more than one argument
 
 # Bug:
 # having german umlaute in datafiles gets data not to be commited
