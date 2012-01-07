@@ -12,7 +12,7 @@
 
 
 
-devices=(eth0 eth1 )
+devices=(eth0 wlan0 )
 FAKE=$(which macchanger)
 
 fake_start()
@@ -20,14 +20,14 @@ fake_start()
 #save current status of macchanger so when stopped the default is restore
 for d in ${devices[@]}
 	do
-		${FAKE} -s $d|cut -d" " -f3 > /var/run/cur_${d}_mac 
-		chattr +i /var/run/cur_${d}_mac
+		${FAKE} -s $d|cut -d" " -f3 > /root/.run/cur_${d}_mac 
+		chattr +i /root/.run/cur_${d}_mac
 		${FAKE} -r $d	
 	done		
 				
 #creating an indicator file 
-touch /var/run/fakedmac
-chattr +i /var/run/fakedmac
+touch /root/.run/fakedmac
+chattr +i /root/.run/fakedmac
 }
 
 fake_stop()
@@ -35,15 +35,15 @@ fake_stop()
 for d in ${devices[@]}
 	do      
 		unset OLD_MAC
-		OLD_MAC=$(cat /var/run/cur_${d}_mac)
+		OLD_MAC=$(cat /root/.run/cur_${d}_mac)
 		${FAKE} -m ${OLD_MAC} $d
-		chattr -i /var/run/cur_${d}_mac
-		rm /var/run/cur_${d}_mac
+		chattr -i /root/.run/cur_${d}_mac
+		rm /root/.run/cur_${d}_mac
 	done
 
 #removing the indicator file
-chattr -i /var/run/fakedmac
-rm /var/run/fakedmac
+chattr -i /root/.run/fakedmac
+rm /root/.run/fakedmac
 }
 
 fake_reload()
@@ -58,7 +58,7 @@ for d in ${devices[@]}
 macstate()
 {
 #checking for indicator file
-if [ -f /var/run/fakedmac  ]
+if [ -f /root/.run/fakedmac  ]
 	then
 		echo -e '\E[32mAll MACS faked';tput sgr0
 	else
@@ -96,13 +96,23 @@ return 1
 }
 
 case "$1" in
-	"start") fake_start && all_faked || oops
+	"start") if [ ! -d /root/.run ]
+			then
+				mkdir /root/.run
+			fi
+		 
+	fake_start && all_faked || oops
 	;;
 	"stop") fake_stop && all_unfaked || oops
 	;;
 	"status") macstate && exit 0
 	;;
-	"restart") if [ -f /var/run/fakedmac ]
+	"restart") if [! -d /root/.run ]
+			then
+				mkdir /root/.run
+		   fi
+		
+				if [ -f /root/.run/fakedmac ]
 					then
 						fake_stop && fake_start && all_faked || oops
 					else
