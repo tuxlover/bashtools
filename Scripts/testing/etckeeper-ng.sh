@@ -778,20 +778,28 @@ shift `expr $OPTIND - 1`
 exit 0
 
 # Todo:
-# use return values and do checks before reading options
+# do the validation checks like if we have installed certain  programs, if we are root before readng the options
 # report of changed files in diff report file when found in function compare
 # use a config file for configuring how etckeeper behaves
 # dont remove exlcudefile when reinitializing with -i
 # The restore option is still broken
 # add a comment funtion if you only need to comment your work for example if you changed files which where exlcluded by excludefile
 # make fskeeper use an external config file which gets sourced 
-# make fskkeper use more than the /etc directory
 # make the config file options work
 # option -s to list excludes, -d to delete excludes and -E to edit excludes 
+#-b option
 # Write checksums for excluded files
+#-c options
+# do check for the checksums for excluded files 
 # -c if no changes were made tell the user
 # colorize the output
 # -f option can take more than one argument
+# use -u options when using -f before. so it goes like this etckeeper-ng -f /etc/bla/foor.conf; etckeeper -u
+# check if the argument is an etc file
+# -u option to update a repository 
 
 # Bug:
 # having german umlaute in datafiles gets data not to be commited
+
+
+
