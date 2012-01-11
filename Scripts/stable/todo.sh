@@ -164,7 +164,7 @@ help_me()
 {
 echo "$0 is a script for easyly maintianing a todo list"
 echo "-a: add a new entry to the todo list. Example: todo -a \"write an entry\""
-echo "-s: show all the entries in the todo list." 
+echo "-s: show all the entries in the todo list. (default if no option was passed)" 
 echo "-o: show all open entries in the todo list [o]"
 echo "-d: show all entries marked as done  [x]"
 echo "-m: modify an entry"
@@ -179,6 +179,15 @@ echo "-R restore the copy from your backupcopy if you have one"
 }
 
 #begin options
+
+#when no option was passed, show all entries in the list
+if [ -z $1  ]
+	then
+		show_list
+fi
+
+
+
 if [ $1 == "-p"  ] 2> /dev/null
 	then
 		if [ -f $TODO_LIST_FILE  ]
