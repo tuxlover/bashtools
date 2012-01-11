@@ -797,9 +797,11 @@ exit 0
 # use -u options when using -f before. so it goes like this etckeeper-ng -f /etc/bla/foor.conf; etckeeper -u
 # check if the argument is an etc file
 # -u option to update a repository 
+# -s we need to have a status option
+
 
 # Bug:
 # having german umlaute in datafiles gets data not to be commited
-
+# exluding a file by describing the absolute path does not work
 
 
