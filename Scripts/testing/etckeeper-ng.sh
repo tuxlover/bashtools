@@ -808,5 +808,4 @@ exit 0
 # having german umlaute in datafiles gets data not to be commited
 # exluding a file by describing the absolute path does not work
 # when using exclude, allready added exlude patterns will get added again
-# last when using -e with resolv.conf.* as argument
 # when using -b option and a file was excluded or deleted etckeeper does sometimes not recognize this 
