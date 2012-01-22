@@ -3,7 +3,8 @@
 # etckeeper-ng
 # will be renamed to fskeeper 
 
-#change the value BACKUPDIR if $HOME does not fit your needs
+# change these values acording to your needs
+# however the presets are pretty much fine and should be working for most distributions
 BACKUPDIR="/root/.etcbackup/"
 COMPAREDIR="/root/.etccomp/"
 EXCLUDEFILE="/root/.etcbackup/excludes"
@@ -116,12 +117,15 @@ fi
 
 for e in ${EXCLUDES}	
 	do
-		if [ ! -e /etc/$e ]
+		# test whether we have any files of a matching pattern
+		# if no pattern where matched we dont add this to the exlude file
+		is_valid_exclude=$(ls /etc/$e &> /dev/null && echo "yes"|| echo "no")
+		if [ "$is_vaild_exclude" == "no" ]
 			then
-				echo "file $e does not exist"
+				echo "$e does not match any file"
 				continue
 		fi
-		echo "/$e" >> $EXCLUDEFILE
+			echo "/$e" >> $EXCLUDEFILE
 	done
 	
 }
@@ -800,8 +804,9 @@ exit 0
 # -s we need to have a status option
 
 
-# Bug:
+# Bugs:
 # having german umlaute in datafiles gets data not to be commited
 # exluding a file by describing the absolute path does not work
-
-
+# when using exclude, allready added exlude patterns will get added again
+# last when using -e with resolv.conf.* as argument
+# when using -b option and a file was excluded or deleted etckeeper does sometimes not recognize this 
