@@ -255,15 +255,18 @@ fi
 
 exit 0
 
-#BUG: When passed !! as an argument the script will excecute the last command in bash an tail this command
+# BUGS: 
+# When passed !! as an argument the script will excecute the last command in bash an tail this command
+# Marking multiple lines as done is broken. instead the line gets marked twice.
 
-#TODO: disable the noclobber option if this was enabled
-#calling two or more options at once does not make any sense	
-#give tasks a priority and sort them regarding to their priority
-#get done entries to the bottom of the list and undone back up to the head 
-#option:
-#-s can only use to show just lines matching a pattern
-#check whether an entry exists. first check for noninteger values in users input than check wheterh such line exists
+# TODO: disable the noclobber option if this was enabled
+# calling two or more options at once does not make any sense	
+# give tasks a priority and sort them regarding to their priority
+# get done entries to the bottom of the list and undone back up to the head 
+# option:
+# -s can only use to show just lines matching a pattern
+# check whether an entry exists. first check for noninteger values in users input than check wheterh such line exists
+
 ###Feature Request by SadoneY:
 #highlight the importence of entries by using different collors:
 #done entires are colored and shown in green normal and flagged with -x
