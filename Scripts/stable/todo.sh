@@ -21,7 +21,7 @@ if [ ! -e $BAK ]
 fi
 }
 
-
+# This function checks for not used lines
 test_line()
 {
 for c in ${check_args[@]}
@@ -42,6 +42,58 @@ for c in ${check_args[@]}
 		fi
 	done
 }
+
+# This function sorts the arguents in descending order
+# This is needed to fix a bug causing multiple lines mark to fail if the last lines weere one of the arguemnts
+sort_args()
+{
+# first we need to create the array from parsed arguments
+index=0
+tmp_array=$(echo ${args_x[@]})
+for element in ${args_x[@]}	
+	do
+		args_x[$index]=$element
+		index=$((index+1))
+	done
+	
+# bubblesort
+# TODO: Note bubblesort is not the best algorithm for sorting but is the easiest one to write
+# In This we assume that a list should have slightly less than a 100 lines. therefore bubblesort will do
+
+# when lengths of args is 1 we do not need to sort
+if  [ ${#args_x[@]} -gt 1 ]
+	then
+		k=1
+		for i in ${args_x[@]}
+			do
+				if [ $k -eq ${#args_x[@]} ]
+					then
+						break
+					else
+						declare -i stop=${#args_x[@]}
+
+						for (( j=$((k-1)); $j < $stop; j=j+1 ))
+							do
+								if [ ${args_x[$(($k-1))]} -gt ${args_x[$j]}  ]
+									then
+										continue
+									else
+										a=${args_x[$(($k-1))]}
+										b=${args_x[$j]}
+										args_x[$((k-1))]=$b
+										args_x[$j]=$a
+								fi		
+							done	
+
+				fi
+			k=$((k+1))
+			done
+fi			
+
+export args_x
+return 0
+}
+
 
 add_entry()
 {
@@ -105,27 +157,38 @@ sed -i ${OPTARG},${OPTARG}s_"${ORIG_ENTRY}"_"${ENTRY}"_ $TODO_LIST_FILE
 mark_entry()
 {
 #TODO:
-#check whether entry is marked corectly
+#check whether entry was unmarked 
 
 #we are setting a new variable
 args_x=$(echo "$OPTARG ${args[*]}")	
 check_args=$(echo "${args_x[*]}")
 test_line
-#loop over the entries
+# fix for broken mark function
+# thanks to sebas who gave the crucial hint on this
+sort_args args_x
+
+#TODO: 
+#needs to sort lines in descending order
+#than write an execption that checks 
+
 for i in ${args_x[@]}
 	do
+
 		sed -i ${i},${i}s_'\[o\]'_'\[x\]'_ $TODO_LIST_FILE 
 		head -n $i $TODO_LIST_FILE|tail -1
 		ENTRY="$(sed -n ${i},${i}p $TODO_LIST_FILE)"
+
 		sed -i ${i},${i}d $TODO_LIST_FILE
 		echo "${ENTRY[*]}" >> $TODO_LIST_FILE					
 	done
+
+
 }
 
 unmark_entry()
 {
 #TODO: 
-#check whether entry is marked corectly
+#check whether entry was marked 
 
 #we are setting a new varibale
 args_u=$(echo "$OPTARG ${args[*]}")
@@ -163,6 +226,9 @@ sed -i '/.* --> \[x\]/d' $TODO_LIST_FILE
 help_me()
 {
 echo "$0 is a script for easyly maintianing a todo list"
+echo "Please report bugs for this script if you find any."
+echo "Please do not aks for new features. I wont implement them. "
+echo "If you need any new features, feel free to fork this script and implement them yourself."
 echo "-a: add a new entry to the todo list. Example: todo -a \"write an entry\""
 echo "-s: show all the entries in the todo list. (default if no option was passed)" 
 echo "-o: show all open entries in the todo list [o]"
@@ -257,22 +323,15 @@ exit 0
 
 # BUGS: 
 # When passed !! as an argument the script will excecute the last command in bash an tail this command
-# Marking multiple lines as done is broken. instead the line gets marked twice.
 
 # TODO: disable the noclobber option if this was enabled
 # calling two or more options at once does not make any sense	
 # give tasks a priority and sort them regarding to their priority
-# get done entries to the bottom of the list and undone back up to the head 
+# get done entries to the bottom of the list and undone back up to the head
 # option:
 # -s can only use to show just lines matching a pattern
 # check whether an entry exists. first check for noninteger values in users input than check wheterh such line exists
 
-###Feature Request by SadoneY:
-#highlight the importence of entries by using different collors:
-#done entires are colored and shown in green normal and flagged with -x
-#open normal entries with no priority are uncolered and bold [o]
-#open important entries are colored yellow and bold and flagged with -i [i]
-#open very important entries are colored red and bold and flagged with -I [I]
-#unmark entries like allways with -u
-#Show important with -e only importent and -E only important and very important
-#than sort them in this apperance I i o x or show them in reverse order -S
+#Please report Bugs on this script to me
+#Please dont ask for new features. i will not implemnet any of them. 
+#if you need new featues feel free to fork this script
