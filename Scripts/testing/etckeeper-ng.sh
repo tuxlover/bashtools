@@ -1,19 +1,16 @@
 #!/bin/bash
 
 # etckeeper-ng
-# will be renamed to fskeeper 
 
-# change these values acording to your needs
-# however the presets are pretty much fine and should be working for most distributions
-BACKUPDIR="/root/.etcbackup/"
-COMPAREDIR="/root/.etccomp/"
-EXCLUDEFILE="/root/.etcbackup/excludes"
-LOGFILE="/root/keeper.log"
+#the locatin of the configuration file
+source /etc/keeper.conf
 
 
 # This Programm should be able to backup and restore a complete etc-tree
 # It uses git and rsync to archive this
 # After backup has completed a complete restore should easy be possible 
+#
+
 
 # WARNING: work in progress. for details read the todo section on the bottom of this script
 
@@ -106,8 +103,6 @@ fi
 # function to write exclude patterns to a file
 exclude()
 {
-check_root
-check_tools
 EXCLUDES=$(echo "$OPTARG $args")
 
 if [ ! -d $BACKUPDIR ]
@@ -133,8 +128,6 @@ for e in ${EXCLUDES}
 #do the initial backup
 initial_git()
 {
-check_root
-check_tools
 
 DATE=$(date +%F-%H-%M)
 
@@ -202,8 +195,6 @@ backup_git_single()
 {
 DATE=$(date +%F-%H-%M)
 git_return=0
-check_root
-check_tools
 # this option requires an argument so write a check whether $OPTARG is NULL and has a valid value
 # a valid value is a file or a path in one of the configured directories
 
@@ -280,8 +271,6 @@ git checkout master || return 1
 # to a branched backup
 backup_git()
 {
-check_root
-check_tools
 
 DATE=$(date +%F-%H-%M)
 #check if the initial backup exists
@@ -743,13 +732,16 @@ until [ $count == 0  ]
 
 list_git()
 {
-check_root
-check_tools
 
 cd $BACKUPDIR 2> /dev/null || return 1
 git branch -a
 PAGER=cat git log
 }
+
+#check functions gets executed before doing anything else
+check_root
+check_tools
+
 
 #options starts here
 while getopts ibcClhe:f: opt
@@ -782,14 +774,15 @@ shift `expr $OPTIND - 1`
 exit 0
 
 # Todo:
-# do the validation checks like if we have installed certain  programs, if we are root before readng the options
 # report of changed files in diff report file when found in function compare
+# add cronjob functionality to do checks in regular intervalls
 # use a config file for configuring how etckeeper behaves
 # dont remove exlcudefile when reinitializing with -i
 # The restore option is still broken
 # add a comment funtion if you only need to comment your work for example if you changed files which where exlcluded by excludefile
 # make fskeeper use an external config file which gets sourced 
 # make the config file options work
+#using multiple backups
 # option -s to list excludes, -d to delete excludes and -E to edit excludes 
 #-b option
 # Write checksums for excluded files
@@ -802,10 +795,16 @@ exit 0
 # check if the argument is an etc file
 # -u option to update a repository 
 # -s we need to have a status option
+# write a simple manpage for this program
+# package the program
+# get it as official package
 
 
 # Bugs:
-# having german umlaute in datafiles gets data not to be commited
-# exluding a file by describing the absolute path does not work
-# when using exclude, allready added exlude patterns will get added again
-# when using -b option and a file was excluded or deleted etckeeper does sometimes not recognize this 
+# #1 having german umlaute in datafiles gets data not to be commited
+# #2 exluding a file by describing the absolute path does not work
+# #3 when using exclude, allready added exlude patterns will get added again
+# #4 when using -b option and a file was excluded or deleted etckeeper does sometimes not recognize this 
+# #5 when using -f somtimes getting this:
+#fatal: Not a git repository (or any parent up to mount parent )
+#Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
