@@ -1,0 +1,19 @@
+# Service file for use with systemd
+
+[Unit]
+Description=NIC runs with faked mac adress
+Requires=network.target 
+Before=network.target
+After=udev.service
+IgnoreOnSnapshot=true
+AllowIsolate=true
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/local/bin/fakemac.sh start
+ExecStop=/usr/local/bin/fakemac.sh stop
+
+[Install]
+WantedBy=multi-user.target 
+Also=network.target
