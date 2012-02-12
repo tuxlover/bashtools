@@ -2,9 +2,8 @@
 
 [Unit]
 Description=NIC runs with faked mac adress
-Requires=network.target 
-Before=network.target
-After=udev.service
+Requires=network.target avahi-daemon.service
+Before=avahi-daemon.service
 IgnoreOnSnapshot=true
 AllowIsolate=true
 
