@@ -1,9 +1,9 @@
 # Service file for use with systemd
 
 [Unit]
-Description=NIC runs with faked mac adress
+Description=NICs are running with faked mac adresses
 Requires=network.target avahi-daemon.service
-Before=avahi-daemon.service
+Before=dbus.service
 IgnoreOnSnapshot=true
 AllowIsolate=true
 
