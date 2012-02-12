@@ -332,6 +332,7 @@ exit 0
 # -s can only use to show just lines matching a pattern
 # check whether an entry exists. first check for noninteger values in users input than check wheterh such line exists
 # Whenever adding a fresh entry, whether done with -u or -a, the entry gets to the first line. 
+# marked entries could be synched with evolution or at least formated in a format evolution understands
 
 #Please report Bugs on this script to me
 #Please dont ask for new features. i will not implemnet any of them. 
